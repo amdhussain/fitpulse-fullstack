@@ -1,0 +1,97 @@
+import { lazy } from "react";
+import { createBrowserRouter } from "react-router-dom";
+import { MainLayout } from "../components/layout";
+import { DashboardLayout } from "../components/dashboard";
+import { RouteSuspense, DashboardSuspense } from "./RouteSuspense";
+
+const Home = lazy(() => import("../pages/Home"));
+const Login = lazy(() => import("../pages/Login"));
+const NotFound = lazy(() => import("../pages/NotFound"));
+
+const AboutPage = lazy(() => import("../pages/public/AboutPage"));
+const ServicesPage = lazy(() => import("../pages/public/ServicesPage"));
+const ServiceDetail = lazy(() => import("../pages/public/ServiceDetail"));
+const TrainersPage = lazy(() => import("../pages/public/TrainersPage"));
+const TrainerDetail = lazy(() => import("../pages/public/TrainerDetail"));
+const MembershipPage = lazy(() => import("../pages/public/MembershipPage"));
+const MembershipDetail = lazy(() => import("../pages/public/MembershipDetail"));
+const GalleryPage = lazy(() => import("../pages/public/GalleryPage"));
+const GalleryDetail = lazy(() => import("../pages/public/GalleryDetail"));
+const BookingPage = lazy(() => import("../pages/public/BookingPage"));
+const ContactPage = lazy(() => import("../pages/public/ContactPage"));
+const FitnessToolsHub = lazy(() => import("../pages/public/FitnessToolsHub"));
+const BMIPage = lazy(() => import("../pages/public/BMIPage"));
+const BMRPage = lazy(() => import("../pages/public/BMRPage"));
+const CaloriePage = lazy(() => import("../pages/public/CaloriePage"));
+const IdealWeightPage = lazy(() => import("../pages/public/IdealWeightPage"));
+const WaterPage = lazy(() => import("../pages/public/WaterPage"));
+const ProteinPage = lazy(() => import("../pages/public/ProteinPage"));
+const BodyFatPage = lazy(() => import("../pages/public/BodyFatPage"));
+
+const Overview = lazy(() => import("../pages/dashboard/Overview"));
+const HeroManagement = lazy(() => import("../pages/dashboard/HeroManagement"));
+const AboutManagement = lazy(() => import("../pages/dashboard/AboutManagement"));
+const ServicesManagement = lazy(() => import("../pages/dashboard/ServicesManagement"));
+const FooterManagement = lazy(() => import("../pages/dashboard/FooterManagement"));
+const ProfileManagement = lazy(() => import("../pages/dashboard/ProfileManagement"));
+const TrainersManagement = lazy(() => import("../pages/dashboard/TrainersManagement"));
+const MembershipManagement = lazy(() => import("../pages/dashboard/MembershipManagement"));
+const TestimonialsManagement = lazy(() => import("../pages/dashboard/TestimonialsManagement"));
+const GalleryManagement = lazy(() => import("../pages/dashboard/GalleryManagement"));
+const ContactManagement = lazy(() => import("../pages/dashboard/ContactManagement"));
+const WebsiteSettings = lazy(() => import("../pages/dashboard/WebsiteSettings"));
+const NotificationCenter = lazy(() => import("../pages/dashboard/NotificationCenter"));
+const FitnessToolsManagement = lazy(() => import("../pages/dashboard/FitnessToolsManagement"));
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <MainLayout />,
+    children: [
+      { index: true, element: <RouteSuspense><Home /></RouteSuspense> },
+      { path: "login", element: <RouteSuspense><Login /></RouteSuspense> },
+      { path: "about", element: <RouteSuspense><AboutPage /></RouteSuspense> },
+      { path: "services", element: <RouteSuspense><ServicesPage /></RouteSuspense> },
+      { path: "services/:id", element: <RouteSuspense><ServiceDetail /></RouteSuspense> },
+      { path: "trainers", element: <RouteSuspense><TrainersPage /></RouteSuspense> },
+      { path: "trainers/:id", element: <RouteSuspense><TrainerDetail /></RouteSuspense> },
+      { path: "membership", element: <RouteSuspense><MembershipPage /></RouteSuspense> },
+      { path: "membership/:id", element: <RouteSuspense><MembershipDetail /></RouteSuspense> },
+      { path: "gallery", element: <RouteSuspense><GalleryPage /></RouteSuspense> },
+      { path: "gallery/:id", element: <RouteSuspense><GalleryDetail /></RouteSuspense> },
+      { path: "booking", element: <RouteSuspense><BookingPage /></RouteSuspense> },
+      { path: "contact", element: <RouteSuspense><ContactPage /></RouteSuspense> },
+      { path: "fitness-tools", element: <RouteSuspense><FitnessToolsHub /></RouteSuspense> },
+      { path: "fitness-tools/bmi", element: <RouteSuspense><BMIPage /></RouteSuspense> },
+      { path: "fitness-tools/bmr", element: <RouteSuspense><BMRPage /></RouteSuspense> },
+      { path: "fitness-tools/calorie", element: <RouteSuspense><CaloriePage /></RouteSuspense> },
+      { path: "fitness-tools/ideal-weight", element: <RouteSuspense><IdealWeightPage /></RouteSuspense> },
+      { path: "fitness-tools/water", element: <RouteSuspense><WaterPage /></RouteSuspense> },
+      { path: "fitness-tools/protein", element: <RouteSuspense><ProteinPage /></RouteSuspense> },
+      { path: "fitness-tools/body-fat", element: <RouteSuspense><BodyFatPage /></RouteSuspense> },
+      { path: "*", element: <RouteSuspense><NotFound /></RouteSuspense> },
+    ],
+  },
+  {
+    path: "/dashboard",
+    element: <DashboardLayout />,
+    children: [
+      { index: true, element: <DashboardSuspense><Overview /></DashboardSuspense> },
+      { path: "profile", element: <DashboardSuspense><ProfileManagement /></DashboardSuspense> },
+      { path: "hero", element: <DashboardSuspense><HeroManagement /></DashboardSuspense> },
+      { path: "about", element: <DashboardSuspense><AboutManagement /></DashboardSuspense> },
+      { path: "services", element: <DashboardSuspense><ServicesManagement /></DashboardSuspense> },
+      { path: "trainers", element: <DashboardSuspense><TrainersManagement /></DashboardSuspense> },
+      { path: "membership", element: <DashboardSuspense><MembershipManagement /></DashboardSuspense> },
+      { path: "testimonials", element: <DashboardSuspense><TestimonialsManagement /></DashboardSuspense> },
+      { path: "gallery", element: <DashboardSuspense><GalleryManagement /></DashboardSuspense> },
+      { path: "contact", element: <DashboardSuspense><ContactManagement /></DashboardSuspense> },
+      { path: "footer", element: <DashboardSuspense><FooterManagement /></DashboardSuspense> },
+      { path: "settings", element: <DashboardSuspense><WebsiteSettings /></DashboardSuspense> },
+      { path: "notifications", element: <DashboardSuspense><NotificationCenter /></DashboardSuspense> },
+      { path: "fitness-tools", element: <DashboardSuspense><FitnessToolsManagement /></DashboardSuspense> },
+    ],
+  },
+]);
+
+export default router;

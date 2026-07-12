@@ -1,0 +1,58 @@
+// ─── Prisma Schema ─────────────────────────────────────────
+// FitPulse Database Configuration
+//
+// This file defines the database schema for the FitPulse platform.
+// Models will be added here as modules are built.
+//
+// ─── How to use ────────────────────────────────────────────
+//   npm run prisma:generate   - Regenerate Prisma Client
+//   npm run prisma:migrate    - Run pending migrations
+//   npm run prisma:studio     - Open Prisma Studio
+//   npm run prisma:reset      - Reset database and re-run migrations
+//
+// ─── Database ──────────────────────────────────────────────
+// MySQL is configured via the DATABASE_URL environment variable.
+// The connection URL is defined in prisma.config.ts (not here).
+// Format: mysql://USER:PASSWORD@HOST:PORT/DATABASE
+//
+// Example (.env):
+//   DATABASE_URL=mysql://root:password@localhost:3306/fitpulse_dev
+//
+// ─── Future Modules ────────────────────────────────────────
+// When building a new module, add its models here:
+//   - Users
+//   - Trainers
+//   - Classes
+//   - Bookings
+//   - Payments
+//   - Community
+//   - CMS
+//   - Settings
+// ───────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ─── Models ────────────────────────────────────────────────
+// Add your models below. Example:
+//
+// model User {
+//   id        String   @id @default(cuid())
+//   email     String   @unique
+//   firstName String
+//   lastName  String
+//   role      Role     @default(MEMBER)
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
+//
+// enum Role {
+//   MEMBER
+//   TRAINER
+//   ADMIN
+// }

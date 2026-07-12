@@ -1,0 +1,14 @@
+export { default as Overview } from "./Overview";
+export { default as HeroManagement } from "./HeroManagement";
+export { default as AboutManagement } from "./AboutManagement";
+export { default as ServicesManagement } from "./ServicesManagement";
+export { default as FooterManagement } from "./FooterManagement";
+export { default as ProfileManagement } from "./ProfileManagement";
+export { default as TrainersManagement } from "./TrainersManagement";
+export { default as MembershipManagement } from "./MembershipManagement";
+export { default as TestimonialsManagement } from "./TestimonialsManagement";
+export { default as GalleryManagement } from "./GalleryManagement";
+export { default as ContactManagement } from "./ContactManagement";
+export { default as WebsiteSettings } from "./WebsiteSettings";
+export { default as NotificationCenter } from "./NotificationCenter";
+export { default as FitnessToolsManagement } from "./FitnessToolsManagement";
