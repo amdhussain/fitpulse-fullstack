@@ -9,7 +9,7 @@ function EmptyState({ pageKey = "dashboard", message = "No items yet", action })
       <div className={`p-5 rounded-2xl ${theme.iconBg} mb-4`}>
         <FiInbox className={`w-10 h-10 ${theme.emptyIcon}`} />
       </div>
-      <p className="text-base-content/60 font-medium">{message}</p>
+      <p className="text-gray-500 font-medium">{message}</p>
       {action && <div className="mt-4">{action}</div>}
     </div>
   );

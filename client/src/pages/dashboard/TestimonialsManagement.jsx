@@ -17,6 +17,7 @@ import StatCard from "../../components/dashboard/StatCard";
 import DataTable from "../../components/dashboard/DataTable";
 import CmsModal from "../../components/dashboard/CmsModal";
 import CmsBadge from "../../components/dashboard/CmsBadge";
+import ConfirmModal from "../../components/dashboard/ConfirmModal";
 import { getInputClass } from "../../lib/dashboardHelpers";
 import {
   getTestimonials,
@@ -60,7 +61,7 @@ function StarRating({ rating, size = "w-3.5 h-3.5", interactive = false, onChang
           >
             <FiStar
               className={`${size} transition-colors duration-150 ${
-                filled ? "text-yellow-400 fill-yellow-400" : "text-white/15"
+                filled ? "text-yellow-400 fill-yellow-400" : "text-gray-400"
               }`}
             />
           </button>
@@ -78,6 +79,7 @@ function TestimonialsManagement() {
   const [form, setForm] = useState(emptyForm);
   const [saved, setSaved] = useState(false);
   const [viewItem, setViewItem] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const inputClass = getInputClass("pink");
   const stats = getTestimonialStats(testimonials);
 
@@ -111,6 +113,7 @@ function TestimonialsManagement() {
 
   const handleDelete = (id) => {
     setTestimonials((prev) => prev.filter((t) => t.id !== id));
+    setDeleteTarget(null);
   };
 
   const toggleFeatured = (id) => {
@@ -157,7 +160,7 @@ function TestimonialsManagement() {
       label: "Photo",
       width: "w-16",
       render: (_, item) => (
-        <div className="w-10 h-10 rounded-full overflow-hidden bg-pink-500/10 shrink-0">
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-pink-50 dark:bg-pink-900/30 shrink-0">
           {item.customerPhoto ? (
             <img
               src={item.customerPhoto}
@@ -167,7 +170,7 @@ function TestimonialsManagement() {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <FiUser className="w-4 h-4 text-pink-400/40" />
+                        <FiUser className="w-4 h-4 text-pink-300 dark:text-pink-600" />
             </div>
           )}
         </div>
@@ -179,12 +182,12 @@ function TestimonialsManagement() {
       render: (_, item) => (
         <div>
           <div className="flex items-center gap-2">
-            <p className="font-medium text-white/80">{item.customerName}</p>
+            <p className="font-medium text-gray-700 dark:text-gray-200">{item.customerName}</p>
             {item.featured && (
               <FiStar className="w-3 h-3 text-amber-400 fill-amber-400" />
             )}
           </div>
-          <p className="text-xs text-white/30">{item.profession}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">{item.profession}</p>
         </div>
       ),
     },
@@ -197,7 +200,7 @@ function TestimonialsManagement() {
       key: "review",
       label: "Review",
       render: (val) => (
-        <p className="text-xs text-white/50 line-clamp-2 max-w-[220px]">
+        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 max-w-[220px]">
           &ldquo;{val}&rdquo;
         </p>
       ),
@@ -206,7 +209,7 @@ function TestimonialsManagement() {
       key: "membership",
       label: "Membership",
       render: (val) => (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-pink-500/10 text-pink-400 text-[11px] font-semibold">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 text-[11px] font-semibold">
           {val}
         </span>
       ),
@@ -224,8 +227,8 @@ function TestimonialsManagement() {
             }}
             className={`p-1 rounded-md transition-colors ${
               item.featured
-                ? "bg-amber-500/10 text-amber-400"
-                : "bg-white/5 text-white/20 hover:text-white/40"
+                ? "bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400"
+                : "bg-gray-50 dark:bg-gray-700 text-gray-400 dark:text-gray-500 hover:text-gray-400"
             }`}
             title={item.featured ? "Remove from featured" : "Mark as featured"}
           >
@@ -294,6 +297,8 @@ function TestimonialsManagement() {
         onAdd={openAdd}
         addLabel="Add Testimonial"
         loading={loading}
+        onRefresh={() => {}}
+        onExport={() => {}}
         actions={(item) => (
           <>
             <button
@@ -301,7 +306,7 @@ function TestimonialsManagement() {
                 e.stopPropagation();
                 setViewItem(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-pink-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 hover:text-pink-600 transition-colors"
               aria-label={`View ${item.customerName}`}
             >
               <FiEye className="w-4 h-4" />
@@ -311,7 +316,7 @@ function TestimonialsManagement() {
                 e.stopPropagation();
                 openEdit(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-pink-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 hover:text-pink-600 transition-colors"
               aria-label={`Edit ${item.customerName}`}
             >
               <FiEdit2 className="w-4 h-4" />
@@ -319,9 +324,9 @@ function TestimonialsManagement() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleDelete(item.id);
+                setDeleteTarget(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-red-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 hover:text-red-600 transition-colors"
               aria-label={`Delete ${item.customerName}`}
             >
               <FiTrash2 className="w-4 h-4" />
@@ -354,7 +359,7 @@ function TestimonialsManagement() {
               />
 
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Customer Name *
                 </label>
                 <input
@@ -370,7 +375,7 @@ function TestimonialsManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Profession
                 </label>
                 <input
@@ -385,7 +390,7 @@ function TestimonialsManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Rating
                 </label>
                 <StarRating
@@ -397,7 +402,7 @@ function TestimonialsManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Review *
                 </label>
                 <textarea
@@ -413,7 +418,7 @@ function TestimonialsManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Membership
                 </label>
                 <select
@@ -439,9 +444,9 @@ function TestimonialsManagement() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, featured: e.target.checked }))
                   }
-                  className="w-4 h-4 rounded-md border border-white/20 bg-white/5 checked:bg-pink-500 checked:border-pink-500 transition-all duration-200 cursor-pointer accent-pink-500"
+                  className="w-4 h-4 rounded-md border border-gray-200 bg-gray-50 checked:bg-pink-500 checked:border-pink-500 transition-all duration-200 cursor-pointer accent-pink-500"
                 />
-                <span className="text-sm text-white/50 group-hover:text-white/70 transition-colors">
+                <span className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
                   Featured Review
                 </span>
               </label>
@@ -449,18 +454,18 @@ function TestimonialsManagement() {
 
             {/* RIGHT: Preview */}
             <div className="space-y-4">
-              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                 Preview
               </p>
-              <div className="rounded-xl border border-pink-500/10 bg-[#0f0f15] p-5 space-y-4">
+              <div className="rounded-xl border border-pink-100 dark:border-pink-800/50 bg-gray-50 dark:bg-gray-700/50 p-5 space-y-4">
                 <StarRating rating={form.rating} size="w-4 h-4" />
 
-                <p className="text-sm text-white/60 italic leading-relaxed">
+                <p className="text-sm text-gray-500 dark:text-gray-400 italic leading-relaxed">
                   &ldquo;{form.review || "The customer review will appear here..."}&rdquo;
                 </p>
 
-                <div className="flex items-center gap-3 pt-3 border-t border-white/5">
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-pink-500/10 shrink-0">
+                <div className="flex items-center gap-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+        <div className="w-10 h-10 rounded-full overflow-hidden bg-pink-50 dark:bg-pink-900/30 shrink-0">
                     {form.customerPhoto ? (
                       <img
                         src={form.customerPhoto}
@@ -469,15 +474,15 @@ function TestimonialsManagement() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <FiUser className="w-4 h-4 text-pink-400/40" />
+              <FiUser className="w-4 h-4 text-pink-300 dark:text-pink-600" />
                       </div>
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white/80">
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                       {form.customerName || "Customer Name"}
                     </p>
-                    <p className="text-xs text-white/30">
+                    <p className="text-xs text-gray-400 dark:text-gray-500">
                       {form.profession || "Profession"}
                     </p>
                   </div>
@@ -485,12 +490,12 @@ function TestimonialsManagement() {
 
                 <div className="flex items-center gap-2 flex-wrap">
                   {form.membership && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-pink-500/10 text-pink-400 text-[11px] font-semibold">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 text-[11px] font-semibold">
                       {form.membership}
                     </span>
                   )}
                   {form.featured && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-bold">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold">
                       <FiStar className="w-2.5 h-2.5 fill-current" />
                       Featured
                     </span>
@@ -500,7 +505,7 @@ function TestimonialsManagement() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 pt-5 mt-5 border-t border-white/5">
+          <div className="flex items-center gap-3 pt-5 mt-5 border-t border-gray-100 dark:border-gray-700">
             <Button type="submit" variant="pink" size="md">
               {editing ? "Update Testimonial" : "Save Testimonial"}
             </Button>
@@ -533,12 +538,12 @@ function TestimonialsManagement() {
           <div className="space-y-5">
             <StarRating rating={viewItem.rating} size="w-5 h-5" />
 
-            <blockquote className="text-base text-white/60 italic leading-relaxed border-l-2 border-pink-500/30 pl-4">
+            <blockquote className="text-base text-gray-500 dark:text-gray-400 italic leading-relaxed border-l-2 border-pink-200 dark:border-pink-800 pl-4">
               &ldquo;{viewItem.review}&rdquo;
             </blockquote>
 
-            <div className="flex items-center gap-4 pt-4 border-t border-white/5">
-              <div className="w-12 h-12 rounded-full overflow-hidden bg-pink-500/10 shrink-0">
+            <div className="flex items-center gap-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-pink-50 dark:bg-pink-900/30 shrink-0">
                 {viewItem.customerPhoto ? (
                   <img
                     src={viewItem.customerPhoto}
@@ -547,40 +552,48 @@ function TestimonialsManagement() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <FiUser className="w-5 h-5 text-pink-400/40" />
+                    <FiUser className="w-5 h-5 text-pink-300 dark:text-pink-600" />
                   </div>
                 )}
               </div>
               <div>
-                <p className="text-base font-bold text-white/80">
+                <p className="text-base font-bold text-gray-700 dark:text-gray-200">
                   {viewItem.customerName}
                 </p>
-                <p className="text-xs text-white/40">{viewItem.profession}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">{viewItem.profession}</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-white/5">
+            <div className="flex items-center gap-2 flex-wrap pt-3 border-t border-gray-100 dark:border-gray-700">
               {viewItem.membership && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-pink-500/10 text-pink-400 text-[11px] font-semibold">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-pink-50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 text-[11px] font-semibold">
                   {viewItem.membership}
                 </span>
               )}
               <CmsBadge status={viewItem.status} label={viewItem.status} />
               {viewItem.featured && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-bold">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold">
                   <FiStar className="w-2.5 h-2.5 fill-current" />
                   Featured
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-1.5 text-white/30 pt-3 border-t border-white/5">
+            <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500 pt-3 border-t border-gray-100 dark:border-gray-700">
               <FiClock className="w-3 h-3" />
               <span className="text-xs">Updated {viewItem.updatedAt}</span>
             </div>
           </div>
         )}
       </CmsModal>
+
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => handleDelete(deleteTarget?.id)}
+        title="Delete Testimonial"
+        message={`Are you sure you want to delete the testimonial from ${deleteTarget?.customerName}? This action cannot be undone.`}
+      />
     </motion.div>
   );
 }

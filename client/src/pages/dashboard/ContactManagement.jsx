@@ -235,18 +235,18 @@ function ContactManagement() {
       key: "name",
       label: "Contact",
       render: (_, item) => (
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center shrink-0">
-            <FiUser className="w-4 h-4 text-red-400/60" />
+          <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+            <FiUser className="w-4 h-4 text-red-300 dark:text-red-600" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <p className="font-medium text-white/80">{item.name}</p>
+              <p className="font-medium text-gray-700 dark:text-gray-200">{item.name}</p>
               {item.status === "unread" && (
                 <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
               )}
             </div>
-            <p className="text-xs text-white/30 truncate">{item.email}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{item.email}</p>
           </div>
         </div>
       ),
@@ -256,8 +256,8 @@ function ContactManagement() {
       label: "Subject",
       render: (_, item) => (
         <div className="min-w-0">
-          <p className="font-medium text-white/70">{item.subject}</p>
-          <p className="text-xs text-white/30 truncate max-w-[200px]">
+          <p className="font-medium text-gray-600 dark:text-gray-300">{item.subject}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 truncate max-w-[200px]">
             {item.message}
           </p>
         </div>
@@ -267,7 +267,7 @@ function ContactManagement() {
       key: "date",
       label: "Date",
       render: (val) => (
-        <div className="flex items-center gap-1.5 text-white/40">
+        <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
           <FiClock className="w-3 h-3 shrink-0" />
           <span className="text-xs">{formatDate(val)}</span>
         </div>
@@ -330,7 +330,7 @@ function ContactManagement() {
         {stats.unread > 0 && (
           <button
             onClick={handleMarkAllRead}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-medium hover:bg-red-500/15 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs font-medium hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
           >
             <FiCheck className="w-3.5 h-3.5" />
             Mark All as Read ({stats.unread})
@@ -361,7 +361,7 @@ function ContactManagement() {
                 handleMarkAsRead(item.id);
                 setViewItem(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-red-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 hover:text-red-600 transition-colors"
               aria-label={`View message from ${item.name}`}
             >
               <FiEye className="w-4 h-4" />
@@ -371,7 +371,7 @@ function ContactManagement() {
                 e.stopPropagation();
                 setConfirmDelete(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-red-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 hover:text-red-600 transition-colors"
               aria-label={`Delete message from ${item.name}`}
             >
               <FiTrash2 className="w-4 h-4" />
@@ -392,13 +392,13 @@ function ContactManagement() {
       >
         {viewItem && (
           <div className="space-y-6">
-            <div className="flex items-start gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/5">
-              <div className="w-14 h-14 rounded-full bg-red-500/10 flex items-center justify-center shrink-0">
-                <FiUser className="w-6 h-6 text-red-400/60" />
+            <div className="flex items-start gap-4 p-4 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700">
+              <div className="w-14 h-14 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+                <FiUser className="w-6 h-6 text-red-300 dark:text-red-600" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-1">
-                  <h3 className="text-lg font-bold text-white">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {viewItem.name}
                   </h3>
                   <CmsBadge
@@ -407,16 +407,16 @@ function ContactManagement() {
                   />
                 </div>
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-2">
-                  <div className="flex items-center gap-1.5 text-sm text-white/40">
-                    <FiMail className="w-3.5 h-3.5 text-red-400/50" />
+                  <div className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
+                    <FiMail className="w-3.5 h-3.5 text-red-300 dark:text-red-600" />
                     <span>{viewItem.email}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-sm text-white/40">
-                    <FiPhone className="w-3.5 h-3.5 text-red-400/50" />
+                  <div className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
+                    <FiPhone className="w-3.5 h-3.5 text-red-300 dark:text-red-600" />
                     <span>{viewItem.phone}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-sm text-white/40">
-                    <FiCalendar className="w-3.5 h-3.5 text-red-400/50" />
+                  <div className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500">
+                    <FiCalendar className="w-3.5 h-3.5 text-red-300 dark:text-red-600" />
                     <span>{formatDate(viewItem.date)}</span>
                   </div>
                 </div>
@@ -435,8 +435,8 @@ function ContactManagement() {
                     }
                     className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-medium transition-all duration-200 ${
                       isActive
-                        ? "bg-red-500/15 border-red-500/30 text-red-400"
-                        : "bg-white/[0.02] border-white/5 text-white/40 hover:border-red-500/20 hover:text-white/60"
+                        ? "bg-red-100 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400"
+                        : "bg-gray-50 dark:bg-gray-700 border-gray-100 dark:border-gray-600 text-gray-400 dark:text-gray-500 hover:border-red-200 dark:hover:border-red-800 hover:text-gray-600 dark:hover:text-gray-300"
                     }`}
                   >
                     <Icon className="w-3.5 h-3.5 shrink-0" />
@@ -449,17 +449,17 @@ function ContactManagement() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <FiMessageSquare className="w-4 h-4 text-red-400/60" />
-                  <h4 className="text-sm font-semibold text-white/70">
+                  <FiMessageSquare className="w-4 h-4 text-red-300" />
+                  <h4 className="text-sm font-semibold text-gray-600 dark:text-gray-300">
                     {viewItem.subject}
                   </h4>
                 </div>
-                <span className="text-xs text-white/25">
+                <span className="text-xs text-gray-400 dark:text-gray-500">
                   {viewItem.updatedAt}
                 </span>
               </div>
-              <div className="rounded-xl border border-red-500/10 bg-[#0f0f15] p-5">
-                <p className="text-sm text-white/50 leading-relaxed whitespace-pre-line">
+              <div className="rounded-xl border border-red-100 dark:border-red-900/30 bg-gray-50 dark:bg-gray-700/50 p-5">
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed whitespace-pre-line">
                   {viewItem.message}
                 </p>
               </div>
@@ -467,8 +467,8 @@ function ContactManagement() {
 
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <FiSend className="w-4 h-4 text-red-400/60" />
-                <h4 className="text-sm font-semibold text-white/70">
+                <FiSend className="w-4 h-4 text-red-300" />
+                <h4 className="text-sm font-semibold text-gray-600 dark:text-gray-300">
                   Quick Reply
                 </h4>
               </div>
@@ -500,8 +500,8 @@ function ContactManagement() {
               </form>
             </div>
 
-            <div className="flex items-center justify-between pt-3 border-t border-white/5">
-              <div className="flex items-center gap-2 text-xs text-white/20">
+            <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
+              <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
                 <FiArrowRight className="w-3 h-3" />
                 <span>
                   Replying as admin · Response will be sent to{" "}
@@ -533,15 +533,15 @@ function ContactManagement() {
       >
         {confirmDelete && (
           <div className="space-y-5">
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
-              <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
-                <FiTrash2 className="w-5 h-5 text-red-400" />
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+                <FiTrash2 className="w-5 h-5 text-red-600 dark:text-red-400" />
               </div>
               <div>
-                <p className="text-sm font-medium text-white/80">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
                   Delete message from {confirmDelete.name}?
                 </p>
-                <p className="text-xs text-white/40 mt-0.5">
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                   Subject: {confirmDelete.subject}
                 </p>
               </div>

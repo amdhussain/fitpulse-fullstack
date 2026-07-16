@@ -16,6 +16,7 @@ import PageBanner from "../../components/dashboard/PageBanner";
 import StatCard from "../../components/dashboard/StatCard";
 import CmsModal from "../../components/dashboard/CmsModal";
 import CmsBadge from "../../components/dashboard/CmsBadge";
+import ConfirmModal from "../../components/dashboard/ConfirmModal";
 import { getInputClass } from "../../lib/dashboardHelpers";
 import {
   getGalleryImages,
@@ -50,17 +51,17 @@ function GallerySkeleton() {
       {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
         <div
           key={i}
-          className="break-inside-avoid rounded-2xl overflow-hidden border border-white/5 bg-[#12121a]/80"
+          className="break-inside-avoid rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800"
         >
           <div
-            className={`animate-pulse bg-white/5 ${heights[i % 4]}`}
+            className={`animate-pulse bg-gray-100 dark:bg-gray-700/50 ${heights[i % 4]}`}
           />
           <div className="p-4 space-y-3">
             <div className="flex items-center gap-2">
-              <div className="animate-pulse rounded-full bg-white/5 h-5 w-16" />
+              <div className="animate-pulse rounded-full bg-gray-100 dark:bg-gray-700/50 h-5 w-16" />
             </div>
-            <div className="animate-pulse rounded-lg bg-white/5 h-4 w-3/4" />
-            <div className="animate-pulse rounded-lg bg-white/5 h-3 w-1/2" />
+            <div className="animate-pulse rounded-lg bg-gray-100 dark:bg-gray-700/50 h-4 w-3/4" />
+            <div className="animate-pulse rounded-lg bg-gray-100 dark:bg-gray-700/50 h-3 w-1/2" />
           </div>
         </div>
       ))}
@@ -80,16 +81,16 @@ function GalleryCard({ image, index, onView, onEdit, onDelete }) {
       custom={index}
       className="break-inside-avoid mb-4 group"
     >
-      <div className="relative rounded-2xl overflow-hidden border border-white/5 bg-[#12121a]/80 shadow-lg shadow-black/10 hover:shadow-2xl hover:shadow-black/20 transition-all duration-500">
+      <div className="relative rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg shadow-gray-100 dark:shadow-gray-900 hover:shadow-2xl hover:shadow-gray-200/50 dark:hover:shadow-gray-900/50 transition-all duration-500">
         <div className={`relative ${heightClass} overflow-hidden`}>
           {!isLoaded && !hasError && (
-            <div className="absolute inset-0 animate-pulse bg-white/5" />
+            <div className="absolute inset-0 animate-pulse bg-gray-100" />
           )}
 
           {hasError ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/5 gap-2">
-              <FiImage className="w-8 h-8 text-white/10" />
-              <span className="text-xs text-white/20">Failed to load</span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-700/50 gap-2">
+              <FiImage className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+              <span className="text-xs text-gray-400 dark:text-gray-500">Failed to load</span>
             </div>
           ) : (
             <img
@@ -134,13 +135,13 @@ function GalleryCard({ image, index, onView, onEdit, onDelete }) {
             </button>
             <button
               onClick={() => onEdit(image)}
-              className="w-10 h-10 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/25 transition-colors shadow-lg border border-white/20"
+              className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-600 backdrop-blur-sm flex items-center justify-center text-gray-900 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors shadow-lg border border-gray-200 dark:border-gray-500"
               aria-label={`Edit ${image.title}`}
             >
               <FiEdit2 className="w-4 h-4" />
             </button>
             <button
-              onClick={() => onDelete(image.id)}
+              onClick={() => onDelete(image)}
               className="w-10 h-10 rounded-full bg-red-500/80 backdrop-blur-sm flex items-center justify-center text-white hover:bg-red-600 transition-colors shadow-lg"
               aria-label={`Delete ${image.title}`}
             >
@@ -150,11 +151,11 @@ function GalleryCard({ image, index, onView, onEdit, onDelete }) {
         </div>
 
         <div className="p-4">
-          <p className="text-sm font-semibold text-white/80 truncate">
+          <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate">
             {image.title}
           </p>
-          <p className="text-xs text-white/30 mt-1">{image.category}</p>
-          <p className="text-[11px] text-white/20 mt-1">{image.updatedAt}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{image.category}</p>
+          <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">{image.updatedAt}</p>
         </div>
       </div>
     </motion.div>
@@ -169,6 +170,7 @@ function GalleryManagement() {
   const [form, setForm] = useState(emptyForm);
   const [saved, setSaved] = useState(false);
   const [viewItem, setViewItem] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("All");
   const [page, setPage] = useState(1);
@@ -218,6 +220,7 @@ function GalleryManagement() {
 
   const handleDelete = (id) => {
     setImages((prev) => prev.filter((img) => img.id !== id));
+    setDeleteTarget(null);
   };
 
   const handleSubmit = (e) => {
@@ -301,7 +304,7 @@ function GalleryManagement() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
           <div className="relative w-full sm:w-72">
-            <FiGrid className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 hidden" />
+            <FiGrid className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 hidden" />
             <input
               type="text"
               value={search}
@@ -310,7 +313,7 @@ function GalleryManagement() {
               className={`${inputClass} !pl-10`}
             />
             <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -325,8 +328,8 @@ function GalleryManagement() {
               onClick={() => handleFilterChange("All")}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                 filterCategory === "All"
-                  ? "bg-sky-500/20 text-sky-400 border border-sky-500/30"
-                  : "bg-white/5 text-white/40 border border-white/5 hover:bg-white/10 hover:text-white/60"
+                  ? "bg-sky-100 text-sky-600 border border-sky-200"
+                    : "bg-gray-50 dark:bg-gray-700 text-gray-400 dark:text-gray-500 border border-gray-100 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 hover:text-gray-600 dark:hover:text-gray-300"
               }`}
             >
               All
@@ -337,8 +340,8 @@ function GalleryManagement() {
                 onClick={() => handleFilterChange(cat.value)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                   filterCategory === cat.value
-                    ? "bg-sky-500/20 text-sky-400 border border-sky-500/30"
-                    : "bg-white/5 text-white/40 border border-white/5 hover:bg-white/10 hover:text-white/60"
+                    ? "bg-sky-100 text-sky-600 border border-sky-200"
+                  : "bg-gray-50 dark:bg-gray-700 text-gray-400 dark:text-gray-500 border border-gray-100 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 hover:text-gray-600 dark:hover:text-gray-300"
                 }`}
               >
                 {cat.label}
@@ -355,10 +358,10 @@ function GalleryManagement() {
       {loading ? (
         <GallerySkeleton />
       ) : paged.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 rounded-2xl border border-white/5 bg-[#12121a]/60">
-          <FiImage className="w-12 h-12 text-white/10 mb-3" />
-          <p className="text-sm text-white/30 font-medium">No images found</p>
-          <p className="text-xs text-white/15 mt-1">
+        <div className="flex flex-col items-center justify-center py-20 rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+          <FiImage className="w-12 h-12 text-gray-400 dark:text-gray-500 mb-3" />
+          <p className="text-sm text-gray-400 dark:text-gray-500 font-medium">No images found</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
             Try adjusting your search or filter criteria
           </p>
         </div>
@@ -376,7 +379,7 @@ function GalleryManagement() {
               index={i}
               onView={setViewItem}
               onEdit={openEdit}
-              onDelete={handleDelete}
+              onDelete={setDeleteTarget}
             />
           ))}
         </motion.div>
@@ -398,8 +401,8 @@ function GalleryManagement() {
               onClick={() => setPage(p)}
               className={`w-8 h-8 rounded-lg text-xs font-medium transition-all duration-200 ${
                 page === p
-                  ? "bg-sky-500/20 text-sky-400 border border-sky-500/30"
-                  : "text-white/40 hover:bg-white/5 hover:text-white/60"
+                  ? "bg-sky-100 text-sky-600 border border-sky-200"
+                  : "text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300"
               }`}
             >
               {p}
@@ -442,7 +445,7 @@ function GalleryManagement() {
                 color="sky"
               />
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 mb-1.5">
                   Title *
                 </label>
                 <input
@@ -457,7 +460,7 @@ function GalleryManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 mb-1.5">
                   Category
                 </label>
                 <select
@@ -476,7 +479,7 @@ function GalleryManagement() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 mb-1.5">
                   Description
                 </label>
                 <textarea
@@ -496,19 +499,19 @@ function GalleryManagement() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, featured: e.target.checked }))
                   }
-                  className="w-4 h-4 rounded-md border border-white/20 bg-white/5 checked:bg-sky-500 checked:border-sky-500 transition-all duration-200 cursor-pointer accent-sky-500"
+                  className="w-4 h-4 rounded-md border border-gray-200 bg-gray-50 checked:bg-sky-500 checked:border-sky-500 transition-all duration-200 cursor-pointer accent-sky-500"
                 />
-                <span className="text-sm text-white/50 group-hover:text-white/70 transition-colors">
+                <span className="text-sm text-gray-500 group-hover:text-gray-700 transition-colors">
                   Featured Image
                 </span>
               </label>
             </div>
 
             <div className="space-y-4">
-              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                 Preview
               </p>
-              <div className="rounded-xl border border-sky-500/10 overflow-hidden bg-[#0f0f15]">
+              <div className="rounded-xl border border-sky-100 dark:border-sky-800/50 overflow-hidden bg-gray-50 dark:bg-gray-700/50">
                 {form.image ? (
                   <div className="h-48 overflow-hidden">
                     <img
@@ -518,28 +521,28 @@ function GalleryManagement() {
                     />
                   </div>
                 ) : (
-                  <div className="h-48 bg-gradient-to-br from-sky-500/10 to-cyan-500/5 flex items-center justify-center">
-                    <FiImage className="w-10 h-10 text-sky-400/20" />
+                  <div className="h-48 bg-gradient-to-br from-sky-50 to-cyan-50/50 dark:from-sky-900/20 dark:to-cyan-900/20 flex items-center justify-center">
+                    <FiImage className="w-10 h-10 text-sky-200 dark:text-sky-700" />
                   </div>
                 )}
                 <div className="p-5 space-y-3">
                   <div className="flex items-center gap-2">
                     {form.category && (
-                      <span className="px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-full bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 text-[10px] font-bold">
                         {form.category}
                       </span>
                     )}
                     {form.featured && (
-                      <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-bold flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold flex items-center gap-1">
                         <FiStar className="w-2.5 h-2.5 fill-current" />
                         Featured
                       </span>
                     )}
                   </div>
-                  <h3 className="text-lg font-bold text-white">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {form.title || "Image Title"}
                   </h3>
-                  <p className="text-xs text-white/40 line-clamp-2">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 line-clamp-2">
                     {form.description ||
                       "Image description will appear here..."}
                   </p>
@@ -548,7 +551,7 @@ function GalleryManagement() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+          <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
             <Button type="submit" variant="sky" size="md">
               {editing ? "Update Image" : "Save Image"}
             </Button>
@@ -578,7 +581,7 @@ function GalleryManagement() {
       >
         {viewItem && (
           <div className="space-y-4">
-            <div className="rounded-xl overflow-hidden bg-[#0f0f15] border border-sky-500/10">
+            <div className="rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-700/50 border border-sky-100 dark:border-sky-800/50">
               {viewItem.image && (
                 <div className="h-64 sm:h-80 overflow-hidden">
                   <img
@@ -601,20 +604,20 @@ function GalleryManagement() {
                   )}
                   <CmsBadge status={viewItem.status || "active"} />
                   {viewItem.featured && (
-                    <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-bold flex items-center gap-1">
+                    <span className="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold flex items-center gap-1">
                       <FiStar className="w-2.5 h-2.5 fill-current" />
                       Featured
                     </span>
                   )}
                 </div>
-                <h3 className="text-xl font-bold text-white">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   {viewItem.title}
                 </h3>
-                <p className="text-sm text-white/40">{viewItem.description}</p>
-                <div className="flex items-center gap-4 pt-3 border-t border-white/5">
+                <p className="text-sm text-gray-400 dark:text-gray-500">{viewItem.description}</p>
+                <div className="flex items-center gap-4 pt-3 border-t border-gray-100 dark:border-gray-700">
                   <div>
-                    <p className="text-xs text-white/30">Updated</p>
-                    <p className="text-sm font-medium text-white/70">
+                    <p className="text-xs text-gray-400 dark:text-gray-500">Updated</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
                       {viewItem.updatedAt}
                     </p>
                   </div>
@@ -624,6 +627,16 @@ function GalleryManagement() {
           </div>
         )}
       </CmsModal>
+
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => handleDelete(deleteTarget?.id)}
+        title="Delete Image"
+        message={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
+        confirmText="Delete Image"
+        type="danger"
+      />
     </motion.div>
   );
 }

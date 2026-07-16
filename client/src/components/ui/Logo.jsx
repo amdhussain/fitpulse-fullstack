@@ -37,7 +37,7 @@ function Logo({ size = "md", showText = true, className = "", color = "primary" 
         <span className="text-white font-black leading-none">F</span>
       </div>
       {showText && (
-        <span className={`${s.brand} font-bold text-base-content`}>
+        <span className={`${s.brand} font-bold text-gray-900`}>
           FitBook<span className={txtColor}>Pro</span>
         </span>
       )}

@@ -31,30 +31,30 @@ const typeIcons = {
 
 const typeColors = {
   booking: {
-    bg: "bg-blue-500/10",
-    text: "text-blue-400",
-    border: "border-blue-500/20",
+    bg: "bg-blue-50",
+    text: "text-blue-600",
+    border: "border-blue-200",
     dot: "bg-blue-500",
     glow: "shadow-blue-500/10",
   },
   membership: {
-    bg: "bg-amber-500/10",
-    text: "text-amber-400",
-    border: "border-amber-500/20",
+    bg: "bg-amber-50",
+    text: "text-amber-600",
+    border: "border-amber-200",
     dot: "bg-amber-500",
     glow: "shadow-amber-500/10",
   },
   message: {
-    bg: "bg-emerald-500/10",
-    text: "text-emerald-400",
-    border: "border-emerald-500/20",
+    bg: "bg-emerald-50",
+    text: "text-emerald-600",
+    border: "border-emerald-200",
     dot: "bg-emerald-500",
     glow: "shadow-emerald-500/10",
   },
   system: {
-    bg: "bg-purple-500/10",
-    text: "text-purple-400",
-    border: "border-purple-500/20",
+    bg: "bg-purple-50",
+    text: "text-purple-600",
+    border: "border-purple-200",
     dot: "bg-purple-500",
     glow: "shadow-purple-500/10",
   },
@@ -82,7 +82,7 @@ function NotificationSkeleton({ index }) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, duration: 0.35 }}
-      className="flex items-start gap-4 p-4 sm:p-5 border-b border-white/[0.03] last:border-b-0"
+      className="flex items-start gap-4 p-4 sm:p-5 border-b border-gray-50 last:border-b-0"
     >
       <Skeleton className="w-11 h-11 rounded-xl flex-shrink-0" />
       <div className="flex-1 space-y-3">
@@ -106,8 +106,8 @@ function NotificationSkeleton({ index }) {
 
 function TypeBadge({ type }) {
   const colors = typeColors[type] || {
-    bg: "bg-white/5",
-    text: "text-white/40",
+    bg: "bg-gray-50",
+    text: "text-gray-400",
   };
 
   return (
@@ -115,7 +115,7 @@ function TypeBadge({ type }) {
       className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${colors.bg} ${colors.text}`}
     >
       <span
-        className={`w-1.5 h-1.5 rounded-full ${typeColors[type]?.dot || "bg-white/30"}`}
+        className={`w-1.5 h-1.5 rounded-full ${typeColors[type]?.dot || "bg-gray-400"}`}
       />
       {typeLabels[type] || type}
     </span>
@@ -144,14 +144,14 @@ function EmptyState({ activeTab }) {
       className="flex flex-col items-center justify-center py-24 gap-6"
     >
       <div className="relative">
-        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500/10 to-cyan-500/5 flex items-center justify-center border border-blue-500/10">
+        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-50 to-cyan-50/50 flex items-center justify-center border border-blue-100">
           <FiBell className="w-10 h-10 text-blue-500/20" />
         </div>
-        <div className="absolute inset-0 w-24 h-24 rounded-full bg-blue-500/[0.03] animate-ping" />
+        <div className="absolute inset-0 w-24 h-24 rounded-full bg-blue-50/50 animate-ping" />
       </div>
       <div className="text-center space-y-3 max-w-md">
-        <p className="text-white/50 text-lg font-medium">No notifications found</p>
-        <p className="text-white/25 text-sm leading-relaxed">
+        <p className="text-gray-500 text-lg font-medium">No notifications found</p>
+        <p className="text-gray-400 text-sm leading-relaxed">
           {messages[activeTab] || messages.all}
         </p>
       </div>
@@ -162,10 +162,10 @@ function EmptyState({ activeTab }) {
 function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
   const Icon = typeIcons[notification.type] || FiBell;
   const colors = typeColors[notification.type] || {
-    bg: "bg-white/5",
-    text: "text-white/40",
-    border: "border-white/10",
-    dot: "bg-white/30",
+    bg: "bg-gray-50",
+    text: "text-gray-400",
+    border: "border-gray-200",
+    dot: "bg-gray-400",
   };
 
   return (
@@ -185,10 +185,10 @@ function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
         delay: index * 0.04,
         layout: { type: "spring", duration: 0.4, bounce: 0.15 },
       }}
-      className={`group relative flex items-start gap-4 p-4 sm:p-5 border-b border-white/[0.03] last:border-b-0 transition-all duration-300 ${
+      className={`group relative flex items-start gap-4 p-4 sm:p-5 border-b border-gray-50 last:border-b-0 transition-all duration-300 ${
         !notification.read
-          ? "bg-gradient-to-r from-blue-500/[0.06] to-transparent border-l-[3px] border-l-blue-500"
-          : "border-l-[3px] border-l-transparent hover:bg-white/[0.015]"
+          ? "bg-gradient-to-r from-blue-50 to-transparent border-l-[3px] border-l-blue-500"
+          : "border-l-[3px] border-l-transparent hover:bg-gray-50"
       }`}
     >
       <div
@@ -200,7 +200,7 @@ function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", duration: 0.4, bounce: 0.5 }}
-            className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-blue-500 border-[2.5px] border-[#12121a]"
+            className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-blue-500 border-[2.5px] border-white"
           />
         )}
       </div>
@@ -211,7 +211,7 @@ function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
             <div className="flex items-center gap-2.5 mb-1">
               <p
                 className={`font-semibold text-[13px] leading-snug truncate transition-colors duration-200 ${
-                  notification.read ? "text-white/45" : "text-white/90"
+                  notification.read ? "text-gray-400" : "text-gray-900"
                 }`}
               >
                 {notification.title}
@@ -221,20 +221,20 @@ function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", duration: 0.4 }}
-                  className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-blue-400"
+                  className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-blue-600"
                 />
               )}
             </div>
             <p
               className={`text-sm leading-relaxed line-clamp-2 transition-colors duration-200 ${
-                notification.read ? "text-white/30" : "text-white/50"
+                notification.read ? "text-gray-400" : "text-gray-500"
               }`}
             >
               {notification.message}
             </p>
             <div className="flex items-center gap-2.5 mt-3">
               <TypeBadge type={notification.type} />
-              <span className="flex items-center gap-1 text-xs text-white/20">
+              <span className="flex items-center gap-1 text-xs text-gray-400">
                 <FiClock className="w-3 h-3" />
                 {notification.time}
               </span>
@@ -247,7 +247,7 @@ function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
                 whileHover={{ scale: 1.12 }}
                 whileTap={{ scale: 0.88 }}
                 onClick={() => onMarkAsRead(notification.id)}
-                className="p-2 rounded-lg bg-white/[0.04] border border-white/[0.06] text-white/40 hover:text-blue-400 hover:border-blue-500/30 hover:bg-blue-500/10 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-200"
+                className="p-2 rounded-lg bg-gray-50 border border-gray-100 text-gray-400 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-200"
                 title="Mark as read"
               >
                 <FiEye className="w-3.5 h-3.5" />
@@ -257,7 +257,7 @@ function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
               whileHover={{ scale: 1.12 }}
               whileTap={{ scale: 0.88 }}
               onClick={() => onDelete(notification.id)}
-              className="p-2 rounded-lg bg-white/[0.04] border border-white/[0.06] text-white/40 hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/10 hover:shadow-lg hover:shadow-red-500/5 transition-all duration-200"
+              className="p-2 rounded-lg bg-gray-50 border border-gray-100 text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 hover:shadow-lg hover:shadow-red-500/5 transition-all duration-200"
               title="Delete notification"
             >
               <FiTrash2 className="w-3.5 h-3.5" />
@@ -271,10 +271,10 @@ function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
 
 function TypeBreakdown({ stats }) {
   const breakdown = [
-    { key: "booking", label: "Bookings", count: stats.booking, icon: FiCalendar, color: "text-blue-400" },
-    { key: "membership", label: "Membership", count: stats.membership, icon: FiCreditCard, color: "text-amber-400" },
-    { key: "message", label: "Messages", count: stats.message, icon: FiMessageSquare, color: "text-emerald-400" },
-    { key: "system", label: "System", count: stats.system, icon: FiSettings, color: "text-purple-400" },
+    { key: "booking", label: "Bookings", count: stats.booking, icon: FiCalendar, color: "text-blue-600" },
+    { key: "membership", label: "Membership", count: stats.membership, icon: FiCreditCard, color: "text-amber-600" },
+    { key: "message", label: "Messages", count: stats.message, icon: FiMessageSquare, color: "text-emerald-600" },
+    { key: "system", label: "System", count: stats.system, icon: FiSettings, color: "text-purple-600" },
   ];
 
   return (
@@ -282,8 +282,8 @@ function TypeBreakdown({ stats }) {
       {breakdown.map((item) => (
         <div key={item.key} className="flex items-center gap-2">
           <item.icon className={`w-3.5 h-3.5 ${item.color}`} />
-          <span className="text-xs text-white/30">
-            <span className="font-medium text-white/50">{item.count}</span>{" "}
+          <span className="text-xs text-gray-400">
+            <span className="font-medium text-gray-500">{item.count}</span>{" "}
             {item.label}
           </span>
         </div>
@@ -299,23 +299,23 @@ function SummaryBar({ stats }) {
   return (
     <motion.div
       variants={fadeUp}
-      className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-blue-500/10 overflow-hidden"
+      className="rounded-2xl bg-white backdrop-blur-xl border border-blue-100 overflow-hidden"
     >
       <div className="p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-              <FiInfo className="w-4 h-4 text-blue-400" />
+            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+              <FiInfo className="w-4 h-4 text-blue-600" />
             </div>
-            <p className="text-sm text-white/50">
+            <p className="text-sm text-gray-500">
               You have{" "}
-              <span className="font-semibold text-blue-400">{stats.unread}</span>{" "}
+              <span className="font-semibold text-blue-600">{stats.unread}</span>{" "}
               unread notification{stats.unread !== 1 ? "s" : ""} out of{" "}
-              <span className="font-medium text-white/70">{stats.total}</span> total.
+              <span className="font-medium text-gray-600">{stats.total}</span> total.
             </p>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="flex-1 sm:flex-none h-2 sm:w-32 rounded-full bg-white/5 overflow-hidden">
+            <div className="flex-1 sm:flex-none h-2 sm:w-32 rounded-full bg-gray-50 overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${percentage}%` }}
@@ -323,13 +323,13 @@ function SummaryBar({ stats }) {
                 className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-500"
               />
             </div>
-            <span className="text-xs font-medium text-white/30 flex-shrink-0">
+            <span className="text-xs font-medium text-gray-400 flex-shrink-0">
               {percentage}% read
             </span>
           </div>
         </div>
       </div>
-      <div className="px-4 sm:px-5 py-3 border-t border-white/[0.04] bg-white/[0.01]">
+      <div className="px-4 sm:px-5 py-3 border-t border-gray-50 bg-gray-50">
         <TypeBreakdown stats={stats} />
       </div>
     </motion.div>
@@ -423,9 +423,9 @@ export default function NotificationCenter() {
 
       <motion.div
         variants={fadeUp}
-        className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-blue-500/10 overflow-hidden shadow-xl shadow-black/10"
+        className="rounded-2xl bg-white backdrop-blur-xl border border-blue-100 overflow-hidden shadow-xl shadow-gray-100"
       >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 border-b border-white/[0.05]">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 border-b border-gray-100">
           <div className="flex flex-wrap items-center gap-2">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.key;
@@ -435,14 +435,14 @@ export default function NotificationCenter() {
                   onClick={() => setActiveTab(tab.key)}
                   className={`relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border overflow-hidden ${
                     isActive
-                      ? "bg-blue-600/15 text-blue-400 border-blue-600/30 shadow-lg shadow-blue-500/5"
-                      : "bg-white/[0.03] border-white/5 text-white/40 hover:text-white/60 hover:bg-white/[0.05] hover:border-white/10"
+                      ? "bg-blue-100 text-blue-600 border-blue-200 shadow-lg shadow-blue-500/5"
+                      : "bg-gray-50 border-gray-100 text-gray-400 hover:text-gray-500 hover:bg-gray-100 hover:border-gray-200"
                   }`}
                 >
                   <span className="relative z-10 flex items-center gap-1.5">
                     {tab.label}
                     {tab.key === "unread" && stats.unread > 0 && (
-                      <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full bg-blue-500/25 text-blue-300">
+                      <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full bg-blue-200 text-blue-700">
                         {stats.unread}
                       </span>
                     )}
@@ -482,14 +482,14 @@ export default function NotificationCenter() {
         )}
 
         {!loading && filteredNotifications.length > 0 && (
-          <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 border-t border-white/[0.03] bg-white/[0.01]">
-            <p className="text-xs text-white/20">
+          <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 border-t border-gray-50 bg-gray-50">
+            <p className="text-xs text-gray-400">
               Showing{" "}
-              <span className="text-white/30 font-medium">
+              <span className="text-gray-400 font-medium">
                 {filteredNotifications.length}
               </span>{" "}
               of{" "}
-              <span className="text-white/30 font-medium">
+              <span className="text-gray-400 font-medium">
                 {notifications.length}
               </span>{" "}
               notifications
@@ -497,7 +497,7 @@ export default function NotificationCenter() {
             {activeTab !== "all" && (
               <button
                 onClick={() => setActiveTab("all")}
-                className="inline-flex items-center gap-1 text-xs text-blue-400/60 hover:text-blue-400 transition-colors duration-200"
+                className="inline-flex items-center gap-1 text-xs text-blue-600/60 hover:text-blue-600 transition-colors duration-200"
               >
                 <FiX className="w-3 h-3" />
                 Clear filter

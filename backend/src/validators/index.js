@@ -4,18 +4,14 @@
 
 const middlewares = require('./middlewares');
 const helpers = require('./helpers');
-
-// ─── Module Validators (uncomment as modules are built) ───
-// const authValidator = require('./auth.validator');
-// const userValidator = require('./user.validator');
-// const trainerValidator = require('./trainer.validator');
-// const classValidator = require('./class.validator');
-// const bookingValidator = require('./booking.validator');
-// const paymentValidator = require('./payment.validator');
-// const communityValidator = require('./community.validator');
-// const cmsValidator = require('./cms.validator');
-// const dashboardValidator = require('./dashboard.validator');
-// const settingsValidator = require('./settings.validator');
+const authValidator = require('./auth.validator');
+const cmsValidator = require('./cms.validator');
+const serviceValidator = require('./service.validator');
+const galleryValidator = require('./gallery.validator');
+const settingsValidator = require('./settings.validator');
+const contactValidator = require('./contact.validator');
+const bookingValidator = require('./booking.validator');
+const dashboardValidator = require('./dashboard.validator');
 
 module.exports = {
   // ─── Middleware ────────────────────────────────────────
@@ -27,14 +23,12 @@ module.exports = {
   sanitize: helpers.sanitize,
 
   // ─── Module Validators ────────────────────────────────
-  // auth: authValidator,
-  // user: userValidator,
-  // trainer: trainerValidator,
-  // class: classValidator,
-  // booking: bookingValidator,
-  // payment: paymentValidator,
-  // community: communityValidator,
-  // cms: cmsValidator,
-  // dashboard: dashboardValidator,
-  // settings: settingsValidator,
+  auth: authValidator,
+  cms: cmsValidator,
+  service: serviceValidator,
+  gallery: galleryValidator,
+  settings: settingsValidator,
+  contact: contactValidator,
+  booking: bookingValidator,
+  dashboard: dashboardValidator,
 };

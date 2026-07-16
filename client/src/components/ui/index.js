@@ -8,3 +8,4 @@ export { default as SavedBadge } from "./SavedBadge";
 export { default as FileUpload } from "./FileUpload";
 export { default as ErrorBoundary } from "./ErrorBoundary";
 export { default as PageLoader } from "./PageLoader";
+export { ToastProvider, useToast } from "./Toast";

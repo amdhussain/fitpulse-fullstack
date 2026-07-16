@@ -100,26 +100,26 @@ function ProfileManagement() {
         animate="visible"
         className="space-y-6"
       >
-        <div className="bg-gradient-to-r from-indigo-950/40 to-blue-950/30 rounded-2xl p-6 sm:p-8 border border-white/5">
+        <div className="bg-gradient-to-r from-indigo-50 dark:from-indigo-950/30 to-blue-50 rounded-2xl p-6 sm:p-8 border border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-indigo-500/20 animate-pulse" />
+            <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 animate-pulse" />
             <div className="space-y-2">
-              <div className="h-6 w-40 rounded-lg bg-indigo-500/20 animate-pulse" />
-              <div className="h-3 w-56 rounded-lg bg-indigo-500/10 animate-pulse" />
+              <div className="h-6 w-40 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 animate-pulse" />
+              <div className="h-3 w-56 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 animate-pulse" />
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="p-5 rounded-2xl bg-[#12121a]/60 border border-indigo-500/5 space-y-4">
+            <div key={i} className="p-5 rounded-2xl bg-white dark:bg-gray-800 border border-indigo-100/50 dark:border-indigo-800/30 space-y-4">
               <div className="flex items-start justify-between">
-                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 animate-pulse" />
-                <div className="h-3 w-12 rounded-full bg-indigo-500/10 animate-pulse" />
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 animate-pulse" />
+                <div className="h-3 w-12 rounded-full bg-indigo-50 dark:bg-indigo-900/30 animate-pulse" />
               </div>
               <div className="space-y-2">
-                <div className="h-6 w-16 rounded-lg bg-indigo-500/20 animate-pulse" />
-                <div className="h-3 w-20 rounded-lg bg-indigo-500/10 animate-pulse" />
+                <div className="h-6 w-16 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 animate-pulse" />
+                <div className="h-3 w-20 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 animate-pulse" />
               </div>
             </div>
           ))}
@@ -127,23 +127,23 @@ function ProfileManagement() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <div className="rounded-2xl bg-[#12121a]/60 border border-indigo-500/10 p-6 space-y-6">
+            <div className="rounded-2xl bg-white dark:bg-gray-800 border border-indigo-100 dark:border-indigo-800/50 p-6 space-y-6">
               <div className="flex items-center gap-2">
-                <div className="h-5 w-32 rounded-lg bg-indigo-500/20 animate-pulse" />
+                <div className="h-5 w-32 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 animate-pulse" />
               </div>
               <div className="flex items-center gap-6">
-                <div className="w-28 h-28 rounded-2xl bg-indigo-500/10 animate-pulse shrink-0" />
+                <div className="w-28 h-28 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 animate-pulse shrink-0" />
                 <div className="space-y-2">
-                  <div className="h-5 w-36 rounded-lg bg-indigo-500/20 animate-pulse" />
-                  <div className="h-3 w-48 rounded-lg bg-indigo-500/10 animate-pulse" />
-                  <div className="h-3 w-24 rounded-lg bg-indigo-500/10 animate-pulse" />
+                  <div className="h-5 w-36 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 animate-pulse" />
+                  <div className="h-3 w-48 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 animate-pulse" />
+                  <div className="h-3 w-24 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 animate-pulse" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="space-y-2">
-                    <div className="h-3 w-20 rounded-lg bg-indigo-500/10 animate-pulse" />
-                    <div className="h-11 w-full rounded-xl bg-indigo-500/10 animate-pulse" />
+                    <div className="h-3 w-20 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 animate-pulse" />
+                    <div className="h-11 w-full rounded-xl bg-indigo-50 dark:bg-indigo-900/30 animate-pulse" />
                   </div>
                 ))}
               </div>
@@ -151,19 +151,19 @@ function ProfileManagement() {
           </div>
 
           <div className="space-y-6">
-            <div className="rounded-2xl bg-[#12121a]/60 border border-indigo-500/10 p-6 space-y-3">
-              <div className="h-5 w-28 rounded-lg bg-indigo-500/20 animate-pulse" />
+            <div className="rounded-2xl bg-white dark:bg-gray-800 border border-indigo-100 dark:border-indigo-800/50 p-6 space-y-3">
+              <div className="h-5 w-28 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 animate-pulse" />
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-11 w-full rounded-xl bg-indigo-500/10 animate-pulse" />
+                <div key={i} className="h-11 w-full rounded-xl bg-indigo-50 dark:bg-indigo-900/30 animate-pulse" />
               ))}
             </div>
-            <div className="rounded-2xl bg-[#12121a]/60 border border-indigo-500/10 p-6 space-y-3">
-              <div className="h-5 w-32 rounded-lg bg-indigo-500/20 animate-pulse" />
+            <div className="rounded-2xl bg-white dark:bg-gray-800 border border-indigo-100 dark:border-indigo-800/50 p-6 space-y-3">
+              <div className="h-5 w-32 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 animate-pulse" />
               {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-indigo-500/20 animate-pulse" />
-                  <div className="h-3 flex-1 rounded-lg bg-indigo-500/10 animate-pulse" />
-                  <div className="h-3 w-14 rounded-lg bg-indigo-500/10 animate-pulse" />
+                  <div className="w-2 h-2 rounded-full bg-indigo-100 dark:bg-indigo-900/50 animate-pulse" />
+                  <div className="h-3 flex-1 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 animate-pulse" />
+                  <div className="h-3 w-14 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 animate-pulse" />
                 </div>
               ))}
             </div>
@@ -191,9 +191,9 @@ function ProfileManagement() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <div className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-indigo-500/10 overflow-hidden">
-            <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white">Profile Information</h2>
+          <div className="rounded-2xl bg-white dark:bg-gray-800 backdrop-blur-xl border border-indigo-100 dark:border-indigo-800/50 overflow-hidden">
+            <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Profile Information</h2>
               <Button
                 variant="indigo"
                 size="sm"
@@ -205,9 +205,9 @@ function ProfileManagement() {
             </div>
 
             <form onSubmit={handleSaveProfile} className="p-6 space-y-6">
-              <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-white/5">
+              <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-gray-100 dark:border-gray-700">
                 <div className="relative shrink-0">
-                  <div className="w-28 h-28 rounded-2xl overflow-hidden border-2 border-indigo-500/20">
+                  <div className="w-28 h-28 rounded-2xl overflow-hidden border-2 border-indigo-200 dark:border-indigo-700">
                     <img
                       src={form.image}
                       alt={form.name}
@@ -225,9 +225,9 @@ function ProfileManagement() {
                   )}
                 </div>
                 <div className="text-center sm:text-left">
-                  <h3 className="text-xl font-bold text-white">{form.name}</h3>
-                  <p className="text-sm text-white/50">{form.email}</p>
-                  <span className="inline-flex items-center gap-1 mt-1.5 px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-medium">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{form.name}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{form.email}</p>
+                  <span className="inline-flex items-center gap-1 mt-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-medium">
                     <FiShield className="w-3 h-3" />
                     {form.role}
                   </span>
@@ -236,7 +236,7 @@ function ProfileManagement() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     <FiUser className="w-3.5 h-3.5 inline mr-1.5" />
                     Full Name
                   </label>
@@ -250,7 +250,7 @@ function ProfileManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     <FiMail className="w-3.5 h-3.5 inline mr-1.5" />
                     Email
                   </label>
@@ -264,7 +264,7 @@ function ProfileManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     <FiPhone className="w-3.5 h-3.5 inline mr-1.5" />
                     Phone
                   </label>
@@ -278,7 +278,7 @@ function ProfileManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     <FiShield className="w-3.5 h-3.5 inline mr-1.5" />
                     Role
                   </label>
@@ -293,7 +293,7 @@ function ProfileManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   <FiMapPin className="w-3.5 h-3.5 inline mr-1.5" />
                   Address
                 </label>
@@ -308,7 +308,7 @@ function ProfileManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">Bio</label>
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">Bio</label>
                 <textarea
                   name="bio"
                   rows={3}
@@ -323,7 +323,7 @@ function ProfileManagement() {
                 <FileUpload label="Profile Photo" color="indigo" />
               )}
 
-              <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+              <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
                 <Button type="submit" variant="indigo" size="md" disabled={!editing}>
                   <FiSave className="w-4 h-4" />
                   Save Profile
@@ -335,29 +335,29 @@ function ProfileManagement() {
         </div>
 
         <div className="lg:col-span-1 space-y-6">
-          <div className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-indigo-500/10 overflow-hidden">
-            <div className="px-6 py-4 border-b border-white/5">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Quick Actions</h3>
+          <div className="rounded-2xl bg-white dark:bg-gray-800 backdrop-blur-xl border border-indigo-100 dark:border-indigo-800/50 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">Quick Actions</h3>
             </div>
             <div className="p-4 space-y-3">
               <button
                 type="button"
                 onClick={() => setShowPasswordModal(true)}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-indigo-500/10 border border-white/5 hover:border-indigo-500/20 text-white/70 hover:text-indigo-400 transition-all duration-200 text-sm font-medium"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-gray-100 dark:border-gray-600 hover:border-indigo-200 dark:hover:border-indigo-700 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 text-sm font-medium"
               >
                 <FiLock className="w-4 h-4" />
                 Change Password
               </button>
               <button
                 type="button"
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-indigo-500/10 border border-white/5 hover:border-indigo-500/20 text-white/70 hover:text-indigo-400 transition-all duration-200 text-sm font-medium"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-gray-100 dark:border-gray-600 hover:border-indigo-200 dark:hover:border-indigo-700 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 text-sm font-medium"
               >
                 <FiActivity className="w-4 h-4" />
                 View Activity Log
               </button>
               <button
                 type="button"
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.02] hover:bg-indigo-500/10 border border-white/5 hover:border-indigo-500/20 text-white/70 hover:text-indigo-400 transition-all duration-200 text-sm font-medium"
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-gray-100 dark:border-gray-600 hover:border-indigo-200 dark:hover:border-indigo-700 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 text-sm font-medium"
               >
                 <FiEdit2 className="w-4 h-4" />
                 Download Data
@@ -365,18 +365,18 @@ function ProfileManagement() {
             </div>
           </div>
 
-          <div className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-indigo-500/10 overflow-hidden">
-            <div className="px-6 py-4 border-b border-white/5">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Recent Activity</h3>
+          <div className="rounded-2xl bg-white dark:bg-gray-800 backdrop-blur-xl border border-indigo-100 dark:border-indigo-800/50 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">Recent Activity</h3>
             </div>
-            <div className="divide-y divide-white/[0.03]">
+            <div className="divide-y divide-gray-50 dark:divide-gray-700">
               {activityItems.map((item, idx) => (
                 <div key={idx} className="px-6 py-3.5 flex items-center gap-3">
                   <span className={`w-2 h-2 rounded-full ${item.color} shrink-0`} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white/70 truncate">{item.text}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 truncate">{item.text}</p>
                   </div>
-                  <span className="text-xs text-white/30 shrink-0">{item.time}</span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">{item.time}</span>
                 </div>
               ))}
             </div>
@@ -396,7 +396,7 @@ function ProfileManagement() {
       >
         <form onSubmit={handlePasswordSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-white/60 mb-1.5">
+            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
               <FiLock className="w-3.5 h-3.5 inline mr-1.5" />
               Current Password
             </label>
@@ -411,7 +411,7 @@ function ProfileManagement() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-white/60 mb-1.5">
+            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
               <FiLock className="w-3.5 h-3.5 inline mr-1.5" />
               New Password
             </label>
@@ -428,18 +428,18 @@ function ProfileManagement() {
           {passwordForm.newPass && (
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div className="flex-1 h-1.5 rounded-full bg-gray-200 dark:bg-gray-600 overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${pwStrength.color}`}
                     style={{ width: pwStrength.width }}
                   />
                 </div>
-                <span className="text-xs font-medium text-white/40">{pwStrength.label}</span>
+                <span className="text-xs font-medium text-gray-400 dark:text-gray-500">{pwStrength.label}</span>
               </div>
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium text-white/60 mb-1.5">
+            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
               <FiLock className="w-3.5 h-3.5 inline mr-1.5" />
               Confirm Password
             </label>
@@ -457,7 +457,7 @@ function ProfileManagement() {
             )}
           </div>
 
-          <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+          <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
             <Button type="submit" variant="indigo" size="md">
               <FiSave className="w-4 h-4" />
               Save Password

@@ -1,47 +1,32 @@
-const { validateRequest, validateParams } = require('./middlewares');
+const { validateRequest } = require('./middlewares');
 const rules = require('./helpers/rules.helper');
 
-// ─── Dashboard Validators ─────────────────────────────────
-// Uncomment and wire into routes as the dashboard module is built.
+// ─── Dashboard Validators ──────────────────────────────────
+// Validation rules for dashboard analytics endpoints.
+// All routes are admin-only and read-only (GET).
 
-/*
-const getStats = [
+const dateRange = [
   rules.queryDateRange('startDate', 'endDate'),
 ];
 
-const getRevenue = [
+const bookingStats = [
   rules.queryDateRange('startDate', 'endDate'),
-  rules.queryEnum('interval', ['daily', 'weekly', 'monthly', 'yearly']),
+  rules.queryEnum('status', ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']),
 ];
 
-const getBookings = [
+const revenue = [
   rules.queryDateRange('startDate', 'endDate'),
-  rules.queryEnum('status', ['pending', 'confirmed', 'cancelled']),
 ];
 
-const getUserActivity = [
+const activity = [
   rules.queryDateRange('startDate', 'endDate'),
   rules.page(),
   rules.limit(),
 ];
 
-const getTrainerPerformance = [
-  validateParams({ id: 'mongoId' }),
-  rules.queryDateRange('startDate', 'endDate'),
-];
-
-const exportReport = [
-  rules.enumValue('type', ['revenue', 'bookings', 'users', 'trainers']),
-  rules.queryDateRange('startDate', 'endDate'),
-  rules.enumValue('format', ['csv', 'pdf']),
-];
-*/
-
 module.exports = {
-  // getStats: validateRequest(getStats),
-  // getRevenue: validateRequest(getRevenue),
-  // getBookings: validateRequest(getBookings),
-  // getUserActivity: validateRequest(getUserActivity),
-  // getTrainerPerformance: validateRequest(getTrainerPerformance),
-  // exportReport: validateRequest(exportReport),
+  dateRange: validateRequest(dateRange),
+  bookingStats: validateRequest(bookingStats),
+  revenue: validateRequest(revenue),
+  activity: validateRequest(activity),
 };

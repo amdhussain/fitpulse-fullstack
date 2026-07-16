@@ -10,6 +10,8 @@ const requestLogger = require('./requestLogger.middleware');
 const configureSecurityHeaders = require('./security.middleware');
 const { jsonParser, urlEncodedParser, cookieMiddleware } = require('./bodyParser.middleware');
 const { sanitize, hppProtection, sanitizeXSS, hasNoSQLOperators, hasSQLInjection } = require('./sanitize.middleware');
+const protect = require('./auth.middleware');
+const authorize = require('./role.middleware');
 
 module.exports = {
   asyncHandler,
@@ -30,4 +32,6 @@ module.exports = {
   sanitizeXSS,
   hasNoSQLOperators,
   hasSQLInjection,
+  protect,
+  authorize,
 };

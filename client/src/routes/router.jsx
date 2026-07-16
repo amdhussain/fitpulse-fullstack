@@ -19,14 +19,30 @@ const GalleryPage = lazy(() => import("../pages/public/GalleryPage"));
 const GalleryDetail = lazy(() => import("../pages/public/GalleryDetail"));
 const BookingPage = lazy(() => import("../pages/public/BookingPage"));
 const ContactPage = lazy(() => import("../pages/public/ContactPage"));
+
 const FitnessToolsHub = lazy(() => import("../pages/public/FitnessToolsHub"));
 const BMIPage = lazy(() => import("../pages/public/BMIPage"));
 const BMRPage = lazy(() => import("../pages/public/BMRPage"));
+const TDEEPage = lazy(() => import("../pages/public/TDEEPage"));
 const CaloriePage = lazy(() => import("../pages/public/CaloriePage"));
+const BodyFatPage = lazy(() => import("../pages/public/BodyFatPage"));
+const LeanBodyMassPage = lazy(() => import("../pages/public/LeanBodyMassPage"));
+const FFMICalculatorPage = lazy(() => import("../pages/public/FFMICalculatorPage"));
 const IdealWeightPage = lazy(() => import("../pages/public/IdealWeightPage"));
+const HeartRatePage = lazy(() => import("../pages/public/HeartRatePage"));
+const TargetHeartRatePage = lazy(() => import("../pages/public/TargetHeartRatePage"));
 const WaterPage = lazy(() => import("../pages/public/WaterPage"));
 const ProteinPage = lazy(() => import("../pages/public/ProteinPage"));
-const BodyFatPage = lazy(() => import("../pages/public/BodyFatPage"));
+const MacroPage = lazy(() => import("../pages/public/MacroPage"));
+const OneRepMaxPage = lazy(() => import("../pages/public/OneRepMaxPage"));
+const PacePage = lazy(() => import("../pages/public/PacePage"));
+const RunningPacePage = lazy(() => import("../pages/public/RunningPacePage"));
+const CyclingPage = lazy(() => import("../pages/public/CyclingPage"));
+const WalkingCaloriesPage = lazy(() => import("../pages/public/WalkingCaloriesPage"));
+const CaloriesBurnPage = lazy(() => import("../pages/public/CaloriesBurnPage"));
+const StepsPage = lazy(() => import("../pages/public/StepsPage"));
+const NutritionPage = lazy(() => import("../pages/public/NutritionPage"));
+const MealPlannerPage = lazy(() => import("../pages/public/MealPlannerPage"));
 
 const Overview = lazy(() => import("../pages/dashboard/Overview"));
 const HeroManagement = lazy(() => import("../pages/dashboard/HeroManagement"));
@@ -64,11 +80,26 @@ const router = createBrowserRouter([
       { path: "fitness-tools", element: <RouteSuspense><FitnessToolsHub /></RouteSuspense> },
       { path: "fitness-tools/bmi", element: <RouteSuspense><BMIPage /></RouteSuspense> },
       { path: "fitness-tools/bmr", element: <RouteSuspense><BMRPage /></RouteSuspense> },
-      { path: "fitness-tools/calorie", element: <RouteSuspense><CaloriePage /></RouteSuspense> },
+      { path: "fitness-tools/tdee", element: <RouteSuspense><TDEEPage /></RouteSuspense> },
+      { path: "fitness-tools/calories", element: <RouteSuspense><CaloriePage /></RouteSuspense> },
+      { path: "fitness-tools/body-fat", element: <RouteSuspense><BodyFatPage /></RouteSuspense> },
+      { path: "fitness-tools/lean-body-mass", element: <RouteSuspense><LeanBodyMassPage /></RouteSuspense> },
+      { path: "fitness-tools/ffmi", element: <RouteSuspense><FFMICalculatorPage /></RouteSuspense> },
       { path: "fitness-tools/ideal-weight", element: <RouteSuspense><IdealWeightPage /></RouteSuspense> },
+      { path: "fitness-tools/heart-rate", element: <RouteSuspense><HeartRatePage /></RouteSuspense> },
+      { path: "fitness-tools/target-heart-rate", element: <RouteSuspense><TargetHeartRatePage /></RouteSuspense> },
       { path: "fitness-tools/water", element: <RouteSuspense><WaterPage /></RouteSuspense> },
       { path: "fitness-tools/protein", element: <RouteSuspense><ProteinPage /></RouteSuspense> },
-      { path: "fitness-tools/body-fat", element: <RouteSuspense><BodyFatPage /></RouteSuspense> },
+      { path: "fitness-tools/macro", element: <RouteSuspense><MacroPage /></RouteSuspense> },
+      { path: "fitness-tools/one-rep-max", element: <RouteSuspense><OneRepMaxPage /></RouteSuspense> },
+      { path: "fitness-tools/pace", element: <RouteSuspense><PacePage /></RouteSuspense> },
+      { path: "fitness-tools/running-pace", element: <RouteSuspense><RunningPacePage /></RouteSuspense> },
+      { path: "fitness-tools/cycling", element: <RouteSuspense><CyclingPage /></RouteSuspense> },
+      { path: "fitness-tools/walking-calories", element: <RouteSuspense><WalkingCaloriesPage /></RouteSuspense> },
+      { path: "fitness-tools/calories-burn", element: <RouteSuspense><CaloriesBurnPage /></RouteSuspense> },
+      { path: "fitness-tools/steps", element: <RouteSuspense><StepsPage /></RouteSuspense> },
+      { path: "fitness-tools/nutrition", element: <RouteSuspense><NutritionPage /></RouteSuspense> },
+      { path: "fitness-tools/meal-planner", element: <RouteSuspense><MealPlannerPage /></RouteSuspense> },
       { path: "*", element: <RouteSuspense><NotFound /></RouteSuspense> },
     ],
   },

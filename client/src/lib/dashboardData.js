@@ -22,6 +22,7 @@ export const getDashboardStats = () => [
     change: "+12.5%",
     trend: "up",
     color: "blue",
+    to: "/dashboard/membership",
   },
   {
     icon: FiAward,
@@ -29,7 +30,8 @@ export const getDashboardStats = () => [
     value: "24",
     change: "+2",
     trend: "up",
-    color: "cyan",
+    color: "emerald",
+    to: "/dashboard/trainers",
   },
   {
     icon: FiCalendar,
@@ -37,7 +39,8 @@ export const getDashboardStats = () => [
     value: "1,432",
     change: "+18.2%",
     trend: "up",
-    color: "emerald",
+    color: "orange",
+    to: "/dashboard",
   },
   {
     icon: FiDollarSign,
@@ -46,6 +49,7 @@ export const getDashboardStats = () => [
     change: "+8.1%",
     trend: "up",
     color: "purple",
+    to: "/dashboard/membership",
   },
   {
     icon: FiCreditCard,
@@ -53,7 +57,8 @@ export const getDashboardStats = () => [
     value: "1,892",
     change: "+5.3%",
     trend: "up",
-    color: "amber",
+    color: "cyan",
+    to: "/dashboard/membership",
   },
   {
     icon: FiClock,
@@ -62,6 +67,7 @@ export const getDashboardStats = () => [
     change: "-4",
     trend: "down",
     color: "rose",
+    to: "/dashboard/contact",
   },
 ];
 

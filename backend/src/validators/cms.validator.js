@@ -1,58 +1,44 @@
 const { validateRequest, validateParams } = require('./middlewares');
 const rules = require('./helpers/rules.helper');
+const { body, param } = require('express-validator');
+const cmsService = require('../services/cms.service');
 
-// ─── CMS Validators ───────────────────────────────────────
-// Uncomment and wire into routes as the CMS module is built.
+// ─── CMS Validators ────────────────────────────────────────
+// Validation rules for CMS section endpoints.
 
-/*
-const createPage = [
-  rules.text('title', { min: 3, max: 200 }),
-  rules.slug('slug'),
-  rules.text('content', { min: 10 }),
-  rules.boolean('published'),
+const typeParam = [
+  param('type')
+    .trim()
+    .notEmpty()
+    .withMessage('Type is required')
+    .isIn(cmsService.VALID_TYPES)
+    .withMessage(`Type must be one of: ${cmsService.VALID_TYPES.join(', ')}`),
 ];
 
-const updatePage = [
-  validateParams({ id: 'mongoId' }),
-  rules.optionalText('title', { max: 200 }),
-  rules.optionalSlug('slug'),
-  rules.optionalText('content'),
-  rules.boolean('published'),
+const upsert = [
+  body('title')
+    .optional()
+    .trim()
+    .isLength({ min: 1, max: 200 })
+    .withMessage('Title must be between 1 and 200 characters'),
+  body('subtitle')
+    .optional()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('Subtitle must be at most 500 characters'),
+  body('content')
+    .optional()
+    .custom((value) => {
+      if (typeof value === 'object' || typeof value === 'string') return true;
+      throw new Error('Content must be an object or JSON string');
+    }),
+  body('status')
+    .optional()
+    .isIn(['ACTIVE', 'DRAFT'])
+    .withMessage('Status must be ACTIVE or DRAFT'),
 ];
-
-const getPage = [
-  validateParams({ id: 'mongoId' }),
-];
-
-const deletePage = [
-  validateParams({ id: 'mongoId' }),
-];
-
-const listPages = [
-  rules.page(),
-  rules.limit(),
-  rules.sort(['createdAt', 'title', 'published']),
-  rules.queryText('search'),
-  rules.queryEnum('published', ['true', 'false']),
-];
-
-const createMedia = [
-  rules.url('url'),
-  rules.enumValue('type', ['image', 'video', 'document']),
-  rules.optionalText('alt', { max: 200 }),
-];
-
-const deleteMedia = [
-  validateParams({ id: 'mongoId' }),
-];
-*/
 
 module.exports = {
-  // createPage: validateRequest(createPage),
-  // updatePage: validateRequest(updatePage),
-  // getPage: validateRequest(getPage),
-  // deletePage: validateRequest(deletePage),
-  // listPages: validateRequest(listPages),
-  // createMedia: validateRequest(createMedia),
-  // deleteMedia: validateRequest(deleteMedia),
+  typeParam: validateParams({ type: 'string' }),
+  upsert: [...typeParam, ...upsert],
 };

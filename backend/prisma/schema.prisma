@@ -1,58 +1,187 @@
-// ─── Prisma Schema ─────────────────────────────────────────
-// FitPulse Database Configuration
-//
-// This file defines the database schema for the FitPulse platform.
-// Models will be added here as modules are built.
-//
-// ─── How to use ────────────────────────────────────────────
-//   npm run prisma:generate   - Regenerate Prisma Client
-//   npm run prisma:migrate    - Run pending migrations
-//   npm run prisma:studio     - Open Prisma Studio
-//   npm run prisma:reset      - Reset database and re-run migrations
-//
-// ─── Database ──────────────────────────────────────────────
-// MySQL is configured via the DATABASE_URL environment variable.
-// The connection URL is defined in prisma.config.ts (not here).
-// Format: mysql://USER:PASSWORD@HOST:PORT/DATABASE
-//
-// Example (.env):
-//   DATABASE_URL=mysql://root:password@localhost:3306/fitpulse_dev
-//
-// ─── Future Modules ────────────────────────────────────────
-// When building a new module, add its models here:
-//   - Users
-//   - Trainers
-//   - Classes
-//   - Bookings
-//   - Payments
-//   - Community
-//   - CMS
-//   - Settings
-// ───────────────────────────────────────────────────────────
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "mysql"
+   url      = env("DATABASE_URL")
 }
 
-// ─── Models ────────────────────────────────────────────────
-// Add your models below. Example:
-//
-// model User {
-//   id        String   @id @default(cuid())
-//   email     String   @unique
-//   firstName String
-//   lastName  String
-//   role      Role     @default(MEMBER)
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-// }
-//
-// enum Role {
-//   MEMBER
-//   TRAINER
-//   ADMIN
-// }
+model User {
+  id              String           @id @default(cuid())
+  email           String           @unique
+  password        String
+  firstName       String
+  lastName        String
+  role            Role             @default(MEMBER)
+  profileImage    String?
+  phone           String?
+  isVerified      Boolean          @default(false)
+  isActive        Boolean          @default(true)
+  lastLoginAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  bookings        Booking[]
+  contactMessages ContactMessage[]
+  trainer         Trainer?
+
+  @@index([role])
+  @@map("users")
+}
+
+model Trainer {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  bio            String?   @db.Text
+  specialization String?
+  designation    String?
+  experience     Int       @default(0)
+  hourlyRate     Decimal?  @db.Decimal(10, 2)
+  rating         Decimal?  @db.Decimal(3, 2)
+  reviewsCount   Int       @default(0)
+  skills         String?   @db.Text
+  programs       String?   @db.Text
+  certificates   String?   @db.Text
+  achievements   String?   @db.Text
+  availableDays  String?   @db.Text
+  socialLinks    String?   @db.Text
+  status         Status    @default(ACTIVE)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  bookings       Booking[]
+  services       Service[]
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("trainers")
+}
+
+model Service {
+  id          String    @id @default(cuid())
+  trainerId   String?
+  name        String
+  category    String?
+  description String?   @db.Text
+  price       Decimal?  @db.Decimal(10, 2)
+  duration    Int?
+  image       String?
+  benefits    String?   @db.Text
+  status      Status    @default(ACTIVE)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  bookings    Booking[]
+  trainer     Trainer?  @relation(fields: [trainerId], references: [id])
+
+  @@index([trainerId])
+  @@index([category])
+  @@index([status])
+  @@map("services")
+}
+
+model Booking {
+  id           String        @id @default(cuid())
+  userId       String
+  serviceId    String?
+  trainerId    String?
+  bookingDate  DateTime
+  bookingTime  String
+  status       BookingStatus @default(PENDING)
+  notes        String?       @db.Text
+  cancelReason String?       @db.Text
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  service      Service?      @relation(fields: [serviceId], references: [id])
+  trainer      Trainer?      @relation(fields: [trainerId], references: [id])
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([serviceId])
+  @@index([trainerId])
+  @@index([bookingDate])
+  @@index([status])
+  @@map("bookings")
+}
+
+model CmsSection {
+  id        String            @id @default(cuid())
+  type      cms_sections_type @unique
+  title     String?
+  subtitle  String?
+  content   String?           @db.Text
+  status    Status            @default(ACTIVE)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@map("cms_sections")
+}
+
+model Gallery {
+  id          String   @id @default(cuid())
+  title       String
+  category    String?
+  description String?  @db.Text
+  image       String
+  featured    Boolean  @default(false)
+  status      Status   @default(ACTIVE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([featured])
+  @@index([status])
+  @@map("gallery")
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([email])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([userId], map: "contact_messages_userId_fkey")
+  @@map("contact_messages")
+}
+
+model SiteSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+enum Role {
+  ADMIN
+  TRAINER
+  MEMBER
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum Status {
+  ACTIVE
+  DRAFT
+}
+
+enum cms_sections_type {
+  HERO
+  ABOUT
+  CONTACT
+  FOOTER
+}

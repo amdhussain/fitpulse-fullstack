@@ -11,4 +11,3 @@ export { default as GalleryManagement } from "./GalleryManagement";
 export { default as ContactManagement } from "./ContactManagement";
 export { default as WebsiteSettings } from "./WebsiteSettings";
 export { default as NotificationCenter } from "./NotificationCenter";
-export { default as FitnessToolsManagement } from "./FitnessToolsManagement";

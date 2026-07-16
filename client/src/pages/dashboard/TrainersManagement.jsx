@@ -17,6 +17,7 @@ import StatCard from "../../components/dashboard/StatCard";
 import DataTable from "../../components/dashboard/DataTable";
 import CmsModal from "../../components/dashboard/CmsModal";
 import CmsBadge from "../../components/dashboard/CmsBadge";
+import ConfirmModal from "../../components/dashboard/ConfirmModal";
 import { getInputClass } from "../../lib/dashboardHelpers";
 import {
   getTrainers,
@@ -48,6 +49,7 @@ function TrainersManagement() {
   const [form, setForm] = useState(emptyForm);
   const [saved, setSaved] = useState(false);
   const [viewItem, setViewItem] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const inputClass = getInputClass("cyan");
   const stats = getTrainerStats(trainers);
   const specializations = getSpecializations();
@@ -88,6 +90,7 @@ function TrainersManagement() {
 
   const handleDelete = (id) => {
     setTrainers((prev) => prev.filter((t) => t.id !== id));
+    setDeleteTarget(null);
   };
 
   const toggleStatus = (id) => {
@@ -135,7 +138,7 @@ function TrainersManagement() {
       label: "Image",
       width: "w-16",
       render: (_, item) => (
-        <div className="w-12 h-12 rounded-xl overflow-hidden bg-cyan-500/10 shrink-0">
+        <div className="w-12 h-12 rounded-xl overflow-hidden bg-cyan-50 dark:bg-cyan-900/30 shrink-0">
           {item.image ? (
             <img
               src={item.image}
@@ -145,7 +148,7 @@ function TrainersManagement() {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <FiUser className="w-5 h-5 text-cyan-400/40" />
+              <FiUser className="w-5 h-5 text-cyan-600" />
             </div>
           )}
         </div>
@@ -156,26 +159,26 @@ function TrainersManagement() {
       label: "Trainer Name",
       render: (_, item) => (
         <div>
-          <p className="font-medium text-white/80">{item.name}</p>
-          <p className="text-xs text-white/30">{item.specialization}</p>
+          <p className="font-medium text-gray-700 dark:text-gray-200">{item.name}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">{item.specialization}</p>
         </div>
       ),
     },
     {
       key: "specialization",
       label: "Specialization",
-      render: (val) => <span className="text-sm text-white/60">{val}</span>,
+      render: (val) => <span className="text-sm text-gray-500 dark:text-gray-400">{val}</span>,
     },
     {
       key: "experience",
       label: "Experience",
-      render: (val) => <span className="text-xs text-white/50">{val}</span>,
+      render: (val) => <span className="text-xs text-gray-500 dark:text-gray-400">{val}</span>,
     },
     {
       key: "phone",
       label: "Phone",
       render: (val) => (
-        <div className="flex items-center gap-1.5 text-white/40">
+        <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
           <FiPhone className="w-3 h-3" />
           <span className="text-xs">{val}</span>
         </div>
@@ -252,6 +255,8 @@ function TrainersManagement() {
         onAdd={openAdd}
         addLabel="Add Trainer"
         loading={loading}
+        onRefresh={() => { setTrainers(getTrainers()); }}
+        onExport={() => {}}
         actions={(item) => (
           <>
             <button
@@ -259,7 +264,7 @@ function TrainersManagement() {
                 e.stopPropagation();
                 setViewItem(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-cyan-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 hover:text-cyan-600 transition-colors"
               aria-label={`View ${item.name}`}
             >
               <FiEye className="w-4 h-4" />
@@ -269,7 +274,7 @@ function TrainersManagement() {
                 e.stopPropagation();
                 openEdit(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-cyan-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 hover:text-cyan-600 transition-colors"
               aria-label={`Edit ${item.name}`}
             >
               <FiEdit2 className="w-4 h-4" />
@@ -277,9 +282,9 @@ function TrainersManagement() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleDelete(item.id);
+                setDeleteTarget(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-red-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 hover:text-red-400 transition-colors"
               aria-label={`Delete ${item.name}`}
             >
               <FiTrash2 className="w-4 h-4" />
@@ -309,7 +314,7 @@ function TrainersManagement() {
                 color="cyan"
               />
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Full Name *
                 </label>
                 <input
@@ -325,7 +330,7 @@ function TrainersManagement() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Email
                   </label>
                   <input
@@ -339,7 +344,7 @@ function TrainersManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Phone
                   </label>
                   <input
@@ -355,7 +360,7 @@ function TrainersManagement() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Specialization
                   </label>
                   <select
@@ -377,7 +382,7 @@ function TrainersManagement() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Experience
                   </label>
                   <select
@@ -397,7 +402,7 @@ function TrainersManagement() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Working Days
                   </label>
                   <input
@@ -411,7 +416,7 @@ function TrainersManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Working Hours
                   </label>
                   <input
@@ -426,7 +431,7 @@ function TrainersManagement() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Short Biography
                 </label>
                 <textarea
@@ -440,7 +445,7 @@ function TrainersManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Certificates (comma separated)
                 </label>
                 <input
@@ -455,7 +460,7 @@ function TrainersManagement() {
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Facebook
                   </label>
                   <input
@@ -469,7 +474,7 @@ function TrainersManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Instagram
                   </label>
                   <input
@@ -483,7 +488,7 @@ function TrainersManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     LinkedIn
                   </label>
                   <input
@@ -500,10 +505,10 @@ function TrainersManagement() {
             </div>
 
             <div className="space-y-4">
-              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider">
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                 Preview
               </p>
-              <div className="rounded-xl border border-cyan-500/10 overflow-hidden bg-[#0f0f15]">
+              <div className="rounded-xl border border-cyan-100 dark:border-cyan-800/50 overflow-hidden bg-gray-50 dark:bg-gray-700/50">
                 {form.image ? (
                   <div className="h-48 overflow-hidden">
                     <img
@@ -513,27 +518,27 @@ function TrainersManagement() {
                     />
                   </div>
                 ) : (
-                  <div className="h-48 bg-gradient-to-br from-cyan-500/10 to-blue-500/5 flex items-center justify-center">
-                    <FiImage className="w-10 h-10 text-cyan-400/20" />
+                  <div className="h-48 bg-gradient-to-br from-cyan-50 to-blue-50/50 dark:from-cyan-900/20 dark:to-blue-900/20 flex items-center justify-center">
+                    <FiImage className="w-10 h-10 text-cyan-600" />
                   </div>
                 )}
                 <div className="p-5 space-y-3">
-                  <h3 className="text-lg font-bold text-white">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {form.name || "Trainer Name"}
                   </h3>
-                  <p className="text-xs text-cyan-400/70">
+                  <p className="text-xs text-cyan-600/70">
                     {form.specialization || "Specialization"}
                   </p>
-                  <p className="text-xs text-white/40">
+                  <p className="text-xs text-gray-400 dark:text-gray-500">
                     {form.experience || "Experience"}
                   </p>
                   {form.workingHours && (
-                    <div className="flex items-center gap-1.5 text-white/40">
+                    <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
                       <FiPhone className="w-3 h-3" />
                       <span className="text-xs">{form.workingHours}</span>
                     </div>
                   )}
-                  <p className="text-xs text-white/40 line-clamp-3">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 line-clamp-3">
                     {form.bio || "Biography will appear here..."}
                   </p>
                   {form.certificates && (
@@ -541,7 +546,7 @@ function TrainersManagement() {
                       {form.certificates.split(",").map((c, i) => (
                         <span
                           key={i}
-                          className="px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 text-[10px] font-medium"
+                          className="px-2 py-0.5 rounded-full bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 text-[10px] font-medium"
                         >
                           {c.trim()}
                         </span>
@@ -550,17 +555,17 @@ function TrainersManagement() {
                   )}
                   <div className="flex items-center gap-3 pt-2">
                     {form.facebook && (
-                      <span className="text-xs text-cyan-400/60 underline">
+                      <span className="text-xs text-cyan-600/60 underline">
                         Facebook
                       </span>
                     )}
                     {form.instagram && (
-                      <span className="text-xs text-cyan-400/60 underline">
+                      <span className="text-xs text-cyan-600/60 underline">
                         Instagram
                       </span>
                     )}
                     {form.linkedin && (
-                      <span className="text-xs text-cyan-400/60 underline">
+                      <span className="text-xs text-cyan-600/60 underline">
                         LinkedIn
                       </span>
                     )}
@@ -570,7 +575,7 @@ function TrainersManagement() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+          <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
             <Button type="submit" variant="cyan" size="md">
               {editing ? "Update Trainer" : "Save Trainer"}
             </Button>
@@ -599,7 +604,7 @@ function TrainersManagement() {
         size="lg"
       >
         {viewItem && (
-          <div className="rounded-xl border border-cyan-500/10 overflow-hidden bg-[#0f0f15]">
+          <div className="rounded-xl border border-cyan-100 dark:border-cyan-800/50 overflow-hidden bg-gray-50 dark:bg-gray-700/50">
             {viewItem.image && (
               <div className="h-48 overflow-hidden">
                 <img
@@ -612,12 +617,12 @@ function TrainersManagement() {
             <div className="p-6 space-y-4">
               <div className="flex items-center gap-2">
                 <CmsBadge status={viewItem.status} />
-                <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 text-[10px] font-bold">
+                <span className="px-2 py-0.5 rounded-full bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 text-[10px] font-bold">
                   {viewItem.specialization}
                 </span>
               </div>
-              <h3 className="text-xl font-bold text-white">{viewItem.name}</h3>
-              <div className="flex items-center gap-4 text-sm text-white/40">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{viewItem.name}</h3>
+              <div className="flex items-center gap-4 text-sm text-gray-400 dark:text-gray-500">
                 <div className="flex items-center gap-1.5">
                   <FiUser className="w-3.5 h-3.5" />
                   <span>{viewItem.email}</span>
@@ -627,51 +632,51 @@ function TrainersManagement() {
                   <span>{viewItem.phone}</span>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4 pt-3 border-t border-white/5">
+              <div className="grid grid-cols-3 gap-4 pt-3 border-t border-gray-100 dark:border-gray-700">
                 <div>
-                  <p className="text-xs text-white/30">Experience</p>
-                  <p className="text-sm font-medium text-white/70">
+                  <p className="text-xs text-gray-400 dark:text-gray-500">Experience</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
                     {viewItem.experience}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-white/30">Working Days</p>
-                  <p className="text-sm font-medium text-white/70">
+                  <p className="text-xs text-gray-400 dark:text-gray-500">Working Days</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
                     {viewItem.workingDays}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-white/30">Working Hours</p>
-                  <p className="text-sm font-medium text-white/70">
+                  <p className="text-xs text-gray-400 dark:text-gray-500">Working Hours</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
                     {viewItem.workingHours}
                   </p>
                 </div>
               </div>
-              <div className="pt-3 border-t border-white/5">
-                <p className="text-xs text-white/30 mb-1.5">About</p>
-                <p className="text-sm text-white/50 leading-relaxed">
+              <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
+                <p className="text-xs text-gray-400 dark:text-gray-500 mb-1.5">About</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
                   {viewItem.bio}
                 </p>
               </div>
               {viewItem.certificates && (
-                <div className="flex flex-wrap gap-2 pt-3 border-t border-white/5">
+                <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
                   {viewItem.certificates.split(",").map((c, i) => (
                     <span
                       key={i}
-                      className="px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-medium"
+                      className="px-2.5 py-1 rounded-full bg-cyan-50 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400 text-xs font-medium"
                     >
                       {c.trim()}
                     </span>
                   ))}
                 </div>
               )}
-              <div className="flex items-center gap-4 pt-3 border-t border-white/5">
+              <div className="flex items-center gap-4 pt-3 border-t border-gray-100 dark:border-gray-700">
                 {viewItem.facebook && (
                   <a
                     href={viewItem.facebook}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-cyan-400/60 hover:text-cyan-400 underline transition-colors"
+                    className="text-xs text-cyan-600/60 hover:text-cyan-600 underline transition-colors"
                   >
                     Facebook
                   </a>
@@ -681,7 +686,7 @@ function TrainersManagement() {
                     href={viewItem.instagram}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-cyan-400/60 hover:text-cyan-400 underline transition-colors"
+                    className="text-xs text-cyan-600/60 hover:text-cyan-600 underline transition-colors"
                   >
                     Instagram
                   </a>
@@ -691,7 +696,7 @@ function TrainersManagement() {
                     href={viewItem.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-cyan-400/60 hover:text-cyan-400 underline transition-colors"
+                    className="text-xs text-cyan-600/60 hover:text-cyan-600 underline transition-colors"
                   >
                     LinkedIn
                   </a>
@@ -701,6 +706,16 @@ function TrainersManagement() {
           </div>
         )}
       </CmsModal>
+
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => handleDelete(deleteTarget?.id)}
+        title="Delete Trainer"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        confirmText="Delete Trainer"
+        type="danger"
+      />
     </motion.div>
   );
 }

@@ -1,35 +1,36 @@
+import { useState } from "react";
 import PropTypes from "prop-types";
 
 const variants = {
-  primary: "bg-primary text-primary-content hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30",
-  secondary: "bg-secondary text-secondary-content hover:bg-secondary/90 shadow-lg shadow-secondary/25",
-  outline: "border-2 border-primary text-primary hover:bg-primary hover:text-primary-content",
-  ghost: "text-base-content/60 hover:bg-base-300/50 hover:text-base-content",
-  accent: "bg-accent text-base-100 hover:bg-accent/90 shadow-lg shadow-accent/25",
-  blue: "bg-blue-500 text-white hover:bg-blue-600 shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30",
-  orange: "bg-orange-500 text-white hover:bg-orange-600 shadow-lg shadow-orange-500/25",
-  purple: "bg-purple-500 text-white hover:bg-purple-600 shadow-lg shadow-purple-500/25",
-  indigo: "bg-indigo-500 text-white hover:bg-indigo-600 shadow-lg shadow-indigo-500/25",
-  emerald: "bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/25",
-  green: "bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/25",
-  cyan: "bg-cyan-500 text-white hover:bg-cyan-600 shadow-lg shadow-cyan-500/25",
-  royal: "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/25",
-  amber: "bg-amber-500 text-white hover:bg-amber-600 shadow-lg shadow-amber-500/25",
-  violet: "bg-violet-500 text-white hover:bg-violet-600 shadow-lg shadow-violet-500/25",
-  teal: "bg-teal-500 text-white hover:bg-teal-600 shadow-lg shadow-teal-500/25",
-  yellow: "bg-yellow-500 text-black hover:bg-yellow-600 shadow-lg shadow-yellow-500/25",
-  rose: "bg-rose-500 text-white hover:bg-rose-600 shadow-lg shadow-rose-500/25",
-  sky: "bg-sky-500 text-white hover:bg-sky-600 shadow-lg shadow-sky-500/25",
-  red: "bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/25",
-  pink: "bg-pink-500 text-white hover:bg-pink-600 shadow-lg shadow-pink-500/25",
-  coral: "bg-orange-400 text-white hover:bg-orange-500 shadow-lg shadow-orange-400/25",
-  slate: "bg-slate-500 text-white hover:bg-slate-600 shadow-lg shadow-slate-500/25",
+  primary: "bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600 shadow-md shadow-blue-600/25 hover:shadow-lg hover:shadow-blue-600/30 dark:shadow-blue-600/15 dark:hover:shadow-blue-600/25",
+  secondary: "bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10",
+  outline: "border-2 border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:border-blue-400 dark:hover:border-blue-500/40 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/5",
+  ghost: "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-700 dark:hover:text-gray-200",
+  accent: "bg-gradient-to-r from-emerald-500 to-green-500 text-white hover:from-emerald-600 hover:to-green-600 shadow-md shadow-emerald-500/25 dark:shadow-emerald-500/15",
+  blue: "bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600 shadow-md shadow-blue-500/25 dark:shadow-blue-500/15",
+  orange: "bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600 shadow-md shadow-orange-500/25 dark:shadow-orange-500/15",
+  purple: "bg-gradient-to-r from-purple-600 to-violet-500 text-white hover:from-purple-700 hover:to-violet-600 shadow-md shadow-purple-500/25 dark:shadow-purple-500/15",
+  indigo: "bg-gradient-to-r from-indigo-600 to-blue-500 text-white hover:from-indigo-700 hover:to-blue-600 shadow-md shadow-indigo-500/25 dark:shadow-indigo-500/15",
+  emerald: "bg-gradient-to-r from-emerald-600 to-green-500 text-white hover:from-emerald-700 hover:to-green-600 shadow-md shadow-emerald-500/25 dark:shadow-emerald-500/15",
+  green: "bg-gradient-to-r from-green-600 to-emerald-500 text-white hover:from-green-700 hover:to-emerald-600 shadow-md shadow-green-500/25 dark:shadow-green-500/15",
+  cyan: "bg-gradient-to-r from-cyan-500 to-sky-500 text-white hover:from-cyan-600 hover:to-sky-600 shadow-md shadow-cyan-500/25 dark:shadow-cyan-500/15",
+  royal: "bg-gradient-to-r from-blue-700 to-indigo-600 text-white hover:from-blue-800 hover:to-indigo-700 shadow-md shadow-blue-600/25 dark:shadow-blue-600/15",
+  amber: "bg-gradient-to-r from-amber-500 to-yellow-400 text-white hover:from-amber-600 hover:to-yellow-500 shadow-md shadow-amber-500/25 dark:shadow-amber-500/15",
+  violet: "bg-gradient-to-r from-violet-600 to-purple-500 text-white hover:from-violet-700 hover:to-purple-600 shadow-md shadow-violet-500/25 dark:shadow-violet-500/15",
+  teal: "bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:from-teal-600 hover:to-cyan-600 shadow-md shadow-teal-500/25 dark:shadow-teal-500/15",
+  yellow: "bg-gradient-to-r from-yellow-400 to-amber-400 text-yellow-900 hover:from-yellow-500 hover:to-amber-500 shadow-md shadow-yellow-400/25 dark:shadow-yellow-400/15",
+  rose: "bg-gradient-to-r from-rose-500 to-pink-500 text-white hover:from-rose-600 hover:to-pink-600 shadow-md shadow-rose-500/25 dark:shadow-rose-500/15",
+  sky: "bg-gradient-to-r from-sky-500 to-blue-400 text-white hover:from-sky-600 hover:to-blue-500 shadow-md shadow-sky-500/25 dark:shadow-sky-500/15",
+  red: "bg-gradient-to-r from-red-500 to-rose-500 text-white hover:from-red-600 hover:to-rose-600 shadow-md shadow-red-500/25 dark:shadow-red-500/15",
+  pink: "bg-gradient-to-r from-pink-500 to-rose-400 text-white hover:from-pink-600 hover:to-rose-500 shadow-md shadow-pink-500/25 dark:shadow-pink-500/15",
+  coral: "bg-gradient-to-r from-orange-400 to-rose-400 text-white hover:from-orange-500 hover:to-rose-500 shadow-md shadow-orange-400/25 dark:shadow-orange-400/15",
+  slate: "bg-gradient-to-r from-slate-600 to-gray-600 text-white hover:from-slate-700 hover:to-gray-700 shadow-md shadow-slate-500/25 dark:shadow-slate-500/15",
 };
 
 const sizes = {
-  sm: "px-4 py-2 text-sm",
-  md: "px-6 py-2.5 text-sm",
-  lg: "px-8 py-3.5 text-base",
+  sm: "px-3 py-1.5 text-xs gap-1.5",
+  md: "px-4 py-2 text-sm gap-2",
+  lg: "px-6 py-3 text-sm gap-2",
 };
 
 function Button({
@@ -38,17 +39,45 @@ function Button({
   size = "md",
   className = "",
   disabled = false,
+  loading = false,
   ...props
 }) {
+  const [ripples, setRipples] = useState([]);
+
+  const handleClick = (e) => {
+    if (disabled || loading) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const id = Date.now();
+    setRipples((prev) => [...prev, { id, x, y }]);
+    setTimeout(() => setRipples((prev) => prev.filter((r) => r.id !== id)), 600);
+    props.onClick?.(e);
+  };
+
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-xl font-semibold
-        transition-all duration-300 ease-out cursor-pointer select-none
-        active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100
+      className={`relative inline-flex items-center justify-center rounded-xl font-semibold
+        transition-all duration-200 ease-out cursor-pointer select-none overflow-hidden
+        active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100
         ${variants[variant]} ${sizes[size]} ${className}`}
-      disabled={disabled}
+      disabled={disabled || loading}
+      onClick={handleClick}
       {...props}
     >
+      {loading && (
+        <svg className="animate-spin h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+        </svg>
+      )}
+      {ripples.map((ripple) => (
+        <span
+          key={ripple.id}
+          className="absolute w-0 h-0 rounded-full bg-white/30 pointer-events-none toast-enter"
+          style={{ left: ripple.x, top: ripple.y, width: 40, height: 40, marginLeft: -20, marginTop: -20 }}
+        />
+      ))}
       {children}
     </button>
   );
@@ -56,14 +85,11 @@ function Button({
 
 Button.propTypes = {
   children: PropTypes.node.isRequired,
-  variant: PropTypes.oneOf([
-    "primary", "secondary", "outline", "ghost", "accent",
-    "blue", "orange", "purple", "indigo", "emerald", "green", "cyan", "royal",
-    "amber", "violet", "teal", "yellow", "rose", "sky", "red", "pink", "coral", "slate",
-  ]),
+  variant: PropTypes.string,
   size: PropTypes.oneOf(["sm", "md", "lg"]),
   className: PropTypes.string,
   disabled: PropTypes.bool,
+  loading: PropTypes.bool,
 };
 
 export default Button;

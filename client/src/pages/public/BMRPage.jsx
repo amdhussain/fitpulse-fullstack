@@ -1,42 +1,47 @@
-import { useState, useEffect } from "react";
-import { FitnessLayout } from "../../components/fitness";
-import { getToolConfig } from "../../lib/fitnessToolsData";
-import { calculateBMR } from "../../lib/fitnessCalculations";
+import { useState } from "react";
+import { tools, calculateBMR } from "../../lib/fitnessTools";
+import { FitnessLayout, ResultCard } from "../../components/fitness";
+import { UnitToggle, NumberInput, SelectInput } from "../../components/fitness/CalculatorForm";
+import { Button } from "../../components/ui";
+
+const tool = tools.find((t) => t.id === "bmr");
 
 function BMRPage() {
-  const config = getToolConfig("bmr");
+  const [unit, setUnit] = useState("metric");
+  const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
+  const [age, setAge] = useState("");
+  const [gender, setGender] = useState("male");
   const [result, setResult] = useState(null);
-  const [resultDetails, setResultDetails] = useState(null);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  const calculate = (values, unit) => {
-    const weight = parseFloat(values.weight) || 0;
-    const height = unit === "imperial"
-      ? (parseFloat(values.heightFeet) || 0) * 12 + (parseFloat(values.heightInches) || 0)
-      : parseFloat(values.height) || 0;
-    const age = parseFloat(values.age) || 0;
-    const gender = values.gender || "male";
-    const res = calculateBMR(weight, height, age, gender, unit);
-    setResult(res);
-    setResultDetails([
-      { label: "Weight", value: `${weight} ${unit === "imperial" ? "lbs" : "kg"}` },
-      { label: "Height", value: unit === "imperial" ? `${values.heightFeet || 0} ft ${values.heightInches || 0} in` : `${height} cm` },
-      { label: "Age", value: `${age} years` },
-      { label: "Gender", value: gender.charAt(0).toUpperCase() + gender.slice(1) },
-    ]);
-    return res;
+  const handleCalculate = () => {
+    if (!weight || !height || !age) return;
+    setResult(calculateBMR(parseFloat(weight), parseFloat(height), parseInt(age), gender, unit));
   };
 
   return (
-    <FitnessLayout
-      config={config}
-      onCalculate={calculate}
-      result={result}
-      resultDetails={resultDetails}
-    />
+    <FitnessLayout tool={tool}>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="font-semibold text-gray-900 dark:text-white text-lg">Enter Your Details</h2>
+          <UnitToggle unit={unit} onChange={setUnit} />
+        </div>
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <NumberInput label={`Weight (${unit === "metric" ? "kg" : "lbs"})`} value={weight} onChange={setWeight} placeholder="70" />
+          <NumberInput label={`Height (${unit === "metric" ? "cm" : "in"})`} value={height} onChange={setHeight} placeholder="175" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <NumberInput label="Age" value={age} onChange={setAge} placeholder="25" min={1} max={120} step={1} />
+          <SelectInput label="Gender" value={gender} onChange={setGender} options={[{ value: "male", label: "Male" }, { value: "female", label: "Female" }]} />
+        </div>
+        <Button onClick={handleCalculate} variant="primary" className="w-full">Calculate BMR</Button>
+      </div>
+      {result && (
+        <div className="mt-4">
+          <ResultCard value={result.value} label="Basal Metabolic Rate" unit={result.unit} color="amber" />
+        </div>
+      )}
+    </FitnessLayout>
   );
 }
 

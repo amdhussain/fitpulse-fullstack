@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { FiMenu, FiX, FiChevronDown, FiGrid, FiActivity, FiHeart, FiDroplet, FiTrendingUp, FiZap, FiTarget } from "react-icons/fi";
+import { FiMenu, FiX, FiChevronDown, FiGrid, FiActivity, FiHeart, FiDroplet, FiTrendingUp, FiZap, FiTarget, FiAlertTriangle, FiClock, FiPieChart, FiUsers, FiAward, FiNavigation, FiMap, FiSun, FiCrosshair, FiArrowUp, FiCoffee, FiBookOpen, FiCompass } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { Container, Button, Logo } from "../ui";
 
@@ -13,13 +13,28 @@ const sectionLinks = [
 
 const fitnessToolsLinks = [
   { to: "/fitness-tools", label: "All Tools", icon: FiGrid, isHub: true },
-  { to: "/fitness-tools/bmi", label: "BMI Calculator", icon: FiActivity },
-  { to: "/fitness-tools/bmr", label: "BMR Calculator", icon: FiHeart },
-  { to: "/fitness-tools/calorie", label: "Daily Calories", icon: FiZap },
-  { to: "/fitness-tools/ideal-weight", label: "Ideal Weight", icon: FiTarget },
+  { to: "/fitness-tools/bmi", label: "BMI Calculator", icon: FiPieChart },
+  { to: "/fitness-tools/bmr", label: "BMR Calculator", icon: FiZap },
+  { to: "/fitness-tools/tdee", label: "TDEE Calculator", icon: FiActivity },
+  { to: "/fitness-tools/calories", label: "Daily Calories", icon: FiActivity },
+  { to: "/fitness-tools/body-fat", label: "Body Fat %", icon: FiTarget },
+  { to: "/fitness-tools/lean-body-mass", label: "Lean Body Mass", icon: FiUsers },
+  { to: "/fitness-tools/ffmi", label: "FFMI Calculator", icon: FiAward },
+  { to: "/fitness-tools/ideal-weight", label: "Ideal Weight", icon: FiHeart },
+  { to: "/fitness-tools/heart-rate", label: "Heart Rate Zones", icon: FiHeart },
+  { to: "/fitness-tools/target-heart-rate", label: "Target Heart Rate", icon: FiCrosshair },
   { to: "/fitness-tools/water", label: "Water Intake", icon: FiDroplet },
   { to: "/fitness-tools/protein", label: "Protein Intake", icon: FiTrendingUp },
-  { to: "/fitness-tools/body-fat", label: "Body Fat %", icon: FiActivity },
+  { to: "/fitness-tools/macro", label: "Macro Calculator", icon: FiGrid },
+  { to: "/fitness-tools/one-rep-max", label: "One Rep Max", icon: FiAlertTriangle },
+  { to: "/fitness-tools/pace", label: "Pace Calculator", icon: FiClock },
+  { to: "/fitness-tools/running-pace", label: "Running Pace", icon: FiNavigation },
+  { to: "/fitness-tools/cycling", label: "Cycling Calculator", icon: FiCompass },
+  { to: "/fitness-tools/walking-calories", label: "Walking Calories", icon: FiMap },
+  { to: "/fitness-tools/calories-burn", label: "Calories Burn", icon: FiSun },
+  { to: "/fitness-tools/steps", label: "Steps Calculator", icon: FiArrowUp },
+  { to: "/fitness-tools/nutrition", label: "Nutrition Calculator", icon: FiCoffee },
+  { to: "/fitness-tools/meal-planner", label: "Meal Planner", icon: FiBookOpen },
 ];
 
 const routeLinks = [

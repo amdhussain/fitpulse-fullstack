@@ -1,0 +1,28 @@
+const { validateRequest } = require('../../validators/middlewares');
+const rules = require('../../validators/helpers/rules.helper');
+const { body } = require('express-validator');
+
+const register = [
+  rules.name('firstName'),
+  rules.name('lastName'),
+  rules.email('email'),
+  rules.password('password'),
+  rules.passwordConfirmation('password', 'passwordConfirm'),
+  body('role')
+    .optional()
+    .isIn(['MEMBER', 'TRAINER'])
+    .withMessage('Role must be MEMBER or TRAINER'),
+];
+
+const login = [
+  rules.email('email'),
+  body('password')
+    .trim()
+    .notEmpty()
+    .withMessage('Password is required'),
+];
+
+module.exports = {
+  register: validateRequest(register),
+  login: validateRequest(login),
+};

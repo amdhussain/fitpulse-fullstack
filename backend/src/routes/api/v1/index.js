@@ -3,35 +3,14 @@ const systemRoutes = require('./system.routes');
 
 function v1Routes(router) {
   // ─── Core Routes ──────────────────────────────────────
+  // These are non-module routes that provide system info
   healthRoutes(router);
   systemRoutes(router);
 
-  // ─── Future Module Routes ─────────────────────────────
-  // Uncomment and create route files as modules are built:
-  //
-  // const authRoutes = require('./auth.routes');
-  // const userRoutes = require('./user.routes');
-  // const trainerRoutes = require('./trainer.routes');
-  // const classRoutes = require('./class.routes');
-  // const bookingRoutes = require('./booking.routes');
-  // const paymentRoutes = require('./payment.routes');
-  // const communityRoutes = require('./community.routes');
-  // const dashboardRoutes = require('./dashboard.routes');
-  // const fitnessToolsRoutes = require('./fitness-tools.routes');
-  // const cmsRoutes = require('./cms.routes');
-  // const settingsRoutes = require('./settings.routes');
-  //
-  // authRoutes(router);
-  // userRoutes(router);
-  // trainerRoutes(router);
-  // classRoutes(router);
-  // bookingRoutes(router);
-  // paymentRoutes(router);
-  // communityRoutes(router);
-  // dashboardRoutes(router);
-  // fitnessToolsRoutes(router);
-  // cmsRoutes(router);
-  // settingsRoutes(router);
+  // ─── Module Routes ────────────────────────────────────
+  // All other routes are loaded automatically via the module
+  // system in src/modules/. The module loader discovers
+  // modules and registers their routes at /api/v1/<prefix>.
 }
 
 module.exports = v1Routes;

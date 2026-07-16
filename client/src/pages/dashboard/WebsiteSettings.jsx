@@ -30,12 +30,12 @@ function Toggle({ enabled, onChange, label, description }) {
   return (
     <label className="flex items-center justify-between cursor-pointer group">
       <div>
-        <p className="text-sm font-medium text-white/80">{label}</p>
-        <p className="text-xs text-white/40">{description}</p>
+        <p className="text-sm font-medium text-gray-700">{label}</p>
+        <p className="text-xs text-gray-400">{description}</p>
       </div>
       <div
         className={`relative w-11 h-6 rounded-full transition-colors ${
-          enabled ? "bg-violet-500" : "bg-white/10"
+          enabled ? "bg-violet-500" : "bg-gray-100"
         }`}
         onClick={onChange}
       >
@@ -115,7 +115,7 @@ function WebsiteSettings() {
           {[1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
-              className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-purple-500/10 p-6 sm:p-8 space-y-5"
+              className="rounded-2xl bg-white backdrop-blur-xl border border-purple-100 p-6 sm:p-8 space-y-5"
             >
               <Skeleton variant="shimmer" className="h-5 w-40 rounded-lg" />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -167,20 +167,20 @@ function WebsiteSettings() {
         {/* Section 1: General Settings */}
         <motion.div
           variants={fadeUp}
-          className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-purple-500/10 p-6 sm:p-8 space-y-5"
+          className="rounded-2xl bg-white backdrop-blur-xl border border-purple-100 p-6 sm:p-8 space-y-5"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-violet-500/10 flex items-center justify-center">
-              <FiGlobe className="w-4 h-4 text-violet-400" />
+            <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+              <FiGlobe className="w-4 h-4 text-violet-600" />
             </div>
-            <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
               General Settings
             </h3>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-white/60 mb-1.5">
+              <label className="block text-sm font-medium text-gray-500 mb-1.5">
                 Site Name
               </label>
               <input
@@ -192,7 +192,7 @@ function WebsiteSettings() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-white/60 mb-1.5">
+              <label className="block text-sm font-medium text-gray-500 mb-1.5">
                 Site Tagline
               </label>
               <input
@@ -206,7 +206,7 @@ function WebsiteSettings() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white/60 mb-1.5">
+            <label className="block text-sm font-medium text-gray-500 mb-1.5">
               Site Description
             </label>
             <textarea
@@ -222,13 +222,13 @@ function WebsiteSettings() {
         {/* Section 2: Branding */}
         <motion.div
           variants={fadeUp}
-          className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-purple-500/10 p-6 sm:p-8 space-y-5"
+          className="rounded-2xl bg-white backdrop-blur-xl border border-purple-100 p-6 sm:p-8 space-y-5"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-violet-500/10 flex items-center justify-center">
-              <FiImage className="w-4 h-4 text-violet-400" />
+            <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+              <FiImage className="w-4 h-4 text-violet-600" />
             </div>
-            <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
               Branding
             </h3>
           </div>
@@ -250,7 +250,7 @@ function WebsiteSettings() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-white/60 mb-1.5">
+              <label className="block text-sm font-medium text-gray-500 mb-1.5">
                 Primary Color
               </label>
               <div className="flex items-center gap-3">
@@ -259,7 +259,7 @@ function WebsiteSettings() {
                   name="primaryColor"
                   value={form.primaryColor}
                   onChange={handleChange}
-                  className="w-10 h-10 rounded-lg border border-gray-800/60 cursor-pointer bg-transparent"
+                  className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer bg-transparent"
                 />
                 <input
                   type="text"
@@ -271,7 +271,7 @@ function WebsiteSettings() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-white/60 mb-1.5">
+              <label className="block text-sm font-medium text-gray-500 mb-1.5">
                 Secondary Color
               </label>
               <div className="flex items-center gap-3">
@@ -280,7 +280,7 @@ function WebsiteSettings() {
                   name="secondaryColor"
                   value={form.secondaryColor}
                   onChange={handleChange}
-                  className="w-10 h-10 rounded-lg border border-gray-800/60 cursor-pointer bg-transparent"
+                  className="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer bg-transparent"
                 />
                 <input
                   type="text"
@@ -294,7 +294,7 @@ function WebsiteSettings() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white/60 mb-1.5">
+            <label className="block text-sm font-medium text-gray-500 mb-1.5">
               Font Family
             </label>
             <select
@@ -311,26 +311,26 @@ function WebsiteSettings() {
             </select>
           </div>
 
-          <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
-            <p className="text-xs font-medium text-white/30 uppercase tracking-wider mb-3">
+          <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+            <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">
               Color Preview
             </p>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <div
-                  className="w-8 h-8 rounded-lg border border-white/10 shadow-lg"
+                  className="w-8 h-8 rounded-lg border border-gray-200 shadow-lg"
                   style={{ backgroundColor: form.primaryColor }}
                 />
-                <span className="text-xs text-white/50">
+                <span className="text-xs text-gray-500">
                   {form.primaryColor}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <div
-                  className="w-8 h-8 rounded-lg border border-white/10 shadow-lg"
+                  className="w-8 h-8 rounded-lg border border-gray-200 shadow-lg"
                   style={{ backgroundColor: form.secondaryColor }}
                 />
-                <span className="text-xs text-white/50">
+                <span className="text-xs text-gray-500">
                   {form.secondaryColor}
                 </span>
               </div>
@@ -345,7 +345,7 @@ function WebsiteSettings() {
                 />
               </div>
             </div>
-            <p className="text-xs text-white/20 mt-2" style={{ fontFamily: form.fontFamily }}>
+            <p className="text-xs text-gray-400 mt-2" style={{ fontFamily: form.fontFamily }}>
               Sample text in {form.fontFamily} — {form.siteTagline}
             </p>
           </div>
@@ -354,19 +354,19 @@ function WebsiteSettings() {
         {/* Section 3: SEO Settings */}
         <motion.div
           variants={fadeUp}
-          className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-purple-500/10 p-6 sm:p-8 space-y-5"
+          className="rounded-2xl bg-white backdrop-blur-xl border border-purple-100 p-6 sm:p-8 space-y-5"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-violet-500/10 flex items-center justify-center">
-              <FiSearch className="w-4 h-4 text-violet-400" />
+            <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+              <FiSearch className="w-4 h-4 text-violet-600" />
             </div>
-            <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
               SEO Settings
             </h3>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white/60 mb-1.5">
+            <label className="block text-sm font-medium text-gray-500 mb-1.5">
               SEO Title
             </label>
             <input
@@ -377,14 +377,14 @@ function WebsiteSettings() {
               className={inputClass}
             />
             <div className="flex items-center justify-between mt-1.5">
-              <p className="text-xs text-white/30">
+              <p className="text-xs text-gray-400">
                 Recommended: 50-60 characters for optimal search display
               </p>
               <p
                 className={`text-xs ${
                   form.seoTitle.length > 60
-                    ? "text-amber-400"
-                    : "text-white/30"
+                    ? "text-amber-600"
+                    : "text-gray-400"
                 }`}
               >
                 {form.seoTitle.length}/60
@@ -393,7 +393,7 @@ function WebsiteSettings() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white/60 mb-1.5">
+            <label className="block text-sm font-medium text-gray-500 mb-1.5">
               SEO Description
             </label>
             <textarea
@@ -404,14 +404,14 @@ function WebsiteSettings() {
               className={`${inputClass} resize-none`}
             />
             <div className="flex items-center justify-between mt-1.5">
-              <p className="text-xs text-white/30">
+              <p className="text-xs text-gray-400">
                 Recommended: 150-160 characters for search engine snippets
               </p>
               <p
                 className={`text-xs ${
                   form.seoDescription.length > 160
-                    ? "text-amber-400"
-                    : "text-white/30"
+                    ? "text-amber-600"
+                    : "text-gray-400"
                 }`}
               >
                 {form.seoDescription.length}/160
@@ -420,7 +420,7 @@ function WebsiteSettings() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white/60 mb-1.5">
+            <label className="block text-sm font-medium text-gray-500 mb-1.5">
               Meta Keywords
             </label>
             <input
@@ -431,7 +431,7 @@ function WebsiteSettings() {
               placeholder="fitness, gym, booking, personal training, yoga, crossfit"
               className={inputClass}
             />
-            <p className="text-xs text-white/30 mt-1.5">
+            <p className="text-xs text-gray-400 mt-1.5">
               Comma-separated keywords for search engine optimization
             </p>
           </div>
@@ -440,24 +440,24 @@ function WebsiteSettings() {
         {/* Section 4: Business Information */}
         <motion.div
           variants={fadeUp}
-          className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-purple-500/10 p-6 sm:p-8 space-y-5"
+          className="rounded-2xl bg-white backdrop-blur-xl border border-purple-100 p-6 sm:p-8 space-y-5"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-violet-500/10 flex items-center justify-center">
-              <FiMail className="w-4 h-4 text-violet-400" />
+            <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+              <FiMail className="w-4 h-4 text-violet-600" />
             </div>
-            <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
               Business Information
             </h3>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-white/60 mb-1.5">
+              <label className="block text-sm font-medium text-gray-500 mb-1.5">
                 Business Email
               </label>
               <div className="relative">
-                <FiMail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                <FiMail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="email"
                   name="businessEmail"
@@ -468,11 +468,11 @@ function WebsiteSettings() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-white/60 mb-1.5">
+              <label className="block text-sm font-medium text-gray-500 mb-1.5">
                 Business Phone
               </label>
               <div className="relative">
-                <FiPhone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                <FiPhone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="tel"
                   name="businessPhone"
@@ -485,11 +485,11 @@ function WebsiteSettings() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white/60 mb-1.5">
+            <label className="block text-sm font-medium text-gray-500 mb-1.5">
               Business Address
             </label>
             <div className="relative">
-              <FiMapPin className="absolute left-3.5 top-4 w-4 h-4 text-white/20" />
+              <FiMapPin className="absolute left-3.5 top-4 w-4 h-4 text-gray-400" />
               <input
                 type="text"
                 name="businessAddress"
@@ -501,11 +501,11 @@ function WebsiteSettings() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white/60 mb-1.5">
+            <label className="block text-sm font-medium text-gray-500 mb-1.5">
               Working Hours
             </label>
             <div className="relative">
-              <FiClock className="absolute left-3.5 top-4 w-4 h-4 text-white/20" />
+              <FiClock className="absolute left-3.5 top-4 w-4 h-4 text-gray-400" />
               <input
                 type="text"
                 name="workingHours"
@@ -517,11 +517,11 @@ function WebsiteSettings() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-white/60 mb-1.5">
+            <label className="block text-sm font-medium text-gray-500 mb-1.5">
               Google Map URL
             </label>
             <div className="relative">
-              <FiMapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+              <FiMapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="url"
                 name="googleMapUrl"
@@ -537,13 +537,13 @@ function WebsiteSettings() {
         {/* Section 5: Advanced */}
         <motion.div
           variants={fadeUp}
-          className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-purple-500/10 p-6 sm:p-8 space-y-5"
+          className="rounded-2xl bg-white backdrop-blur-xl border border-purple-100 p-6 sm:p-8 space-y-5"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-violet-500/10 flex items-center justify-center">
-              <FiAlertTriangle className="w-4 h-4 text-violet-400" />
+            <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
+              <FiAlertTriangle className="w-4 h-4 text-violet-600" />
             </div>
-            <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
               Advanced
             </h3>
           </div>
@@ -562,13 +562,13 @@ function WebsiteSettings() {
             />
 
             {form.maintenanceMode && (
-              <div className="rounded-xl bg-amber-500/5 border border-amber-500/10 px-4 py-3 flex items-start gap-3">
-                <FiAlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+              <div className="rounded-xl bg-amber-50/50 border border-amber-100 px-4 py-3 flex items-start gap-3">
+                <FiAlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-xs font-medium text-amber-400">
+                  <p className="text-xs font-medium text-amber-600">
                     Maintenance Mode is Active
                   </p>
-                  <p className="text-xs text-amber-400/50 mt-0.5">
+                  <p className="text-xs text-amber-300 mt-0.5">
                     Your site is currently in maintenance mode. Only admins can
                     access the frontend. Remember to disable it when maintenance
                     is complete.
@@ -577,7 +577,7 @@ function WebsiteSettings() {
               </div>
             )}
 
-            <div className="border-t border-white/5" />
+            <div className="border-t border-gray-100" />
 
             <Toggle
               enabled={form.darkMode}
@@ -591,12 +591,12 @@ function WebsiteSettings() {
               description="Enable dark mode as the default theme for your website"
             />
 
-            <div className="border-t border-white/5" />
+            <div className="border-t border-gray-100" />
 
-            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
               <div className="flex items-center gap-2 mb-2">
-                <FiMonitor className="w-3.5 h-3.5 text-white/30" />
-                <p className="text-xs font-medium text-white/30 uppercase tracking-wider">
+                <FiMonitor className="w-3.5 h-3.5 text-gray-400" />
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Current Status
                 </p>
               </div>
@@ -607,7 +607,7 @@ function WebsiteSettings() {
                       form.maintenanceMode ? "bg-amber-400" : "bg-emerald-400"
                     }`}
                   />
-                  <span className="text-xs text-white/50">
+                  <span className="text-xs text-gray-500">
                     {form.maintenanceMode ? "Maintenance" : "Live"}
                   </span>
                 </div>
@@ -617,7 +617,7 @@ function WebsiteSettings() {
                       form.darkMode ? "bg-violet-400" : "bg-sky-400"
                     }`}
                   />
-                  <span className="text-xs text-white/50">
+                  <span className="text-xs text-gray-500">
                     {form.darkMode ? "Dark Theme" : "Light Theme"}
                   </span>
                 </div>

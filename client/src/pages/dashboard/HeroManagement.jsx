@@ -17,6 +17,7 @@ import DataTable from "../../components/dashboard/DataTable";
 import CmsModal from "../../components/dashboard/CmsModal";
 import CmsBadge from "../../components/dashboard/CmsBadge";
 import { getInputClass } from "../../lib/dashboardHelpers";
+import ConfirmModal from "../../components/dashboard/ConfirmModal";
 import { getHeroSections, getHeroStats } from "../../lib/heroData";
 
 const emptyForm = {
@@ -38,6 +39,7 @@ function HeroManagement() {
   const [form, setForm] = useState(emptyForm);
   const [saved, setSaved] = useState(false);
   const [viewItem, setViewItem] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const inputClass = getInputClass("orange");
   const stats = getHeroStats(sections);
 
@@ -72,6 +74,7 @@ function HeroManagement() {
 
   const handleDelete = (id) => {
     setSections((prev) => prev.filter((s) => s.id !== id));
+    setDeleteTarget(null);
   };
 
   const toggleStatus = (id) => {
@@ -121,7 +124,7 @@ function HeroManagement() {
       label: "Image",
       width: "w-16",
       render: (_, item) => (
-        <div className="w-12 h-12 rounded-xl overflow-hidden bg-orange-500/10 shrink-0">
+        <div className="w-12 h-12 rounded-xl overflow-hidden bg-orange-50 dark:bg-orange-900/30 shrink-0">
           {item.image ? (
             <img
               src={item.image}
@@ -131,7 +134,7 @@ function HeroManagement() {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <FiImage className="w-5 h-5 text-orange-400/40" />
+              <FiImage className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             </div>
           )}
         </div>
@@ -142,10 +145,10 @@ function HeroManagement() {
       label: "Title",
       render: (_, item) => (
         <div>
-          <p className="font-medium text-white/80 truncate max-w-[200px]">
+          <p className="font-medium text-gray-700 dark:text-gray-200 truncate max-w-[200px]">
             {item.title}
           </p>
-          <p className="text-xs text-white/30 truncate max-w-[200px]">
+          <p className="text-xs text-gray-400 dark:text-gray-500 truncate max-w-[200px]">
             {item.subtitle}
           </p>
         </div>
@@ -155,7 +158,7 @@ function HeroManagement() {
       key: "buttonText",
       label: "Button",
       render: (val) => (
-        <span className="px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-400 text-xs font-medium">
+        <span className="px-2 py-0.5 rounded-md bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-xs font-medium">
           {val}
         </span>
       ),
@@ -175,7 +178,7 @@ function HeroManagement() {
       key: "updatedAt",
       label: "Updated",
       render: (val) => (
-        <div className="flex items-center gap-1.5 text-white/30">
+        <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
           <FiClock className="w-3 h-3" />
           <span className="text-xs">{val}</span>
         </div>
@@ -238,6 +241,8 @@ function HeroManagement() {
         onAdd={openAdd}
         addLabel="Add Hero Section"
         loading={loading}
+        onRefresh={() => { setSections(getHeroSections()); }}
+        onExport={() => {}}
         actions={(item) => (
           <>
             <button
@@ -245,7 +250,7 @@ function HeroManagement() {
                 e.stopPropagation();
                 setViewItem(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-orange-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 dark:text-gray-500 hover:text-orange-600 transition-colors"
               aria-label={`View ${item.title}`}
             >
               <FiEye className="w-4 h-4" />
@@ -255,7 +260,7 @@ function HeroManagement() {
                 e.stopPropagation();
                 openEdit(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-orange-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 dark:text-gray-500 hover:text-orange-600 transition-colors"
               aria-label={`Edit ${item.title}`}
             >
               <FiEdit2 className="w-4 h-4" />
@@ -263,9 +268,9 @@ function HeroManagement() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleDelete(item.id);
+                setDeleteTarget(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-red-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 dark:text-gray-500 hover:text-red-400 transition-colors"
               aria-label={`Delete ${item.title}`}
             >
               <FiTrash2 className="w-4 h-4" />
@@ -289,7 +294,7 @@ function HeroManagement() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Hero Title *
                 </label>
                 <input
@@ -304,7 +309,7 @@ function HeroManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Subtitle / Badge
                 </label>
                 <input
@@ -318,7 +323,7 @@ function HeroManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Description
                 </label>
                 <textarea
@@ -333,7 +338,7 @@ function HeroManagement() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Primary Button Text
                   </label>
                   <input
@@ -347,7 +352,7 @@ function HeroManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Primary Button Link
                   </label>
                   <input
@@ -363,7 +368,7 @@ function HeroManagement() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Secondary Button Text
                   </label>
                   <input
@@ -377,7 +382,7 @@ function HeroManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Secondary Button Link
                   </label>
                   <input
@@ -400,10 +405,10 @@ function HeroManagement() {
             </div>
 
             <div className="space-y-4">
-              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider">
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                 Preview
               </p>
-              <div className="rounded-xl border border-orange-500/10 overflow-hidden bg-[#0f0f15]">
+              <div className="rounded-xl border border-orange-100 dark:border-orange-800/50 overflow-hidden bg-gray-50 dark:bg-gray-700/50">
                 {form.image ? (
                   <div className="h-40 overflow-hidden">
                     <img
@@ -413,20 +418,20 @@ function HeroManagement() {
                     />
                   </div>
                 ) : (
-                  <div className="h-40 bg-gradient-to-br from-orange-500/10 to-amber-500/5 flex items-center justify-center">
-                    <FiImage className="w-10 h-10 text-orange-400/20" />
+                  <div className="h-40 bg-gradient-to-br from-orange-50 to-amber-50/50 dark:from-orange-900/20 dark:to-amber-900/20 flex items-center justify-center">
+                    <FiImage className="w-10 h-10 text-orange-600 dark:text-orange-400" />
                   </div>
                 )}
                 <div className="p-5 space-y-3">
                   {form.subtitle && (
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-orange-500/10 text-orange-400 text-[10px] font-bold">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-bold">
                       {form.subtitle}
                     </span>
                   )}
-                  <h3 className="text-lg font-bold text-white">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {form.title || "Hero Title"}
                   </h3>
-                  <p className="text-xs text-white/40 line-clamp-2">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 line-clamp-2">
                     {form.description || "Hero description will appear here..."}
                   </p>
                   <div className="flex gap-2">
@@ -436,7 +441,7 @@ function HeroManagement() {
                       </span>
                     )}
                     {form.secondaryText && (
-                      <span className="px-3 py-1.5 rounded-lg border border-white/10 text-white/60 text-xs font-medium">
+                      <span className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 text-xs font-medium">
                         {form.secondaryText}
                       </span>
                     )}
@@ -445,23 +450,23 @@ function HeroManagement() {
               </div>
 
               <div className="grid grid-cols-3 gap-3">
-                <div className="p-3 rounded-lg bg-orange-500/5 border border-orange-500/10 text-center">
-                  <p className="text-lg font-bold text-orange-400">2,847</p>
-                  <p className="text-[10px] text-white/30">Members</p>
+                <div className="p-3 rounded-lg bg-orange-50/50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800/50 text-center">
+                  <p className="text-lg font-bold text-orange-600 dark:text-orange-400">2,847</p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500">Members</p>
                 </div>
-                <div className="p-3 rounded-lg bg-orange-500/5 border border-orange-500/10 text-center">
-                  <p className="text-lg font-bold text-orange-400">24</p>
-                  <p className="text-[10px] text-white/30">Trainers</p>
+                <div className="p-3 rounded-lg bg-orange-50/50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800/50 text-center">
+                  <p className="text-lg font-bold text-orange-600 dark:text-orange-400">24</p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500">Trainers</p>
                 </div>
-                <div className="p-3 rounded-lg bg-orange-500/5 border border-orange-500/10 text-center">
-                  <p className="text-lg font-bold text-orange-400">50+</p>
-                  <p className="text-[10px] text-white/30">Classes</p>
+                <div className="p-3 rounded-lg bg-orange-50/50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800/50 text-center">
+                  <p className="text-lg font-bold text-orange-600 dark:text-orange-400">50+</p>
+                  <p className="text-[10px] text-gray-400 dark:text-gray-500">Classes</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+          <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
             <Button type="submit" variant="orange" size="md">
               {editing ? "Update Section" : "Save Section"}
             </Button>
@@ -491,7 +496,7 @@ function HeroManagement() {
       >
         {viewItem && (
           <div className="space-y-4">
-            <div className="rounded-xl overflow-hidden bg-[#0f0f15] border border-orange-500/10">
+            <div className="rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-700/50 border border-orange-100 dark:border-orange-800/50">
               {viewItem.image && (
                 <div className="h-48 overflow-hidden">
                   <img
@@ -503,14 +508,14 @@ function HeroManagement() {
               )}
               <div className="p-6 space-y-3">
                 <CmsBadge status={viewItem.status} />
-                <h3 className="text-xl font-bold text-white">{viewItem.title}</h3>
-                <p className="text-sm text-white/40">{viewItem.description}</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{viewItem.title}</h3>
+                <p className="text-sm text-gray-400 dark:text-gray-500">{viewItem.description}</p>
                 <div className="flex gap-2">
                   <span className="px-3 py-1.5 rounded-lg bg-orange-500 text-white text-xs font-medium">
                     {viewItem.buttonText}
                   </span>
                   {viewItem.secondaryText && (
-                    <span className="px-3 py-1.5 rounded-lg border border-white/10 text-white/60 text-xs font-medium">
+                    <span className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 text-xs font-medium">
                       {viewItem.secondaryText}
                     </span>
                   )}
@@ -520,6 +525,16 @@ function HeroManagement() {
           </div>
         )}
       </CmsModal>
+
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => handleDelete(deleteTarget?.id)}
+        title="Delete Hero Section"
+        message={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
+        confirmText="Delete Section"
+        type="danger"
+      />
     </motion.div>
   );
 }

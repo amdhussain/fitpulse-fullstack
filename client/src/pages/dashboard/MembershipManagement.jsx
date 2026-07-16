@@ -14,6 +14,7 @@ import { staggerContainer } from "../../lib/animations";
 import PageBanner from "../../components/dashboard/PageBanner";
 import StatCard from "../../components/dashboard/StatCard";
 import DataTable from "../../components/dashboard/DataTable";
+import ConfirmModal from "../../components/dashboard/ConfirmModal";
 import CmsModal from "../../components/dashboard/CmsModal";
 import CmsBadge from "../../components/dashboard/CmsBadge";
 import { getInputClass } from "../../lib/dashboardHelpers";
@@ -50,6 +51,7 @@ function MembershipManagement() {
   const [form, setForm] = useState(emptyForm);
   const [saved, setSaved] = useState(false);
   const [viewItem, setViewItem] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const inputClass = getInputClass("yellow");
   const stats = getMembershipStats(plans);
 
@@ -84,6 +86,7 @@ function MembershipManagement() {
 
   const handleDelete = (id) => {
     setPlans((prev) => prev.filter((p) => p.id !== id));
+    setDeleteTarget(null);
   };
 
   const toggleStatus = (id) => {
@@ -153,21 +156,21 @@ function MembershipManagement() {
       key: "monthlyPrice",
       label: "Monthly",
       render: (val) => (
-        <span className="text-sm font-semibold text-yellow-400">{val}</span>
+        <span className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">{val}</span>
       ),
     },
     {
       key: "yearlyPrice",
       label: "Yearly",
       render: (val) => (
-        <span className="text-sm text-amber-400 text-sm">{val}</span>
+        <span className="text-sm text-amber-600 dark:text-amber-400 text-sm">{val}</span>
       ),
     },
     {
       key: "duration",
       label: "Duration",
       render: (val) => (
-        <div className="flex items-center gap-1.5 text-white/40">
+        <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
           <FiCalendar className="w-3 h-3" />
           <span className="text-xs">{val}</span>
         </div>
@@ -185,13 +188,13 @@ function MembershipManagement() {
             {shown.map((f, i) => (
               <span
                 key={i}
-                className="px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 text-[10px] font-medium"
+                className="px-2 py-0.5 rounded-full bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 text-[10px] font-medium"
               >
                 {f}
               </span>
             ))}
             {remaining > 0 && (
-              <span className="text-[10px] text-white/30">
+              <span className="text-[10px] text-gray-400 dark:text-gray-500">
                 +{remaining} more
               </span>
             )}
@@ -270,6 +273,8 @@ function MembershipManagement() {
         onAdd={openAdd}
         addLabel="Add Plan"
         loading={loading}
+        onRefresh={() => { setPlans(getMembershipPlans()); }}
+        onExport={() => {}}
         actions={(item) => (
           <>
             <button
@@ -277,7 +282,7 @@ function MembershipManagement() {
                 e.stopPropagation();
                 setViewItem(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-yellow-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 hover:text-yellow-600 transition-colors"
               aria-label={`View ${item.name}`}
             >
               <FiEye className="w-4 h-4" />
@@ -287,7 +292,7 @@ function MembershipManagement() {
                 e.stopPropagation();
                 openEdit(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-yellow-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 hover:text-yellow-600 transition-colors"
               aria-label={`Edit ${item.name}`}
             >
               <FiEdit2 className="w-4 h-4" />
@@ -295,9 +300,9 @@ function MembershipManagement() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleDelete(item.id);
+                setDeleteTarget(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-red-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 hover:text-red-400 transition-colors"
               aria-label={`Delete ${item.name}`}
             >
               <FiTrash2 className="w-4 h-4" />
@@ -321,7 +326,7 @@ function MembershipManagement() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Plan Name *
                 </label>
                 <input
@@ -337,7 +342,7 @@ function MembershipManagement() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Monthly Price
                   </label>
                   <input
@@ -351,7 +356,7 @@ function MembershipManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Yearly Price
                   </label>
                   <input
@@ -366,7 +371,7 @@ function MembershipManagement() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Duration
                 </label>
                 <select
@@ -381,7 +386,7 @@ function MembershipManagement() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Description
                 </label>
                 <textarea
@@ -395,7 +400,7 @@ function MembershipManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Features (comma separated)
                 </label>
                 <textarea
@@ -415,14 +420,14 @@ function MembershipManagement() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, popular: e.target.checked }))
                   }
-                  className="w-4 h-4 rounded-md border border-white/20 bg-white/5 checked:bg-yellow-500 checked:border-yellow-500 transition-all duration-200 cursor-pointer accent-yellow-500"
+                  className="w-4 h-4 rounded-md border border-gray-200 bg-gray-50 checked:bg-yellow-500 checked:border-yellow-500 transition-all duration-200 cursor-pointer accent-yellow-500"
                 />
-                <span className="text-sm text-white/50 group-hover:text-white/70 transition-colors">
+                <span className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
                   Popular Plan
                 </span>
               </label>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Color Theme
                 </label>
                 <div className="flex items-center gap-2.5">
@@ -433,7 +438,7 @@ function MembershipManagement() {
                       onClick={() => setForm((p) => ({ ...p, color: c }))}
                       className={`w-7 h-7 rounded-full transition-all duration-200 ${
                         form.color === c
-                          ? "ring-2 ring-offset-2 ring-offset-[#12121a]"
+                          ? "ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-800"
                           : "hover:scale-110"
                       }`}
                       style={{
@@ -443,7 +448,7 @@ function MembershipManagement() {
                           form.color === c ? c : "transparent",
                         boxShadow:
                           form.color === c
-                            ? `0 0 0 2px #12121a, 0 0 0 4px ${c}`
+                            ? `0 0 0 2px #ffffff, 0 0 0 4px ${c}`
                             : "none",
                       }}
                       aria-label={`Select color ${c}`}
@@ -454,21 +459,21 @@ function MembershipManagement() {
             </div>
 
             <div className="space-y-4">
-              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                 Preview
               </p>
-              <div className="rounded-xl border border-yellow-500/10 overflow-hidden bg-[#0f0f15]">
+              <div className="rounded-xl border border-yellow-100 dark:border-yellow-800/50 overflow-hidden bg-gray-50 dark:bg-gray-700/50">
                 <div
                   className="h-2 w-full"
                   style={{ backgroundColor: form.color || "#eab308" }}
                 />
                 <div className="p-5 space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-bold text-white">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                       {form.name || "Plan Name"}
                     </h3>
                     {form.popular && (
-                      <span className="px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 text-[10px] font-bold flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 text-[10px] font-bold flex items-center gap-1">
                         <FiStar className="w-2.5 h-2.5 fill-current" />
                         Popular
                       </span>
@@ -477,20 +482,20 @@ function MembershipManagement() {
                   <div className="flex items-end gap-4">
                     {form.monthlyPrice && (
                       <div>
-                        <p className="text-[10px] text-white/30 uppercase tracking-wider">
+                        <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                           Monthly
                         </p>
-                        <p className="text-xl font-bold text-yellow-400">
+                        <p className="text-xl font-bold text-yellow-600 dark:text-yellow-400">
                           {form.monthlyPrice}
                         </p>
                       </div>
                     )}
                     {form.yearlyPrice && (
                       <div>
-                        <p className="text-[10px] text-white/30 uppercase tracking-wider">
+                        <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                           Yearly
                         </p>
-                        <p className="text-lg font-semibold text-amber-400">
+                        <p className="text-lg font-semibold text-amber-600 dark:text-amber-400">
                           {form.yearlyPrice}
                         </p>
                       </div>
@@ -509,16 +514,16 @@ function MembershipManagement() {
                     </span>
                   </div>
                   {form.description && (
-                    <p className="text-xs text-white/40 line-clamp-2">
+                    <p className="text-xs text-gray-400 dark:text-gray-500 line-clamp-2">
                       {form.description}
                     </p>
                   )}
                   {form.features && (
-                    <div className="space-y-1.5 pt-2 border-t border-white/5">
+                    <div className="space-y-1.5 pt-2 border-t border-gray-100 dark:border-gray-700">
                       {parseFeatures(form.features).map((f, i) => (
                         <div
                           key={i}
-                          className="flex items-center gap-2 text-xs text-white/50"
+                          className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400"
                         >
                           <FiStar
                             className="w-3 h-3 shrink-0"
@@ -536,7 +541,7 @@ function MembershipManagement() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+          <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
             <Button type="submit" variant="yellow" size="md">
               {editing ? "Update Plan" : "Save Plan"}
             </Button>
@@ -566,7 +571,7 @@ function MembershipManagement() {
       >
         {viewItem && (
           <div className="space-y-4">
-            <div className="rounded-xl overflow-hidden bg-[#0f0f15] border border-yellow-500/10">
+            <div className="rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-700/50 border border-yellow-100 dark:border-yellow-800/50">
               <div
                 className="h-2 w-full"
                 style={{ backgroundColor: viewItem.color || "#eab308" }}
@@ -575,45 +580,45 @@ function MembershipManagement() {
                 <div className="flex items-center gap-2">
                   <CmsBadge status={viewItem.status} />
                   {viewItem.popular && (
-                    <span className="px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-400 text-[10px] font-bold flex items-center gap-1">
+                    <span className="px-2 py-0.5 rounded-full bg-yellow-50 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 text-[10px] font-bold flex items-center gap-1">
                       <FiStar className="w-2.5 h-2.5 fill-current" />
                       Popular
                     </span>
                   )}
                 </div>
-                <h3 className="text-xl font-bold text-white">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   {viewItem.name}
                 </h3>
-                <div className="grid grid-cols-3 gap-4 pt-2 border-t border-white/5">
+                <div className="grid grid-cols-3 gap-4 pt-2 border-t border-gray-100 dark:border-gray-700">
                   <div>
-                    <p className="text-xs text-white/30">Monthly</p>
-                    <p className="text-lg font-bold text-yellow-400">
+                    <p className="text-xs text-gray-400 dark:text-gray-500">Monthly</p>
+                    <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
                       {viewItem.monthlyPrice}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-white/30">Yearly</p>
-                    <p className="text-lg font-semibold text-amber-400">
+                    <p className="text-xs text-gray-400 dark:text-gray-500">Yearly</p>
+                    <p className="text-lg font-semibold text-amber-600 dark:text-amber-400">
                       {viewItem.yearlyPrice}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-white/30">Duration</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">Duration</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <FiCalendar className="w-3.5 h-3.5 text-white/40" />
-                      <p className="text-sm font-medium text-white/70">
+                      <FiCalendar className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500" />
+                      <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
                         {viewItem.duration}
                       </p>
                     </div>
                   </div>
                 </div>
-                <p className="text-sm text-white/40">{viewItem.description}</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500">{viewItem.description}</p>
                 {viewItem.features && (
-                  <div className="space-y-2 pt-3 border-t border-white/5">
+                  <div className="space-y-2 pt-3 border-t border-gray-100 dark:border-gray-700">
                     {parseFeatures(viewItem.features).map((f, i) => (
                       <div
                         key={i}
-                        className="flex items-center gap-2.5 text-sm text-white/60"
+                        className="flex items-center gap-2.5 text-sm text-gray-500 dark:text-gray-400"
                       >
                         <FiStar
                           className="w-3.5 h-3.5 shrink-0"
@@ -626,8 +631,8 @@ function MembershipManagement() {
                     ))}
                   </div>
                 )}
-                <div className="pt-3 border-t border-white/5">
-                  <p className="text-[11px] text-white/20">
+                <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
+                  <p className="text-[11px] text-gray-400 dark:text-gray-500">
                     Updated {viewItem.updatedAt}
                   </p>
                 </div>
@@ -636,6 +641,16 @@ function MembershipManagement() {
           </div>
         )}
       </CmsModal>
+
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => handleDelete(deleteTarget?.id)}
+        title="Delete Membership Plan"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        confirmText="Delete Plan"
+        type="danger"
+      />
     </motion.div>
   );
 }

@@ -6,3 +6,4 @@ export { default as ChartCard } from "./ChartCard";
 export { default as DataTable } from "./DataTable";
 export { default as CmsModal } from "./CmsModal";
 export { default as CmsBadge } from "./CmsBadge";
+export { default as ConfirmModal } from "./ConfirmModal";

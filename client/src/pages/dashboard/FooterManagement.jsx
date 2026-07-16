@@ -25,7 +25,7 @@ const initialData = {
   logo: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=200&h=60&fit=crop&auto=format&q=80",
   description:
     "FitBookPro is your premier fitness booking platform. We connect fitness enthusiasts with world-class trainers and facilities.",
-  copyright: "© 2025 FitBookPro. All rights reserved.",
+  copyright: "\u00a9 2025 FitBookPro. All rights reserved.",
   quickLinks: [
     { id: 1, label: "Home", url: "/" },
     { id: 2, label: "About Us", url: "/about" },
@@ -173,15 +173,14 @@ export default function FooterManagement() {
       <PageBanner pageKey={pageKey} subtitle="Manage footer content and social links" />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* LEFT COLUMN — Form */}
         <div className="xl:col-span-2 space-y-6">
           {/* Card 1: Logo & Brand */}
-          <div className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-slate-500/10 p-6">
+          <div className="rounded-2xl bg-white dark:bg-gray-800 backdrop-blur-xl border border-slate-100 dark:border-gray-700 p-6">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 rounded-xl bg-slate-500/10 flex items-center justify-center">
-                <FiImage className="w-4 h-4 text-slate-400" />
+              <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
+                <FiImage className="w-4 h-4 text-slate-600" />
               </div>
-              <h3 className="text-white font-semibold text-sm">Logo & Brand</h3>
+              <h3 className="text-gray-900 dark:text-gray-100 font-semibold text-sm">Logo & Brand</h3>
             </div>
             <div className="space-y-4">
               <FileUpload
@@ -191,7 +190,7 @@ export default function FooterManagement() {
                 onChange={(val) => updateField("logo", val)}
               />
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
                   Description
                 </label>
                 <textarea
@@ -205,12 +204,12 @@ export default function FooterManagement() {
           </div>
 
           {/* Card 2: Quick Links */}
-          <div className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-slate-500/10 p-6">
+          <div className="rounded-2xl bg-white dark:bg-gray-800 backdrop-blur-xl border border-slate-100 dark:border-gray-700 p-6">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 rounded-xl bg-slate-500/10 flex items-center justify-center">
-                <FiLink className="w-4 h-4 text-slate-400" />
+              <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
+                <FiLink className="w-4 h-4 text-slate-600" />
               </div>
-              <h3 className="text-white font-semibold text-sm">Quick Links</h3>
+              <h3 className="text-gray-900 dark:text-gray-100 font-semibold text-sm">Quick Links</h3>
             </div>
             <div className="space-y-3">
               {form.quickLinks.map((link) => (
@@ -231,7 +230,7 @@ export default function FooterManagement() {
                   />
                   <button
                     onClick={() => removeQuickLink(link.id)}
-                    className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors flex-shrink-0"
+                    className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex-shrink-0"
                   >
                     <FiTrash2 className="w-4 h-4" />
                   </button>
@@ -247,12 +246,12 @@ export default function FooterManagement() {
           </div>
 
           {/* Card 3: Useful Links */}
-          <div className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-slate-500/10 p-6">
+          <div className="rounded-2xl bg-white dark:bg-gray-800 backdrop-blur-xl border border-slate-100 dark:border-gray-700 p-6">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 rounded-xl bg-slate-500/10 flex items-center justify-center">
-                <FiGlobe className="w-4 h-4 text-slate-400" />
+              <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
+                <FiGlobe className="w-4 h-4 text-slate-600" />
               </div>
-              <h3 className="text-white font-semibold text-sm">Useful Links</h3>
+              <h3 className="text-gray-900 dark:text-gray-100 font-semibold text-sm">Useful Links</h3>
             </div>
             <div className="space-y-3">
               {form.usefulLinks.map((link) => (
@@ -273,7 +272,7 @@ export default function FooterManagement() {
                   />
                   <button
                     onClick={() => removeUsefulLink(link.id)}
-                    className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors flex-shrink-0"
+                    className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex-shrink-0"
                   >
                     <FiTrash2 className="w-4 h-4" />
                   </button>
@@ -289,16 +288,16 @@ export default function FooterManagement() {
           </div>
 
           {/* Card 4: Contact Information */}
-          <div className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-slate-500/10 p-6">
+          <div className="rounded-2xl bg-white dark:bg-gray-800 backdrop-blur-xl border border-slate-100 dark:border-gray-700 p-6">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 rounded-xl bg-slate-500/10 flex items-center justify-center">
-                <FiPhone className="w-4 h-4 text-slate-400" />
+              <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
+                <FiPhone className="w-4 h-4 text-slate-600" />
               </div>
-              <h3 className="text-white font-semibold text-sm">Contact Information</h3>
+              <h3 className="text-gray-900 dark:text-gray-100 font-semibold text-sm">Contact Information</h3>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
                   Address
                 </label>
                 <div className="relative">
@@ -314,7 +313,7 @@ export default function FooterManagement() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
                     Phone
                   </label>
                   <div className="relative">
@@ -329,7 +328,7 @@ export default function FooterManagement() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
                     Email
                   </label>
                   <div className="relative">
@@ -348,12 +347,12 @@ export default function FooterManagement() {
           </div>
 
           {/* Card 5: Social Media Links */}
-          <div className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-slate-500/10 p-6">
+          <div className="rounded-2xl bg-white dark:bg-gray-800 backdrop-blur-xl border border-slate-100 dark:border-gray-700 p-6">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 rounded-xl bg-slate-500/10 flex items-center justify-center">
-                <FiGlobe className="w-4 h-4 text-slate-400" />
+              <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
+                <FiGlobe className="w-4 h-4 text-slate-600" />
               </div>
-              <h3 className="text-white font-semibold text-sm">Social Media Links</h3>
+              <h3 className="text-gray-900 dark:text-gray-100 font-semibold text-sm">Social Media Links</h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
@@ -364,7 +363,7 @@ export default function FooterManagement() {
                 { key: "youtube", label: "YouTube", placeholder: "https://youtube.com/..." },
               ].map((s) => (
                 <div key={s.key}>
-                  <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
                     {s.label}
                   </label>
                   <div className="relative">
@@ -383,22 +382,22 @@ export default function FooterManagement() {
           </div>
 
           {/* Card 6: Newsletter Section */}
-          <div className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-slate-500/10 p-6">
+          <div className="rounded-2xl bg-white dark:bg-gray-800 backdrop-blur-xl border border-slate-100 dark:border-gray-700 p-6">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 rounded-xl bg-slate-500/10 flex items-center justify-center">
-                <FiMessageSquare className="w-4 h-4 text-slate-400" />
+              <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
+                <FiMessageSquare className="w-4 h-4 text-slate-600" />
               </div>
-              <h3 className="text-white font-semibold text-sm">Newsletter Section</h3>
+              <h3 className="text-gray-900 dark:text-gray-100 font-semibold text-sm">Newsletter Section</h3>
             </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-medium text-slate-400">
+                <label className="text-xs font-medium text-slate-600">
                   Enable Newsletter
                 </label>
                 <button
                   onClick={() => updateField("newsletter.enabled", !form.newsletter.enabled)}
                   className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
-                    form.newsletter.enabled ? "bg-slate-500" : "bg-white/10"
+                    form.newsletter.enabled ? "bg-slate-500" : "bg-gray-100"
                   }`}
                 >
                   <span
@@ -409,7 +408,7 @@ export default function FooterManagement() {
                 </button>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
                   Title
                 </label>
                 <div className="relative">
@@ -424,7 +423,7 @@ export default function FooterManagement() {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
                   Description
                 </label>
                 <textarea
@@ -439,21 +438,21 @@ export default function FooterManagement() {
           </div>
 
           {/* Card 7: Footer Actions */}
-          <div className="rounded-2xl bg-[#12121a]/80 backdrop-blur-xl border border-slate-500/10 p-6">
+          <div className="rounded-2xl bg-white dark:bg-gray-800 backdrop-blur-xl border border-slate-100 dark:border-gray-700 p-6">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 rounded-xl bg-slate-500/10 flex items-center justify-center">
-                <FiSave className="w-4 h-4 text-slate-400" />
+              <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
+                <FiSave className="w-4 h-4 text-slate-600" />
               </div>
-              <h3 className="text-white font-semibold text-sm">Footer Settings</h3>
+              <h3 className="text-gray-900 dark:text-gray-100 font-semibold text-sm">Footer Settings</h3>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
                   Copyright Text
                 </label>
                 <input
                   type="text"
-                  placeholder="© 2025 Company. All rights reserved."
+                  placeholder="\u00a9 2025 Company. All rights reserved."
                   value={form.copyright}
                   onChange={(e) => updateField("copyright", e.target.value)}
                   className={getInputClass(accent)}
@@ -470,16 +469,15 @@ export default function FooterManagement() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN — Live Preview */}
+        {/* RIGHT COLUMN - Live Preview */}
         <div className="xl:col-span-1">
-          <div className="sticky top-6 rounded-2xl bg-[#0a0a0f] border border-slate-500/10 overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-500/10">
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+          <div className="sticky top-6 rounded-2xl bg-gray-50 dark:bg-gray-700/50 border border-slate-100 dark:border-gray-700 overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-gray-700">
+              <p className="text-xs font-medium text-slate-600 uppercase tracking-wider">
                 Live Preview
               </p>
             </div>
 
-            {/* Logo */}
             <div className="px-5 pt-5">
               {form.logo ? (
                 <img
@@ -491,28 +489,26 @@ export default function FooterManagement() {
                   }}
                 />
               ) : (
-                <div className="h-8 w-32 rounded-lg bg-white/5 flex items-center justify-center">
-                  <span className="text-[10px] text-white/20">No logo</span>
+                <div className="h-8 w-32 rounded-lg bg-gray-100 flex items-center justify-center">
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500">No logo</span>
                 </div>
               )}
             </div>
 
-            {/* Description */}
             <div className="px-5 pt-3">
-              <p className="text-xs text-white/40 leading-relaxed line-clamp-3">
+              <p className="text-xs text-gray-400 dark:text-gray-500 leading-relaxed line-clamp-3">
                 {form.description || "No description set."}
               </p>
             </div>
 
-            {/* Quick Links */}
             <div className="px-5 pt-5">
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2.5">
+              <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2.5">
                 Quick Links
               </p>
               <ul className="space-y-1.5">
                 {form.quickLinks.map((link) => (
                   <li key={link.id}>
-                    <span className="text-[11px] text-white/50 hover:text-white/70 cursor-pointer transition-colors">
+                    <span className="text-[11px] text-gray-500 dark:text-gray-400 hover:text-gray-700 cursor-pointer transition-colors">
                       {link.label || "Untitled"}
                     </span>
                   </li>
@@ -520,15 +516,14 @@ export default function FooterManagement() {
               </ul>
             </div>
 
-            {/* Useful Links */}
             <div className="px-5 pt-4">
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2.5">
+              <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2.5">
                 Useful Links
               </p>
               <ul className="space-y-1.5">
                 {form.usefulLinks.map((link) => (
                   <li key={link.id}>
-                    <span className="text-[11px] text-white/50 hover:text-white/70 cursor-pointer transition-colors">
+                    <span className="text-[11px] text-gray-500 dark:text-gray-400 hover:text-gray-700 cursor-pointer transition-colors">
                       {link.label || "Untitled"}
                     </span>
                   </li>
@@ -536,16 +531,15 @@ export default function FooterManagement() {
               </ul>
             </div>
 
-            {/* Contact Info */}
             <div className="px-5 pt-4">
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2.5">
+              <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2.5">
                 Contact
               </p>
               <div className="space-y-2">
                 {form.contactInfo.address && (
                   <div className="flex items-start gap-2">
                     <FiMapPin className="w-3 h-3 text-slate-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-[11px] text-white/50 leading-snug">
+                    <span className="text-[11px] text-gray-500 dark:text-gray-400 leading-snug">
                       {form.contactInfo.address}
                     </span>
                   </div>
@@ -553,7 +547,7 @@ export default function FooterManagement() {
                 {form.contactInfo.phone && (
                   <div className="flex items-center gap-2">
                     <FiPhone className="w-3 h-3 text-slate-500 flex-shrink-0" />
-                    <span className="text-[11px] text-white/50">
+                    <span className="text-[11px] text-gray-500 dark:text-gray-400">
                       {form.contactInfo.phone}
                     </span>
                   </div>
@@ -561,7 +555,7 @@ export default function FooterManagement() {
                 {form.contactInfo.email && (
                   <div className="flex items-center gap-2">
                     <FiMail className="w-3 h-3 text-slate-500 flex-shrink-0" />
-                    <span className="text-[11px] text-white/50">
+                    <span className="text-[11px] text-gray-500 dark:text-gray-400">
                       {form.contactInfo.email}
                     </span>
                   </div>
@@ -569,9 +563,8 @@ export default function FooterManagement() {
               </div>
             </div>
 
-            {/* Social Icons */}
             <div className="px-5 pt-4">
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2.5">
+              <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2.5">
                 Follow Us
               </p>
               <div className="flex items-center gap-2">
@@ -580,40 +573,38 @@ export default function FooterManagement() {
                   return (
                     <div
                       key={platform}
-                      className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors cursor-pointer"
+                      className="w-7 h-7 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors cursor-pointer"
                       title={platform}
                     >
-                      <FiGlobe className="w-3 h-3 text-white/40" />
+                      <FiGlobe className="w-3 h-3 text-gray-400 dark:text-gray-500" />
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            {/* Newsletter */}
             {form.newsletter.enabled && (
-              <div className="mx-5 mt-4 p-3 rounded-xl bg-white/5">
-                <p className="text-[11px] font-semibold text-white/70 mb-1">
+              <div className="mx-5 mt-4 p-3 rounded-xl bg-gray-100 dark:bg-gray-600/50">
+                <p className="text-[11px] font-semibold text-gray-600 dark:text-gray-300 mb-1">
                   {form.newsletter.title || "Newsletter"}
                 </p>
-                <p className="text-[10px] text-white/30 leading-relaxed mb-2.5">
+                <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-relaxed mb-2.5">
                   {form.newsletter.description || "Subscribe for updates."}
                 </p>
                 <div className="flex gap-1.5">
-                  <div className="flex-1 h-7 rounded-lg bg-white/5 px-2.5 flex items-center">
-                    <span className="text-[10px] text-white/20">Email address</span>
+                  <div className="flex-1 h-7 rounded-lg bg-gray-200 dark:bg-gray-600 px-2.5 flex items-center">
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500">Email address</span>
                   </div>
-                  <div className="h-7 px-3 rounded-lg bg-slate-500/20 flex items-center">
-                    <FiMail className="w-3 h-3 text-slate-400" />
+                  <div className="h-7 px-3 rounded-lg bg-slate-100 dark:bg-gray-600 flex items-center">
+                    <FiMail className="w-3 h-3 text-slate-600" />
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Copyright */}
-            <div className="mt-5 px-5 py-3 bg-white/5 border-t border-slate-500/10">
-              <p className="text-[10px] text-white/30 text-center">
-                {form.copyright || "© 2025 Company. All rights reserved."}
+            <div className="mt-5 px-5 py-3 bg-gray-100 dark:bg-gray-700/50 border-t border-slate-100 dark:border-gray-700">
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center">
+                {form.copyright || "\u00a9 2025 Company. All rights reserved."}
               </p>
             </div>
           </div>

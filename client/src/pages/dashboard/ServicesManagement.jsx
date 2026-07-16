@@ -17,6 +17,7 @@ import StatCard from "../../components/dashboard/StatCard";
 import DataTable from "../../components/dashboard/DataTable";
 import CmsModal from "../../components/dashboard/CmsModal";
 import CmsBadge from "../../components/dashboard/CmsBadge";
+import ConfirmModal from "../../components/dashboard/ConfirmModal";
 import { getInputClass } from "../../lib/dashboardHelpers";
 import {
   getServices,
@@ -44,6 +45,7 @@ function ServicesManagement() {
   const [form, setForm] = useState(emptyForm);
   const [saved, setSaved] = useState(false);
   const [viewItem, setViewItem] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const inputClass = getInputClass("emerald");
   const stats = getServiceStats(services);
   const categories = getServiceCategories();
@@ -80,6 +82,7 @@ function ServicesManagement() {
 
   const handleDelete = (id) => {
     setServices((prev) => prev.filter((s) => s.id !== id));
+    setDeleteTarget(null);
   };
 
   const toggleStatus = (id) => {
@@ -126,7 +129,7 @@ function ServicesManagement() {
       label: "Image",
       width: "w-16",
       render: (_, item) => (
-        <div className="w-12 h-12 rounded-xl overflow-hidden bg-emerald-500/10 shrink-0">
+        <div className="w-12 h-12 rounded-xl overflow-hidden bg-emerald-50 dark:bg-emerald-900/30 shrink-0">
           {item.image ? (
             <img
               src={item.image}
@@ -136,7 +139,7 @@ function ServicesManagement() {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <FiImage className="w-5 h-5 text-emerald-400/40" />
+              <FiImage className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             </div>
           )}
         </div>
@@ -148,12 +151,12 @@ function ServicesManagement() {
       render: (_, item) => (
         <div>
           <div className="flex items-center gap-2">
-            <p className="font-medium text-white/80">{item.name}</p>
+            <p className="font-medium text-gray-700 dark:text-gray-200">{item.name}</p>
             {item.featured && (
               <FiStar className="w-3 h-3 text-amber-400 fill-amber-400" />
             )}
           </div>
-          <p className="text-xs text-white/30">{item.category}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">{item.category}</p>
         </div>
       ),
     },
@@ -161,14 +164,14 @@ function ServicesManagement() {
       key: "price",
       label: "Price",
       render: (val) => (
-        <span className="text-sm font-semibold text-emerald-400">{val}</span>
+        <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{val}</span>
       ),
     },
     {
       key: "duration",
       label: "Duration",
       render: (val) => (
-        <div className="flex items-center gap-1.5 text-white/40">
+        <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
           <FiClock className="w-3 h-3" />
           <span className="text-xs">{val}</span>
         </div>
@@ -177,7 +180,7 @@ function ServicesManagement() {
     {
       key: "trainer",
       label: "Trainer",
-      render: (val) => <span className="text-xs text-white/50">{val}</span>,
+      render: (val) => <span className="text-xs text-gray-500 dark:text-gray-400">{val}</span>,
     },
     {
       key: "status",
@@ -247,6 +250,8 @@ function ServicesManagement() {
         onAdd={openAdd}
         addLabel="Add Service"
         loading={loading}
+        onRefresh={() => setServices(getServices())}
+        onExport={() => {}}
         actions={(item) => (
           <>
             <button
@@ -254,7 +259,7 @@ function ServicesManagement() {
                 e.stopPropagation();
                 setViewItem(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-emerald-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 dark:text-gray-500 hover:text-emerald-600 transition-colors"
               aria-label={`View ${item.name}`}
             >
               <FiEye className="w-4 h-4" />
@@ -264,7 +269,7 @@ function ServicesManagement() {
                 e.stopPropagation();
                 openEdit(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-emerald-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 dark:text-gray-500 hover:text-emerald-600 transition-colors"
               aria-label={`Edit ${item.name}`}
             >
               <FiEdit2 className="w-4 h-4" />
@@ -272,9 +277,9 @@ function ServicesManagement() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleDelete(item.id);
+                setDeleteTarget(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-red-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 dark:text-gray-500 hover:text-red-400 transition-colors"
               aria-label={`Delete ${item.name}`}
             >
               <FiTrash2 className="w-4 h-4" />
@@ -298,7 +303,7 @@ function ServicesManagement() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Service Name *
                 </label>
                 <input
@@ -314,7 +319,7 @@ function ServicesManagement() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Category
                   </label>
                   <select
@@ -333,7 +338,7 @@ function ServicesManagement() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Trainer
                   </label>
                   <input
@@ -349,7 +354,7 @@ function ServicesManagement() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Price
                   </label>
                   <input
@@ -363,7 +368,7 @@ function ServicesManagement() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/60 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Duration
                   </label>
                   <input
@@ -378,7 +383,7 @@ function ServicesManagement() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Description
                 </label>
                 <textarea
@@ -392,7 +397,7 @@ function ServicesManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Benefits (comma separated)
                 </label>
                 <input
@@ -418,19 +423,19 @@ function ServicesManagement() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, featured: e.target.checked }))
                   }
-                  className="w-4 h-4 rounded-md border border-white/20 bg-white/5 checked:bg-emerald-500 checked:border-emerald-500 transition-all duration-200 cursor-pointer accent-emerald-500"
+                  className="w-4 h-4 rounded-md border border-gray-200 bg-gray-50 checked:bg-emerald-500 checked:border-emerald-500 transition-all duration-200 cursor-pointer accent-emerald-500"
                 />
-                <span className="text-sm text-white/50 group-hover:text-white/70 transition-colors">
+                <span className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-gray-700 transition-colors">
                   Featured Service
                 </span>
               </label>
             </div>
 
             <div className="space-y-4">
-              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider">
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                 Preview
               </p>
-              <div className="rounded-xl border border-emerald-500/10 overflow-hidden bg-[#0f0f15]">
+              <div className="rounded-xl border border-emerald-100 dark:border-emerald-800/50 overflow-hidden bg-gray-50 dark:bg-gray-700/50">
                 {form.image ? (
                   <div className="h-40 overflow-hidden">
                     <img
@@ -440,51 +445,51 @@ function ServicesManagement() {
                     />
                   </div>
                 ) : (
-                  <div className="h-40 bg-gradient-to-br from-emerald-500/10 to-green-500/5 flex items-center justify-center">
-                    <FiImage className="w-10 h-10 text-emerald-400/20" />
+                  <div className="h-40 bg-gradient-to-br from-emerald-50 to-green-50/50 dark:from-emerald-900/20 dark:to-green-900/20 flex items-center justify-center">
+                    <FiImage className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
                   </div>
                 )}
                 <div className="p-5 space-y-3">
                   <div className="flex items-center gap-2">
                     {form.category && (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
                         {form.category}
                       </span>
                     )}
                     {form.featured && (
-                      <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-bold flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold flex items-center gap-1">
                         <FiStar className="w-2.5 h-2.5 fill-current" />
                         Featured
                       </span>
                     )}
                   </div>
-                  <h3 className="text-lg font-bold text-white">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {form.name || "Service Name"}
                   </h3>
-                  <p className="text-xs text-white/40 line-clamp-2">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 line-clamp-2">
                     {form.description || "Service description will appear here..."}
                   </p>
-                  <div className="flex items-center gap-4 pt-2 border-t border-white/5">
+                  <div className="flex items-center gap-4 pt-2 border-t border-gray-100 dark:border-gray-700">
                     {form.price && (
                       <div>
-                        <p className="text-xs text-white/30">Price</p>
-                        <p className="text-sm font-bold text-emerald-400">
+                        <p className="text-xs text-gray-400 dark:text-gray-500">Price</p>
+                        <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
                           {form.price}
                         </p>
                       </div>
                     )}
                     {form.duration && (
                       <div>
-                        <p className="text-xs text-white/30">Duration</p>
-                        <p className="text-sm font-medium text-white/70">
+                        <p className="text-xs text-gray-400 dark:text-gray-500">Duration</p>
+                        <p className="text-sm font-medium text-gray-600">
                           {form.duration}
                         </p>
                       </div>
                     )}
                     {form.trainer && (
                       <div>
-                        <p className="text-xs text-white/30">Trainer</p>
-                        <p className="text-sm font-medium text-white/70">
+                        <p className="text-xs text-gray-400 dark:text-gray-500">Trainer</p>
+                        <p className="text-sm font-medium text-gray-600">
                           {form.trainer}
                         </p>
                       </div>
@@ -495,7 +500,7 @@ function ServicesManagement() {
                       {form.benefits.split(",").map((b, i) => (
                         <span
                           key={i}
-                          className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-medium"
+                          className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-medium"
                         >
                           {b.trim()}
                         </span>
@@ -507,7 +512,7 @@ function ServicesManagement() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+          <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
             <Button type="submit" variant="emerald" size="md">
               {editing ? "Update Service" : "Save Service"}
             </Button>
@@ -537,7 +542,7 @@ function ServicesManagement() {
       >
         {viewItem && (
           <div className="space-y-4">
-            <div className="rounded-xl overflow-hidden bg-[#0f0f15] border border-emerald-500/10">
+            <div className="rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-700/50 border border-emerald-100 dark:border-emerald-800/50">
               {viewItem.image && (
                 <div className="h-48 overflow-hidden">
                   <img
@@ -551,40 +556,40 @@ function ServicesManagement() {
                 <div className="flex items-center gap-2">
                   <CmsBadge status={viewItem.status} />
                   {viewItem.featured && (
-                    <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-bold flex items-center gap-1">
+                    <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold flex items-center gap-1">
                       <FiStar className="w-2.5 h-2.5 fill-current" />
                       Featured
                     </span>
                   )}
                 </div>
-                <h3 className="text-xl font-bold text-white">{viewItem.name}</h3>
-                <p className="text-sm text-white/40">{viewItem.description}</p>
-                <div className="flex items-center gap-6 pt-3 border-t border-white/5">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{viewItem.name}</h3>
+                <p className="text-sm text-gray-400 dark:text-gray-500">{viewItem.description}</p>
+                <div className="flex items-center gap-6 pt-3 border-t border-gray-100 dark:border-gray-700">
                   <div>
-                    <p className="text-xs text-white/30">Price</p>
-                    <p className="text-lg font-bold text-emerald-400">
+                    <p className="text-xs text-gray-400 dark:text-gray-500">Price</p>
+                    <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
                       {viewItem.price}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-white/30">Duration</p>
-                    <p className="text-sm font-medium text-white/70">
+                    <p className="text-xs text-gray-400 dark:text-gray-500">Duration</p>
+                    <p className="text-sm font-medium text-gray-600">
                       {viewItem.duration}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-white/30">Trainer</p>
-                    <p className="text-sm font-medium text-white/70">
+                    <p className="text-xs text-gray-400 dark:text-gray-500">Trainer</p>
+                    <p className="text-sm font-medium text-gray-600">
                       {viewItem.trainer}
                     </p>
                   </div>
                 </div>
                 {viewItem.benefits && (
-                  <div className="flex flex-wrap gap-2 pt-3 border-t border-white/5">
+                  <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
                     {viewItem.benefits.split(",").map((b, i) => (
                       <span
                         key={i}
-                        className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-medium"
+                        className="px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs font-medium"
                       >
                         {b.trim()}
                       </span>
@@ -596,6 +601,14 @@ function ServicesManagement() {
           </div>
         )}
       </CmsModal>
+
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => handleDelete(deleteTarget?.id)}
+        title="Delete Service"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+      />
     </motion.div>
   );
 }

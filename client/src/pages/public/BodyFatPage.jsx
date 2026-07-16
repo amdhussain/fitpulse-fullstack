@@ -1,45 +1,53 @@
-import { useState, useEffect } from "react";
-import { FitnessLayout } from "../../components/fitness";
-import { getToolConfig } from "../../lib/fitnessToolsData";
-import { calculateBodyFat } from "../../lib/fitnessCalculations";
+import { useState } from "react";
+import { tools, calculateBodyFat } from "../../lib/fitnessTools";
+import { FitnessLayout, ResultCard } from "../../components/fitness";
+import { UnitToggle, NumberInput, SelectInput } from "../../components/fitness/CalculatorForm";
+import { Button } from "../../components/ui";
+
+const tool = tools.find((t) => t.id === "body-fat");
 
 function BodyFatPage() {
-  const config = getToolConfig("body-fat");
+  const [unit, setUnit] = useState("metric");
+  const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
+  const [neck, setNeck] = useState("");
+  const [waist, setWaist] = useState("");
+  const [gender, setGender] = useState("male");
   const [result, setResult] = useState(null);
-  const [resultDetails, setResultDetails] = useState(null);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  const calculate = (values, unit) => {
-    const gender = values.gender || "male";
-    const age = parseFloat(values.age) || 25;
-    const weight = parseFloat(values.weight) || 0;
-    const height = unit === "imperial"
-      ? (parseFloat(values.heightFeet) || 0) * 12 + (parseFloat(values.heightInches) || 0)
-      : parseFloat(values.height) || 0;
-    const neck = parseFloat(values.neck) || 0;
-    const waist = parseFloat(values.waist) || 0;
-    const res = calculateBodyFat(gender, age, weight, neck, waist, height, unit);
-    setResult(res);
-    setResultDetails([
-      { label: "Gender", value: gender.charAt(0).toUpperCase() + gender.slice(1) },
-      { label: "Age", value: `${age} years` },
-      { label: "Weight", value: `${weight} ${unit === "imperial" ? "lbs" : "kg"}` },
-      { label: "Waist", value: `${waist} ${unit === "imperial" ? "in" : "cm"}` },
-      { label: "Neck", value: `${neck} ${unit === "imperial" ? "in" : "cm"}` },
-    ]);
-    return res;
+  const handleCalculate = () => {
+    if (!weight || !height || !neck || !waist) return;
+    setResult(calculateBodyFat(parseFloat(weight), parseFloat(height), parseFloat(neck), parseFloat(waist), gender, unit));
   };
 
+  const unitLabel = unit === "metric" ? "cm" : "in";
+
   return (
-    <FitnessLayout
-      config={config}
-      onCalculate={calculate}
-      result={result}
-      resultDetails={resultDetails}
-    />
+    <FitnessLayout tool={tool}>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="font-semibold text-gray-900 dark:text-white text-lg">Enter Your Details</h2>
+          <UnitToggle unit={unit} onChange={setUnit} />
+        </div>
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <NumberInput label={`Weight (${unit === "metric" ? "kg" : "lbs"})`} value={weight} onChange={setWeight} placeholder="70" />
+          <NumberInput label={`Height (${unitLabel})`} value={height} onChange={setHeight} placeholder="175" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <NumberInput label={`Neck (${unitLabel})`} value={neck} onChange={setNeck} placeholder="38" />
+          <NumberInput label={`Waist (${unitLabel})`} value={waist} onChange={setWaist} placeholder="80" />
+        </div>
+        <div className="mb-4">
+          <SelectInput label="Gender" value={gender} onChange={setGender} options={[{ value: "male", label: "Male" }, { value: "female", label: "Female" }]} />
+        </div>
+        <Button onClick={handleCalculate} variant="primary" className="w-full">Calculate Body Fat</Button>
+      </div>
+      {result && (
+        <div className="mt-4">
+          <ResultCard value={`${result.value}%`} label="Body Fat Percentage" unit="U.S. Navy Method" color="red" />
+        </div>
+      )}
+    </FitnessLayout>
   );
 }
 

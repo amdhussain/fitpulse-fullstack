@@ -1,38 +1,40 @@
-import { useState, useEffect } from "react";
-import { FitnessLayout } from "../../components/fitness";
-import { getToolConfig } from "../../lib/fitnessToolsData";
-import { calculateWaterIntake } from "../../lib/fitnessCalculations";
+import { useState } from "react";
+import { tools, calculateWater } from "../../lib/fitnessTools";
+import { FitnessLayout, ResultCard } from "../../components/fitness";
+import { UnitToggle, NumberInput } from "../../components/fitness/CalculatorForm";
+import { Button } from "../../components/ui";
+
+const tool = tools.find((t) => t.id === "water");
 
 function WaterPage() {
-  const config = getToolConfig("water");
+  const [unit, setUnit] = useState("metric");
+  const [weight, setWeight] = useState("");
   const [result, setResult] = useState(null);
-  const [resultDetails, setResultDetails] = useState(null);
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  const calculate = (values, unit) => {
-    const weight = parseFloat(values.weight) || 0;
-    const activity = values.activityLevel || "moderate";
-    const res = calculateWaterIntake(weight, activity, unit);
-    setResult(res);
-    setResultDetails([
-      { label: "Weight", value: `${weight} ${unit === "imperial" ? "lbs" : "kg"}` },
-      { label: "Activity Level", value: activity.charAt(0).toUpperCase() + activity.slice(1) },
-      { label: "Daily Goal", value: `${res.liters} liters` },
-      { label: "In Glasses", value: `${res.glasses} glasses (8oz each)` },
-    ]);
-    return res;
+  const handleCalculate = () => {
+    if (!weight) return;
+    setResult(calculateWater(parseFloat(weight), unit));
   };
 
   return (
-    <FitnessLayout
-      config={config}
-      onCalculate={calculate}
-      result={result}
-      resultDetails={resultDetails}
-    />
+    <FitnessLayout tool={tool}>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="font-semibold text-gray-900 dark:text-white text-lg">Enter Your Weight</h2>
+          <UnitToggle unit={unit} onChange={setUnit} />
+        </div>
+        <div className="mb-4">
+          <NumberInput label={`Weight (${unit === "metric" ? "kg" : "lbs"})`} value={weight} onChange={setWeight} placeholder="70" />
+        </div>
+        <Button onClick={handleCalculate} variant="primary" className="w-full">Calculate Water Intake</Button>
+      </div>
+      {result && (
+        <div className="grid grid-cols-2 gap-3 mt-4">
+          <ResultCard value={result.liters} label="Liters Per Day" unit="L" color="blue" />
+          <ResultCard value={result.glasses} label="Glasses (250ml)" unit="glasses" color="blue" />
+        </div>
+      )}
+    </FitnessLayout>
   );
 }
 

@@ -14,6 +14,7 @@ import { staggerContainer } from "../../lib/animations";
 import PageBanner from "../../components/dashboard/PageBanner";
 import StatCard from "../../components/dashboard/StatCard";
 import DataTable from "../../components/dashboard/DataTable";
+import ConfirmModal from "../../components/dashboard/ConfirmModal";
 import CmsModal from "../../components/dashboard/CmsModal";
 import CmsBadge from "../../components/dashboard/CmsBadge";
 import { getInputClass } from "../../lib/dashboardHelpers";
@@ -37,6 +38,7 @@ function AboutManagement() {
   const [form, setForm] = useState(emptyForm);
   const [saved, setSaved] = useState(false);
   const [viewItem, setViewItem] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const inputClass = getInputClass("purple");
   const stats = getAboutStats(sections);
 
@@ -70,6 +72,7 @@ function AboutManagement() {
 
   const handleDelete = (id) => {
     setSections((prev) => prev.filter((s) => s.id !== id));
+    setDeleteTarget(null);
   };
 
   const toggleStatus = (id) => {
@@ -116,7 +119,7 @@ function AboutManagement() {
       label: "Image",
       width: "w-16",
       render: (_, item) => (
-        <div className="w-12 h-12 rounded-xl overflow-hidden bg-purple-500/10 shrink-0">
+        <div className="w-12 h-12 rounded-xl overflow-hidden bg-purple-50 dark:bg-purple-900/30 shrink-0">
           {item.image ? (
             <img
               src={item.image}
@@ -126,7 +129,7 @@ function AboutManagement() {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <FiImage className="w-5 h-5 text-purple-400/40" />
+              <FiImage className="w-5 h-5 text-purple-600" />
             </div>
           )}
         </div>
@@ -137,10 +140,10 @@ function AboutManagement() {
       label: "Title",
       render: (_, item) => (
         <div>
-          <p className="font-medium text-white/80 truncate max-w-[180px]">
+          <p className="font-medium text-gray-700 dark:text-gray-200 truncate max-w-[180px]">
             {item.title}
           </p>
-          <p className="text-xs text-white/30 truncate max-w-[180px]">
+          <p className="text-xs text-gray-400 dark:text-gray-500 truncate max-w-[180px]">
             {item.subtitle}
           </p>
         </div>
@@ -150,7 +153,7 @@ function AboutManagement() {
       key: "description",
       label: "Description",
       render: (val) => (
-        <p className="text-xs text-white/40 truncate max-w-[200px]">{val}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 truncate max-w-[200px]">{val}</p>
       ),
     },
     {
@@ -168,7 +171,7 @@ function AboutManagement() {
       key: "updatedAt",
       label: "Updated",
       render: (val) => (
-        <div className="flex items-center gap-1.5 text-white/30">
+        <div className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
           <FiClock className="w-3 h-3" />
           <span className="text-xs">{val}</span>
         </div>
@@ -231,6 +234,8 @@ function AboutManagement() {
         onAdd={openAdd}
         addLabel="Add About Section"
         loading={loading}
+        onRefresh={() => setSections(getAboutSections())}
+        onExport={() => {}}
         actions={(item) => (
           <>
             <button
@@ -238,7 +243,7 @@ function AboutManagement() {
                 e.stopPropagation();
                 setViewItem(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-purple-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 hover:text-purple-600 transition-colors"
               aria-label={`View ${item.title}`}
             >
               <FiEye className="w-4 h-4" />
@@ -248,7 +253,7 @@ function AboutManagement() {
                 e.stopPropagation();
                 openEdit(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-purple-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 hover:text-purple-600 transition-colors"
               aria-label={`Edit ${item.title}`}
             >
               <FiEdit2 className="w-4 h-4" />
@@ -256,9 +261,9 @@ function AboutManagement() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                handleDelete(item.id);
+                setDeleteTarget(item);
               }}
-              className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-red-400 transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-400 hover:text-red-400 transition-colors"
               aria-label={`Delete ${item.title}`}
             >
               <FiTrash2 className="w-4 h-4" />
@@ -282,7 +287,7 @@ function AboutManagement() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Title *
                 </label>
                 <input
@@ -297,7 +302,7 @@ function AboutManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Subtitle
                 </label>
                 <input
@@ -311,7 +316,7 @@ function AboutManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Description
                 </label>
                 <textarea
@@ -325,7 +330,7 @@ function AboutManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Mission
                 </label>
                 <textarea
@@ -339,7 +344,7 @@ function AboutManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Vision
                 </label>
                 <textarea
@@ -353,7 +358,7 @@ function AboutManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-1.5">
+                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Achievements (comma separated)
                 </label>
                 <input
@@ -375,10 +380,10 @@ function AboutManagement() {
             </div>
 
             <div className="space-y-4">
-              <p className="text-xs font-semibold text-white/30 uppercase tracking-wider">
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                 Preview
               </p>
-              <div className="rounded-xl border border-purple-500/10 overflow-hidden bg-[#0f0f15]">
+              <div className="rounded-xl border border-purple-100 dark:border-purple-800/50 overflow-hidden bg-gray-50 dark:bg-gray-700/50">
                 {form.image ? (
                   <div className="h-40 overflow-hidden">
                     <img
@@ -388,38 +393,38 @@ function AboutManagement() {
                     />
                   </div>
                 ) : (
-                  <div className="h-40 bg-gradient-to-br from-purple-500/10 to-violet-500/5 flex items-center justify-center">
-                    <FiImage className="w-10 h-10 text-purple-400/20" />
+                  <div className="h-40 bg-gradient-to-br from-purple-50 to-violet-50/50 dark:from-purple-900/20 dark:to-violet-900/20 flex items-center justify-center">
+                    <FiImage className="w-10 h-10 text-purple-600" />
                   </div>
                 )}
                 <div className="p-5 space-y-3">
                   {form.subtitle && (
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-400 text-[10px] font-bold">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-[10px] font-bold">
                       {form.subtitle}
                     </span>
                   )}
-                  <h3 className="text-lg font-bold text-white">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                     {form.title || "Section Title"}
                   </h3>
-                  <p className="text-xs text-white/40 line-clamp-2">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 line-clamp-2">
                     {form.description || "Description will appear here..."}
                   </p>
                   {form.mission && (
-                    <div className="pt-2 border-t border-white/5">
-                      <p className="text-[10px] text-purple-400 font-semibold uppercase tracking-wider mb-1">
+                    <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+                      <p className="text-[10px] text-purple-600 font-semibold uppercase tracking-wider mb-1">
                         Mission
                       </p>
-                      <p className="text-xs text-white/40 line-clamp-2">
+                      <p className="text-xs text-gray-400 dark:text-gray-500 line-clamp-2">
                         {form.mission}
                       </p>
                     </div>
                   )}
                   {form.vision && (
-                    <div className="pt-2 border-t border-white/5">
-                      <p className="text-[10px] text-purple-400 font-semibold uppercase tracking-wider mb-1">
+                    <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+                      <p className="text-[10px] text-purple-600 font-semibold uppercase tracking-wider mb-1">
                         Vision
                       </p>
-                      <p className="text-xs text-white/40 line-clamp-2">
+                      <p className="text-xs text-gray-400 dark:text-gray-500 line-clamp-2">
                         {form.vision}
                       </p>
                     </div>
@@ -429,7 +434,7 @@ function AboutManagement() {
                       {form.achievements.split(",").map((a, i) => (
                         <span
                           key={i}
-                          className="px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 text-[10px] font-medium"
+                          className="px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-[10px] font-medium"
                         >
                           {a.trim()}
                         </span>
@@ -441,7 +446,7 @@ function AboutManagement() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 pt-4 border-t border-white/5">
+          <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
             <Button type="submit" variant="purple" size="md">
               {editing ? "Update Section" : "Save Section"}
             </Button>
@@ -471,7 +476,7 @@ function AboutManagement() {
       >
         {viewItem && (
           <div className="space-y-4">
-            <div className="rounded-xl overflow-hidden bg-[#0f0f15] border border-purple-500/10">
+            <div className="rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-700/50 border border-purple-100 dark:border-purple-800/50">
               {viewItem.image && (
                 <div className="h-48 overflow-hidden">
                   <img
@@ -483,30 +488,30 @@ function AboutManagement() {
               )}
               <div className="p-6 space-y-3">
                 <CmsBadge status={viewItem.status} />
-                <h3 className="text-xl font-bold text-white">{viewItem.title}</h3>
-                <p className="text-sm text-white/40">{viewItem.description}</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{viewItem.title}</h3>
+                <p className="text-sm text-gray-400 dark:text-gray-500">{viewItem.description}</p>
                 {viewItem.mission && (
-                  <div className="pt-3 border-t border-white/5">
-                    <p className="text-xs text-purple-400 font-semibold uppercase tracking-wider mb-1">
+                  <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
+                    <p className="text-xs text-purple-600 font-semibold uppercase tracking-wider mb-1">
                       Mission
                     </p>
-                    <p className="text-sm text-white/50">{viewItem.mission}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{viewItem.mission}</p>
                   </div>
                 )}
                 {viewItem.vision && (
-                  <div className="pt-3 border-t border-white/5">
-                    <p className="text-xs text-purple-400 font-semibold uppercase tracking-wider mb-1">
+                  <div className="pt-3 border-t border-gray-100 dark:border-gray-700">
+                    <p className="text-xs text-purple-600 font-semibold uppercase tracking-wider mb-1">
                       Vision
                     </p>
-                    <p className="text-sm text-white/50">{viewItem.vision}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{viewItem.vision}</p>
                   </div>
                 )}
                 {viewItem.achievements && (
-                  <div className="flex flex-wrap gap-2 pt-3 border-t border-white/5">
+                  <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
                     {viewItem.achievements.split(",").map((a, i) => (
                       <span
                         key={i}
-                        className="px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-medium"
+                        className="px-2.5 py-1 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs font-medium"
                       >
                         {a.trim()}
                       </span>
@@ -518,6 +523,14 @@ function AboutManagement() {
           </div>
         )}
       </CmsModal>
+
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => handleDelete(deleteTarget?.id)}
+        title="Delete About Section"
+        message={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
+      />
     </motion.div>
   );
 }

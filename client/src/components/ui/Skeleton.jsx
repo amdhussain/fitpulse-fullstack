@@ -2,10 +2,10 @@ import PropTypes from "prop-types";
 
 function Skeleton({ className = "", variant = "block" }) {
   const variants = {
-    block: "animate-pulse rounded-xl bg-base-300/60",
-    shimmer: "rounded-xl bg-base-300/40 skeleton-shimmer",
-    circle: "animate-pulse rounded-full bg-base-300/60",
-    text: "animate-pulse rounded-lg bg-base-300/50",
+    block: "animate-pulse rounded-xl bg-gray-100 dark:bg-gray-700/50",
+    shimmer: "rounded-xl bg-gray-100 dark:bg-gray-700/50 skeleton-shimmer",
+    circle: "animate-pulse rounded-full bg-gray-100 dark:bg-gray-700/50",
+    text: "animate-pulse rounded-lg bg-gray-100 dark:bg-gray-700/50",
   };
 
   return (
@@ -23,23 +23,23 @@ Skeleton.propTypes = {
 
 export function DashboardSkeleton({ accent = "blue" }) {
   const accentGradients = {
-    blue: "from-blue-500/10",
-    orange: "from-orange-500/10",
-    purple: "from-purple-500/10",
-    indigo: "from-indigo-500/10",
-    emerald: "from-emerald-500/10",
-    cyan: "from-cyan-500/10",
-    yellow: "from-yellow-500/10",
-    pink: "from-pink-500/10",
-    sky: "from-sky-500/10",
-    red: "from-red-500/10",
-    slate: "from-slate-500/10",
-    violet: "from-violet-500/10",
+    blue: "from-blue-50 dark:from-blue-950/30",
+    orange: "from-orange-50 dark:from-orange-950/30",
+    purple: "from-purple-50 dark:from-purple-950/30",
+    indigo: "from-indigo-50 dark:from-indigo-950/30",
+    emerald: "from-emerald-50 dark:from-emerald-950/30",
+    cyan: "from-cyan-50 dark:from-cyan-950/30",
+    yellow: "from-yellow-50 dark:from-yellow-950/30",
+    pink: "from-pink-50 dark:from-pink-950/30",
+    sky: "from-sky-50 dark:from-sky-950/30",
+    red: "from-red-50 dark:from-red-950/30",
+    slate: "from-slate-50 dark:from-slate-950/30",
+    violet: "from-violet-50 dark:from-violet-950/30",
   };
 
   return (
     <div className="space-y-6">
-      <div className={`${accentGradients[accent] || accentGradients.blue} via-[#12121a] to-transparent rounded-2xl p-6 sm:p-8 border border-white/5`}>
+      <div className={`${accentGradients[accent] || accentGradients.blue} via-white dark:via-white/[0.02] to-white dark:to-white/[0.02] rounded-2xl p-6 sm:p-8 border border-gray-200/60 dark:border-white/[0.06]`}>
         <div className="flex items-center gap-4">
           <Skeleton variant="shimmer" className="w-12 h-12 rounded-xl" />
           <div className="space-y-2">
@@ -51,7 +51,7 @@ export function DashboardSkeleton({ accent = "blue" }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="p-5 rounded-2xl bg-[#12121a]/60 border border-white/5 space-y-4">
+          <div key={i} className="p-5 rounded-2xl bg-white dark:bg-white/[0.03] border border-gray-200/80 dark:border-white/[0.06] space-y-4 shadow-sm">
             <div className="flex items-start justify-between">
               <Skeleton variant="shimmer" className="w-10 h-10 rounded-xl" />
               <Skeleton variant="shimmer" className="h-4 w-10 rounded-full" />
@@ -66,7 +66,7 @@ export function DashboardSkeleton({ accent = "blue" }) {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="p-5 rounded-xl bg-[#12121a]/60 border border-white/5 flex flex-col items-center gap-2.5">
+          <div key={i} className="p-5 rounded-xl bg-white dark:bg-white/[0.03] border border-gray-200/80 dark:border-white/[0.06] flex flex-col items-center gap-2.5 shadow-sm">
             <Skeleton variant="shimmer" className="w-8 h-8 rounded-lg" />
             <Skeleton variant="shimmer" className="h-3 w-16" />
           </div>
@@ -75,7 +75,7 @@ export function DashboardSkeleton({ accent = "blue" }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <div className="rounded-2xl bg-[#12121a]/60 border border-white/5 p-6 space-y-4">
+          <div className="rounded-2xl bg-white dark:bg-white/[0.03] border border-gray-200/80 dark:border-white/[0.06] p-6 space-y-4 shadow-sm">
             <div className="flex justify-between">
               <div className="space-y-2">
                 <Skeleton variant="shimmer" className="h-5 w-32" />
@@ -91,19 +91,9 @@ export function DashboardSkeleton({ accent = "blue" }) {
               ))}
             </div>
           </div>
-          <div className="rounded-2xl bg-[#12121a]/60 border border-white/5 p-6 space-y-4">
-            <Skeleton variant="shimmer" className="h-5 w-32" />
-            <div className="flex items-end gap-1.5 h-40">
-              {[55, 70, 45, 80, 60, 75, 50].map((h, i) => (
-                <div key={i} className="flex-1 flex flex-col items-end justify-end">
-                  <Skeleton variant="shimmer" className="w-full rounded-t-md" style={{ height: `${h}%` }} />
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
         <div className="space-y-6">
-          <div className="rounded-2xl bg-[#12121a]/60 border border-white/5 p-6 space-y-4">
+          <div className="rounded-2xl bg-white dark:bg-white/[0.03] border border-gray-200/80 dark:border-white/[0.06] p-6 space-y-4 shadow-sm">
             <Skeleton variant="shimmer" className="h-5 w-36" />
             <div className="flex items-center gap-6">
               <Skeleton variant="shimmer" className="w-28 h-28 rounded-full shrink-0" />
@@ -118,11 +108,11 @@ export function DashboardSkeleton({ accent = "blue" }) {
               </div>
             </div>
           </div>
-          <div className="rounded-2xl bg-[#12121a]/60 border border-white/5 overflow-hidden">
-            <div className="px-6 py-4 border-b border-white/5">
+          <div className="rounded-2xl bg-white dark:bg-white/[0.03] border border-gray-200/80 dark:border-white/[0.06] overflow-hidden shadow-sm">
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5">
               <Skeleton variant="shimmer" className="h-5 w-32" />
             </div>
-            <div className="divide-y divide-white/[0.03]">
+            <div className="divide-y divide-gray-100 dark:divide-white/5">
               {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="px-6 py-3.5 flex items-center gap-3">
                   <Skeleton variant="shimmer" className="w-9 h-9 rounded-lg shrink-0" />
@@ -136,28 +126,6 @@ export function DashboardSkeleton({ accent = "blue" }) {
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {[1, 2].map((i) => (
-          <div key={i} className="rounded-2xl bg-[#12121a]/60 border border-white/5 overflow-hidden">
-            <div className="px-6 py-4 border-b border-white/5">
-              <Skeleton variant="shimmer" className="h-5 w-36" />
-            </div>
-            <div className="divide-y divide-white/[0.03]">
-              {[1, 2, 3, 4, 5].map((j) => (
-                <div key={j} className="px-6 py-3.5 flex items-center gap-3">
-                  <Skeleton variant="shimmer" className="w-10 h-10 rounded-xl shrink-0" />
-                  <div className="space-y-1.5 flex-1">
-                    <Skeleton variant="shimmer" className="h-4 w-28" />
-                    <Skeleton variant="shimmer" className="h-3 w-40" />
-                  </div>
-                  <Skeleton variant="shimmer" className="h-5 w-16 rounded-full shrink-0" />
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );
