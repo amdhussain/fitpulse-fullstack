@@ -373,17 +373,36 @@ function LoginForm() {
   const placeholders = getFormPlaceholders();
   const validationMessages = getValidationMessages();
 
-  const handleBlur = useCallback(
-    (field) => {
-      setTouched((prev) => ({ ...prev, [field]: true }));
-      const fieldErrors = validate({ email, password }, validationMessages);
-      setErrors((prev) => ({ ...prev, [field]: fieldErrors[field] || "" }));
-    },
-    [email, password, validationMessages]
-  );
+  // const handleBlur = useCallback(
+  //   (field) => {
+  //     setTouched((prev) => ({ ...prev, [field]: true }));
+  //     const fieldErrors = validate({ email, password }, validationMessages);
+  //     setErrors((prev) => ({ ...prev, [field]: fieldErrors[field] || "" }));
+  //   },
+  //   [email, password, validationMessages]
+  // );
+
+  // const handleSubmit = useCallback(
+  //   (e) => {
+  //     e.preventDefault();
+  //     const fieldErrors = validate({ email, password }, validationMessages);
+  //     setErrors(fieldErrors);
+  //     setTouched({ email: true, password: true });
+
+  //     if (Object.keys(fieldErrors).length === 0) {
+  //       setIsSubmitting(true);
+  //       setTimeout(() => {
+  //         setIsSubmitting(false);
+  //         setShowSuccess(true);
+  //       }, 1200);
+  //     }
+  //   },
+  //   [email, password, validationMessages]
+  // );
+
 
   const handleSubmit = useCallback(
-    (e) => {
+    async (e) => { // এখানে async যোগ করুন
       e.preventDefault();
       const fieldErrors = validate({ email, password }, validationMessages);
       setErrors(fieldErrors);
@@ -391,10 +410,35 @@ function LoginForm() {
 
       if (Object.keys(fieldErrors).length === 0) {
         setIsSubmitting(true);
-        setTimeout(() => {
+        
+        try {
+          // আপনার API কলটি এখানে দিন (axios বা fetch)
+          const response = await fetch("https://fitpulse-fullstack.onrender.com/api/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            // ডাটাগুলো ব্রাউজারে সেভ করার জন্য এই লাইনগুলো দিন:
+            localStorage.setItem("user", JSON.stringify(data.user)); // ইউজার ডাটা সেভ
+            localStorage.setItem("token", data.token);               // টোকেন সেভ
+            
+            setTimeout(() => {
+              setIsSubmitting(false);
+              setShowSuccess(true);
+            }, 1200);
+          } else {
+            setIsSubmitting(false);
+            // এখানে এরর হ্যান্ডেলিং করতে পারেন
+            alert("Login failed: " + data.message);
+          }
+        } catch (error) {
           setIsSubmitting(false);
-          setShowSuccess(true);
-        }, 1200);
+          console.error("Error:", error);
+        }
       }
     },
     [email, password, validationMessages]
@@ -799,3 +843,8 @@ export function LoginSkeleton() {
 }
 
 export default Login;
+
+
+
+
+
