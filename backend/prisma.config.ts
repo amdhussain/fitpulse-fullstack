@@ -11,12 +11,25 @@ import { defineConfig } from "prisma/config";
 //   - Datasource URL override
 // ───────────────────────────────────────────────────────────
 
+// export default defineConfig({
+//   schema: "prisma/schema.prisma",
+//   migrations: {
+//     path: "prisma/migrations",
+//   },
+//   datasource: {
+//     url: process.env["DATABASE_URL"],
+//   },
+// });
+
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // এখানে আপনার TiDB-এর পুরো লিংকটি কোটেশনের ভেতর সরাসরি লিখে দিন
+    // url: "mysql://2KMsKDzgeYKmCpS.root:uKee8Z11EvXAWjei@gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/fitpulse_db?sslaccept=strict",
+    url: process.env.DATABASE_URL,
   },
 });
