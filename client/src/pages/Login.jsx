@@ -373,14 +373,14 @@ function LoginForm() {
   const placeholders = getFormPlaceholders();
   const validationMessages = getValidationMessages();
 
-  // const handleBlur = useCallback(
-  //   (field) => {
-  //     setTouched((prev) => ({ ...prev, [field]: true }));
-  //     const fieldErrors = validate({ email, password }, validationMessages);
-  //     setErrors((prev) => ({ ...prev, [field]: fieldErrors[field] || "" }));
-  //   },
-  //   [email, password, validationMessages]
-  // );
+  const handleBlur = useCallback(
+    (field) => {
+      setTouched((prev) => ({ ...prev, [field]: true }));
+      const fieldErrors = validate({ email, password }, validationMessages);
+      setErrors((prev) => ({ ...prev, [field]: fieldErrors[field] || "" }));
+    },
+    [email, password, validationMessages]
+  );
 
   // const handleSubmit = useCallback(
   //   (e) => {
@@ -413,7 +413,7 @@ function LoginForm() {
         
         try {
           // আপনার API কলটি এখানে দিন (axios বা fetch)
-          const response = await fetch("https://fitpulse-fullstack.onrender.com/api/login", {
+          const response = await fetch("https://fitpulse-fullstack.onrender.com/api/v1/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
