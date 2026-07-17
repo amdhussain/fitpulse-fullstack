@@ -3,6 +3,13 @@ const env = require('../config/env');
 
 const ALLOWED_ORIGINS = [env.clientUrl];
 
+// In development, also allow common local dev origins
+if (env.isDevelopment) {
+  ALLOWED_ORIGINS.push('http://localhost:5173');
+  ALLOWED_ORIGINS.push('http://localhost:3000');
+  ALLOWED_ORIGINS.push('http://localhost:5000');
+}
+
 const corsOptions = {
   origin(origin, callback) {
     if (!origin || ALLOWED_ORIGINS.includes(origin)) {

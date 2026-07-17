@@ -413,7 +413,8 @@ function LoginForm() {
         
         try {
           // আপনার API কলটি এখানে দিন (axios বা fetch)
-          const response = await fetch("https://fitpulse-fullstack.onrender.com/api/v1/auth/login", {
+          const API_BASE = import.meta.env.VITE_API_URL || "https://fitpulse-fullstack.onrender.com";
+          const response = await fetch(`${API_BASE}/api/v1/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),

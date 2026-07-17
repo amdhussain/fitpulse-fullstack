@@ -24,17 +24,28 @@ const env = require('../env');
 
 function createPrismaClient() {
   // Parse DATABASE_URL to extract connection parameters
-  // Format: mysql://USER:PASSWORD@HOST:PORT/DATABASE
+  // Format: mysql://USER:PASSWORD@HOST:PORT/DATABASE?sslaccept=strict
   const dbUrl = new URL(env.database.url);
 
-  const adapter = new PrismaMariaDb({
+  // Determine SSL config from URL params or environment
+  const needsSsl = dbUrl.searchParams.get('sslaccept') === 'strict'
+    || dbUrl.hostname.includes('tidbcloud.com')
+    || env.isProduction;
+
+  const connectionConfig = {
     host: dbUrl.hostname,
     port: parseInt(dbUrl.port, 10) || 3306,
     user: dbUrl.username,
     password: dbUrl.password,
     database: dbUrl.pathname.replace(/^\//, ''),
-    connectionLimit: 5,
-  });
+    connectionLimit: 10,
+  };
+
+  if (needsSsl) {
+    connectionConfig.ssl = { rejectUnauthorized: true };
+  }
+
+  const adapter = new PrismaMariaDb(connectionConfig);
 
   return new PrismaClient({
     adapter,

@@ -78,4 +78,8 @@ module.exports = {
   logInfo,
   logDebug,
   logRequestError,
+  error: logError,
+  warn: logWarn,
+  info: logInfo,
+  debug: logDebug,
 };
