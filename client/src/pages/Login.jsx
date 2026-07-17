@@ -420,12 +420,12 @@ function LoginForm() {
             body: JSON.stringify({ email, password }),
           });
 
-          const data = await response.json();
+          const result = await response.json();
 
           if (response.ok) {
-            // ডাটাগুলো ব্রাউজারে সেভ করার জন্য এই লাইনগুলো দিন:
-            localStorage.setItem("user", JSON.stringify(data.user)); // ইউজার ডাটা সেভ
-            localStorage.setItem("token", data.token);               // টোকেন সেভ
+            const { user, token } = result.data;
+            localStorage.setItem("user", JSON.stringify(user));
+            localStorage.setItem("token", token);
             
             setTimeout(() => {
               setIsSubmitting(false);
@@ -433,8 +433,7 @@ function LoginForm() {
             }, 1200);
           } else {
             setIsSubmitting(false);
-            // এখানে এরর হ্যান্ডেলিং করতে পারেন
-            alert("Login failed: " + data.message);
+            alert("Login failed: " + result.message);
           }
         } catch (error) {
           setIsSubmitting(false);
