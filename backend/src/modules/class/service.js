@@ -1,5 +1,5 @@
-const databaseService = require('../../services/databaseService');
 const ClassRepository = require('./repository');
+const TrainerRepository = require('../trainer/repository');
 const { NotFoundError, BadRequestError, ForbiddenError, ConflictError } = require('../../errors');
 const logger = require('../../utils/logger');
 
@@ -29,9 +29,7 @@ function formatClass(cls) {
 // ─── Admin APIs ───────────────────────────────────────────
 
 async function createClass({ trainerId, name, description, category, difficulty, capacity, schedule, duration, price, image }) {
-  const trainer = await databaseService.client.trainer.findUnique({
-    where: { id: trainerId },
-  });
+  const trainer = await TrainerRepository.findById(trainerId);
 
   if (!trainer) {
     throw new NotFoundError('Trainer not found');
@@ -110,9 +108,7 @@ async function deleteClass(classId) {
 // ─── Trainer APIs ─────────────────────────────────────────
 
 async function getMyClasses(trainerUserId, { page, limit, search, category, difficulty, status, sortBy, sortOrder }) {
-  const trainer = await databaseService.client.trainer.findUnique({
-    where: { userId: trainerUserId },
-  });
+  const trainer = await TrainerRepository.findByUserId(trainerUserId);
 
   if (!trainer) {
     throw new NotFoundError('Trainer profile not found');
@@ -123,10 +119,10 @@ async function getMyClasses(trainerUserId, { page, limit, search, category, diff
   const where = {};
 
   if (search) {
-    where.OR = [
-      { name: { contains: search } },
-      { description: { contains: search } },
-      { category: { contains: search } },
+    where.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } },
+      { category: { $regex: search, $options: 'i' } },
     ];
   }
 
@@ -152,9 +148,7 @@ async function getMyClasses(trainerUserId, { page, limit, search, category, diff
 }
 
 async function updateMyClass(trainerUserId, classId, data) {
-  const trainer = await databaseService.client.trainer.findUnique({
-    where: { userId: trainerUserId },
-  });
+  const trainer = await TrainerRepository.findByUserId(trainerUserId);
 
   if (!trainer) {
     throw new NotFoundError('Trainer profile not found');
@@ -201,9 +195,7 @@ async function updateMyClass(trainerUserId, classId, data) {
 }
 
 async function cancelMyClass(trainerUserId, classId) {
-  const trainer = await databaseService.client.trainer.findUnique({
-    where: { userId: trainerUserId },
-  });
+  const trainer = await TrainerRepository.findByUserId(trainerUserId);
 
   if (!trainer) {
     throw new NotFoundError('Trainer profile not found');
@@ -238,10 +230,10 @@ async function getAllClasses({ page, limit, search, category, difficulty, traine
   const where = { status: 'ACTIVE' };
 
   if (search) {
-    where.OR = [
-      { name: { contains: search } },
-      { description: { contains: search } },
-      { category: { contains: search } },
+    where.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } },
+      { category: { $regex: search, $options: 'i' } },
     ];
   }
 

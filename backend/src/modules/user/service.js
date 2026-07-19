@@ -1,9 +1,8 @@
-const bcrypt = require('bcryptjs');
+const { fromNodeHeaders } = require('better-auth/node');
+const { getAuth } = require('../../config/betterAuth');
 const UserRepository = require('./repository');
 const { NotFoundError, ConflictError, ForbiddenError, BadRequestError } = require('../../errors');
 const logger = require('../../utils/logger');
-
-const SALT_ROUNDS = 12;
 
 function sanitizeUser(user) {
   const { password, ...safeUser } = user;
@@ -44,26 +43,34 @@ async function updateMyProfile(userId, { firstName, lastName, phone, profileImag
   return updated;
 }
 
-async function changePassword(userId, { currentPassword, newPassword }) {
-  const user = await UserRepository.findByIdWithPassword(userId);
+async function changePassword(userId, { currentPassword, newPassword }, headers) {
+  const user = await UserRepository.findById(userId);
 
   if (!user) {
     throw new NotFoundError('User not found');
-  }
-
-  const isCurrentValid = await bcrypt.compare(currentPassword, user.password);
-
-  if (!isCurrentValid) {
-    throw new BadRequestError('Current password is incorrect');
   }
 
   if (currentPassword === newPassword) {
     throw new BadRequestError('New password must be different from current password');
   }
 
-  const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+  const auth = getAuth();
 
-  await UserRepository.updatePassword(userId, hashedPassword);
+  try {
+    await auth.api.changePassword({
+      body: {
+        newPassword,
+        currentPassword,
+        revokeOtherSessions: false,
+      },
+      headers,
+    });
+  } catch (err) {
+    if (err.message && err.message.toLowerCase().includes('password')) {
+      throw new BadRequestError('Current password is incorrect');
+    }
+    throw new BadRequestError('Failed to change password');
+  }
 
   logger.info('User password changed', { userId });
 

@@ -39,6 +39,8 @@ const activityItems = [
   { text: "Updated website settings", time: "2 weeks ago", color: "bg-yellow-500" },
 ];
 
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#^()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d@$!%*?&.#^()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/;
+
 function ProfileManagement() {
   const [form, setForm] = useState({ ...initialData });
   const [passwordForm, setPasswordForm] = useState({ current: "", newPass: "", confirm: "" });
@@ -47,6 +49,7 @@ function ProfileManagement() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [passwordSaved, setPasswordSaved] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
   const inputClass = getInputClass(accent);
 
   useEffect(() => {
@@ -62,6 +65,7 @@ function ProfileManagement() {
 
   const handlePasswordChange = (e) => {
     setPasswordForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setPasswordError("");
   };
 
   const handleSaveProfile = (e) => {
@@ -73,8 +77,16 @@ function ProfileManagement() {
 
   const handlePasswordSubmit = (e) => {
     e.preventDefault();
-    if (passwordForm.newPass !== passwordForm.confirm) return;
+    if (passwordForm.newPass !== passwordForm.confirm) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+    if (!passwordRegex.test(passwordForm.newPass)) {
+      setPasswordError("Password must be at least 8 characters and include at least one uppercase letter, one lowercase letter, one number, and one special character.");
+      return;
+    }
     setPasswordSaved(true);
+    setPasswordError("");
     setTimeout(() => {
       setPasswordSaved(false);
       setShowPasswordModal(false);
@@ -83,10 +95,17 @@ function ProfileManagement() {
   };
 
   const getPasswordStrength = () => {
-    const len = passwordForm.newPass.length;
+    const pw = passwordForm.newPass;
+    const len = pw.length;
     if (len === 0) return { label: "", width: "0%", color: "" };
-    if (len < 6) return { label: "Weak", width: "33%", color: "bg-red-500" };
-    if (len < 10) return { label: "Medium", width: "66%", color: "bg-yellow-500" };
+    let score = 0;
+    if (len >= 8) score++;
+    if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+    if (/\d/.test(pw)) score++;
+    if (/[@$!%*?&.#^()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw)) score++;
+    if (score <= 1) return { label: "Weak", width: "25%", color: "bg-red-500" };
+    if (score <= 2) return { label: "Fair", width: "50%", color: "bg-orange-500" };
+    if (score <= 3) return { label: "Good", width: "75%", color: "bg-yellow-500" };
     return { label: "Strong", width: "100%", color: "bg-green-500" };
   };
 
@@ -456,6 +475,10 @@ function ProfileManagement() {
               <p className="mt-1.5 text-xs text-red-400">Passwords do not match</p>
             )}
           </div>
+
+          {passwordError && (
+            <p className="text-xs text-red-400">{passwordError}</p>
+          )}
 
           <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
             <Button type="submit" variant="indigo" size="md">

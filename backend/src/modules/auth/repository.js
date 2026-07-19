@@ -2,34 +2,49 @@ const databaseService = require('../../services/databaseService');
 
 const UserRepository = {
   async findByEmail(email) {
-    return databaseService.client.user.findUnique({
-      where: { email: email.toLowerCase() },
-    });
+    const doc = await databaseService.client.users.findOne({ email: email.toLowerCase() });
+    return databaseService.formatDoc(doc);
   },
 
   async findById(id) {
-    return databaseService.client.user.findUnique({
-      where: { id },
-    });
+    const doc = await databaseService.client.users.findOne({ _id: databaseService.toObjectId(id) });
+    return databaseService.formatDoc(doc);
   },
 
-  async create({ firstName, lastName, email, password, role }) {
-    return databaseService.client.user.create({
-      data: {
-        firstName,
-        lastName,
-        email: email.toLowerCase(),
-        password,
-        role,
-      },
-    });
+  async create({ _id, firstName, lastName, email, password, role, phone, profileImage, isActive, isVerified, lastLoginAt, createdAt, updatedAt }, session) {
+    const insertData = {
+      firstName,
+      lastName,
+      email: email.toLowerCase(),
+      role: role || 'MEMBER',
+      phone: phone || null,
+      profileImage: profileImage || null,
+      isActive: isActive !== undefined ? isActive : true,
+      isVerified: isVerified || false,
+      lastLoginAt: lastLoginAt || null,
+      createdAt: createdAt || new Date(),
+      updatedAt: updatedAt || new Date(),
+    };
+
+    if (_id) {
+      insertData._id = _id;
+    }
+
+    if (password) {
+      insertData.password = password;
+    }
+
+    const options = session ? { session } : {};
+    const result = await databaseService.client.users.insertOne(insertData, options);
+    const doc = await databaseService.client.users.findOne({ _id: result.insertedId });
+    return databaseService.formatDoc(doc);
   },
 
   async updateLastLogin(id) {
-    return databaseService.client.user.update({
-      where: { id },
-      data: { lastLoginAt: new Date() },
-    });
+    await databaseService.client.users.updateOne(
+      { _id: databaseService.toObjectId(id) },
+      { $set: { lastLoginAt: new Date(), updatedAt: new Date() } }
+    );
   },
 };
 

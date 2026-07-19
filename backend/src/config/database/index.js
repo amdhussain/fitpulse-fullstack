@@ -1,5 +1,1 @@
-const prisma = require('./prisma');
-
-module.exports = {
-  prisma,
-};
+module.exports = require('../../services/databaseService');

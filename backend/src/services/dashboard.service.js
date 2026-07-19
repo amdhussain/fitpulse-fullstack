@@ -2,386 +2,176 @@ const databaseService = require('./databaseService');
 const { extractPagination } = require('../utils/pagination');
 const logger = require('../utils/logger');
 
-// ─── Dashboard Service ─────────────────────────────────────
-// Aggregation and analytics queries for the admin dashboard.
-// All data is read-only — no mutations performed here.
-//
-// Revenue is calculated from booking + service price data
-// (no payment gateway integration).
-// ───────────────────────────────────────────────────────────
-
-// ─── Overview Statistics ───────────────────────────────────
-
 async function getStats() {
   const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-  const [
-    totalUsers,
-    totalTrainers,
-    totalServices,
-    totalGalleryItems,
-    totalBookings,
-    unreadMessages,
-    usersByRole,
-    bookingsByStatus,
-    newUsersThisWeek,
-    newUsersThisMonth,
-    newBookingsThisWeek,
-    newBookingsThisMonth,
-  ] = await Promise.all([
-    databaseService.client.user.count(),
-    databaseService.client.trainer.count(),
-    databaseService.client.service.count(),
-    databaseService.client.gallery.count(),
-    databaseService.client.booking.count(),
-    databaseService.client.contactMessage.count({ where: { isRead: false } }),
-    databaseService.client.user.groupBy({
-      by: ['role'],
-      _count: { role: true },
-    }),
-    databaseService.client.booking.groupBy({
-      by: ['status'],
-      _count: { status: true },
-    }),
-    databaseService.client.user.count({
-      where: { createdAt: { gte: sevenDaysAgo } },
-    }),
-    databaseService.client.user.count({
-      where: { createdAt: { gte: thirtyDaysAgo } },
-    }),
-    databaseService.client.booking.count({
-      where: { createdAt: { gte: sevenDaysAgo } },
-    }),
-    databaseService.client.booking.count({
-      where: { createdAt: { gte: thirtyDaysAgo } },
-    }),
+  const [users, trainers, services, galleryItems, bookings, unreadMessages, usersByRole, bookingsByStatus, newUsersWeek, newUsersMonth, newBookingsWeek, newBookingsMonth] = await Promise.all([
+    databaseService.client.users.countDocuments(),
+    databaseService.client.trainers.countDocuments(),
+    databaseService.client.services.countDocuments(),
+    databaseService.client.gallery.countDocuments(),
+    databaseService.client.bookings.countDocuments(),
+    databaseService.client.contactMessages.countDocuments({ isRead: false }),
+    databaseService.client.users.aggregate([{ $group: { _id: '$role', count: { $sum: 1 } } }]).toArray(),
+    databaseService.client.bookings.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]).toArray(),
+    databaseService.client.users.countDocuments({ createdAt: { $gte: weekAgo } }),
+    databaseService.client.users.countDocuments({ createdAt: { $gte: monthAgo } }),
+    databaseService.client.bookings.countDocuments({ createdAt: { $gte: weekAgo } }),
+    databaseService.client.bookings.countDocuments({ createdAt: { $gte: monthAgo } }),
   ]);
 
-  const roleBreakdown = {};
-  for (const r of usersByRole) {
-    roleBreakdown[r.role] = r._count.role;
-  }
-
-  const statusBreakdown = {};
-  for (const s of bookingsByStatus) {
-    statusBreakdown[s.status] = s._count.status;
-  }
+  const roleMap = {};
+  for (const r of usersByRole) roleMap[r._id] = r.count;
+  const statusMap = {};
+  for (const s of bookingsByStatus) statusMap[s._id] = s.count;
 
   return {
-    totals: {
-      users: totalUsers,
-      trainers: totalTrainers,
-      services: totalServices,
-      galleryItems: totalGalleryItems,
-      bookings: totalBookings,
-      unreadMessages,
-    },
-    usersByRole: roleBreakdown,
-    bookingsByStatus: statusBreakdown,
-    trends: {
-      newUsersThisWeek,
-      newUsersThisMonth,
-      newBookingsThisWeek,
-      newBookingsThisMonth,
-    },
+    totals: { users, trainers, services, galleryItems, bookings, unreadMessages },
+    usersByRole: roleMap,
+    bookingsByStatus: statusMap,
+    trends: { newUsersThisWeek: newUsersWeek, newUsersThisMonth: newUsersMonth, newBookingsThisWeek: newBookingsWeek, newBookingsThisMonth: newBookingsMonth },
   };
 }
-
-// ─── User Statistics ───────────────────────────────────────
 
 async function getUserStats() {
   const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-  const [
-    total,
-    active,
-    inactive,
-    verified,
-    byRole,
-    newThisWeek,
-    newThisMonth,
-    recentlyActive,
-  ] = await Promise.all([
-    databaseService.client.user.count(),
-    databaseService.client.user.count({ where: { isActive: true } }),
-    databaseService.client.user.count({ where: { isActive: false } }),
-    databaseService.client.user.count({ where: { isVerified: true } }),
-    databaseService.client.user.groupBy({
-      by: ['role'],
-      _count: { role: true },
-    }),
-    databaseService.client.user.count({
-      where: { createdAt: { gte: sevenDaysAgo } },
-    }),
-    databaseService.client.user.count({
-      where: { createdAt: { gte: thirtyDaysAgo } },
-    }),
-    databaseService.client.user.count({
-      where: { lastLoginAt: { gte: sevenDaysAgo } },
-    }),
+  const [total, active, inactive, verified, byRole, newThisWeek, newThisMonth, recentlyActive] = await Promise.all([
+    databaseService.client.users.countDocuments(),
+    databaseService.client.users.countDocuments({ isActive: true }),
+    databaseService.client.users.countDocuments({ isActive: false }),
+    databaseService.client.users.countDocuments({ isVerified: true }),
+    databaseService.client.users.aggregate([{ $group: { _id: '$role', count: { $sum: 1 } } }]).toArray(),
+    databaseService.client.users.countDocuments({ createdAt: { $gte: weekAgo } }),
+    databaseService.client.users.countDocuments({ createdAt: { $gte: monthAgo } }),
+    databaseService.client.users.countDocuments({ lastLoginAt: { $gte: dayAgo } }),
   ]);
 
-  const roleBreakdown = {};
-  for (const r of byRole) {
-    roleBreakdown[r.role] = r._count.role;
-  }
+  const roleMap = {};
+  for (const r of byRole) roleMap[r._id] = r.count;
 
-  return {
-    total,
-    active,
-    inactive,
-    verified,
-    byRole: roleBreakdown,
-    newThisWeek,
-    newThisMonth,
-    recentlyActive,
-  };
+  return { total, active, inactive, verified, byRole: roleMap, newThisWeek, newThisMonth, recentlyActive };
 }
-
-// ─── Trainer Statistics ────────────────────────────────────
 
 async function getTrainerStats() {
-  const [
-    total,
-    active,
-    withServices,
-    avgExperience,
-    avgRating,
-  ] = await Promise.all([
-    databaseService.client.trainer.count(),
-    databaseService.client.trainer.count({ where: { status: 'ACTIVE' } }),
-    databaseService.client.trainer.count({
-      where: { services: { some: {} } },
-    }),
-    databaseService.client.trainer.aggregate({
-      _avg: { experience: true },
-    }),
-    databaseService.client.trainer.aggregate({
-      _avg: { rating: true },
-      where: { rating: { not: null } },
-    }),
+  const [total, active, inactive, avgResult] = await Promise.all([
+    databaseService.client.trainers.countDocuments(),
+    databaseService.client.trainers.countDocuments({ status: 'ACTIVE' }),
+    databaseService.client.trainers.countDocuments({ status: { $ne: 'ACTIVE' } }),
+    databaseService.client.trainers.aggregate([
+      { $group: { _id: null, avgExperience: { $avg: '$experience' }, avgRating: { $avg: '$rating' } } },
+    ]).toArray(),
   ]);
 
-  return {
-    total,
-    active,
-    inactive: total - active,
-    withServices,
-    avgExperience: avgExperience._avg.experience
-      ? Math.round(avgExperience._avg.experience)
-      : 0,
-    avgRating: avgRating._avg.rating
-      ? Number(avgRating._avg.rating.toFixed(2))
-      : 0,
-  };
-}
+  const avgs = avgResult[0] || { avgExperience: 0, avgRating: 0 };
 
-// ─── Booking Statistics ────────────────────────────────────
+  return { total, active, inactive, avgExperience: avgs.avgExperience || 0, avgRating: avgs.avgRating || 0 };
+}
 
 async function getBookingStats(query = {}) {
-  const where = buildDateFilter(query);
+  const match = {};
+  if (query.dateFrom || query.dateTo) {
+    match.createdAt = {};
+    if (query.dateFrom) match.createdAt.$gte = new Date(query.dateFrom);
+    if (query.dateTo) match.createdAt.$lte = new Date(query.dateTo);
+  }
 
-  const [total, byStatus, byService] = await Promise.all([
-    databaseService.client.booking.count({ where }),
-    databaseService.client.booking.groupBy({
-      by: ['status'],
-      where,
-      _count: { status: true },
-    }),
-    databaseService.client.booking.groupBy({
-      by: ['serviceId'],
-      where,
-      _count: { serviceId: true },
-      orderBy: { _count: { serviceId: 'desc' } },
-      take: 10,
-    }),
+  const [total, byStatusResult] = await Promise.all([
+    databaseService.client.bookings.countDocuments(match),
+    databaseService.client.bookings.aggregate([
+      { $match: match },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]).toArray(),
   ]);
 
-  const statusBreakdown = {};
-  for (const s of byStatus) {
-    statusBreakdown[s.status] = s._count.status;
-  }
+  const byStatus = {};
+  for (const s of byStatusResult) byStatus[s._id] = s.count;
 
-  // Resolve service names for top services
-  const serviceIds = byService.map((s) => s.serviceId).filter(Boolean);
-  const services = serviceIds.length
-    ? await databaseService.client.service.findMany({
-        where: { id: { in: serviceIds } },
-        select: { id: true, name: true },
-      })
-    : [];
-
-  const serviceMap = {};
-  for (const s of services) {
-    serviceMap[s.id] = s.name;
-  }
-
-  const topServices = byService.map((s) => ({
-    serviceId: s.serviceId,
-    name: serviceMap[s.serviceId] || 'Unknown',
-    count: s._count.serviceId,
-  }));
-
-  return {
-    total,
-    byStatus: statusBreakdown,
-    topServices,
-  };
+  return { total, byStatus };
 }
-
-// ─── Recent Bookings ──────────────────────────────────────
 
 async function getRecentBookings(limit = 10) {
-  const bookings = await databaseService.client.booking.findMany({
-    take: Math.min(limit, 50),
-    orderBy: { createdAt: 'desc' },
-    include: {
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-        },
-      },
-      service: {
-        select: {
-          id: true,
-          name: true,
-          price: true,
-        },
-      },
-      trainer: {
-        select: {
-          id: true,
-          user: {
-            select: { firstName: true, lastName: true },
-          },
-        },
-      },
-    },
-  });
+  const docs = await databaseService.client.bookings
+    .find()
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .toArray();
 
-  return bookings;
+  return databaseService.formatDocs(docs);
 }
-
-// ─── Revenue Summary ───────────────────────────────────────
 
 async function getRevenue(query = {}) {
-  const where = {
-    status: { in: ['CONFIRMED', 'COMPLETED'] },
-    serviceId: { not: null },
-  };
-
+  const match = { status: { $in: ['CONFIRMED', 'COMPLETED'] } };
   if (query.dateFrom || query.dateTo) {
-    where.bookingDate = {};
-    if (query.dateFrom) where.bookingDate.gte = new Date(query.dateFrom);
-    if (query.dateTo) where.bookingDate.lte = new Date(query.dateTo);
+    match.createdAt = {};
+    if (query.dateFrom) match.createdAt.$gte = new Date(query.dateFrom);
+    if (query.dateTo) match.createdAt.$lte = new Date(query.dateTo);
   }
 
-  const bookings = await databaseService.client.booking.findMany({
-    where,
-    include: {
-      service: {
-        select: { id: true, name: true, price: true },
+  const pipeline = [
+    { $match: match },
+    { $lookup: { from: 'services', localField: 'serviceId', foreignField: '_id', as: 'serviceArr' } },
+    { $addFields: { service: { $arrayElemAt: ['$serviceArr', 0] } } },
+    { $addFields: { revenue: { $ifNull: ['$service.price', 0] } } },
+    {
+      $group: {
+        _id: null,
+        totalRevenue: { $sum: '$revenue' },
+        totalBookings: { $sum: 1 },
+        avgBookingValue: { $avg: '$revenue' },
       },
     },
-  });
+  ];
 
-  let totalRevenue = 0;
-  const revenueByService = {};
-  const revenueByMonth = {};
+  const results = await databaseService.client.bookings.aggregate(pipeline).toArray();
+  const summary = results[0] || { totalRevenue: 0, totalBookings: 0, avgBookingValue: 0 };
 
-  for (const booking of bookings) {
-    const price = booking.service?.price ? Number(booking.service.price) : 0;
-    totalRevenue += price;
+  const monthlyPipeline = [
+    { $match: match },
+    { $lookup: { from: 'services', localField: 'serviceId', foreignField: '_id', as: 'serviceArr' } },
+    { $addFields: { service: { $arrayElemAt: ['$serviceArr', 0] } } },
+    { $addFields: { revenue: { $ifNull: ['$service.price', 0] } } },
+    { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } }, total: { $sum: '$revenue' }, count: { $sum: 1 } } },
+    { $sort: { _id: 1 } },
+    { $project: { _id: 0, month: '$_id', total: 1, count: 1 } },
+  ];
 
-    // By service
-    const serviceKey = booking.serviceId || 'unknown';
-    const serviceName = booking.service?.name || 'Unknown';
-    if (!revenueByService[serviceKey]) {
-      revenueByService[serviceKey] = { name: serviceName, revenue: 0, count: 0 };
-    }
-    revenueByService[serviceKey].revenue += price;
-    revenueByService[serviceKey].count += 1;
+  const monthly = await databaseService.client.bookings.aggregate(monthlyPipeline).toArray();
 
-    // By month
-    const monthKey = booking.bookingDate.toISOString().slice(0, 7); // YYYY-MM
-    if (!revenueByMonth[monthKey]) {
-      revenueByMonth[monthKey] = { month: monthKey, revenue: 0, count: 0 };
-    }
-    revenueByMonth[monthKey].revenue += price;
-    revenueByMonth[monthKey].count += 1;
-  }
-
-  const monthlyRevenue = Object.values(revenueByMonth).sort((a, b) =>
-    a.month.localeCompare(b.month)
-  );
-
-  return {
-    totalRevenue: Math.round(totalRevenue * 100) / 100,
-    totalBookings: bookings.length,
-    avgBookingValue:
-      bookings.length > 0
-        ? Math.round((totalRevenue / bookings.length) * 100) / 100
-        : 0,
-    byService: Object.values(revenueByService).sort((a, b) => b.revenue - a.revenue),
-    monthly: monthlyRevenue,
-  };
+  return { totalRevenue: summary.totalRevenue, totalBookings: summary.totalBookings, avgBookingValue: summary.avgBookingValue, monthly };
 }
-
-// ─── User Activity ─────────────────────────────────────────
 
 async function getUserActivity(query = {}) {
   const { page, limit, offset } = extractPagination(query);
-
-  const where = {};
-  if (query.dateFrom || query.dateTo) {
-    where.createdAt = {};
-    if (query.dateFrom) where.createdAt.gte = new Date(query.dateFrom);
-    if (query.dateTo) where.createdAt.lte = new Date(query.dateTo);
+  const match = {};
+  if (query.role) match.role = query.role;
+  if (query.isActive !== undefined) match.isActive = query.isActive === true || query.isActive === 'true';
+  if (query.search) {
+    match.$or = [
+      { firstName: { $regex: query.search, $options: 'i' } },
+      { lastName: { $regex: query.search, $options: 'i' } },
+      { email: { $regex: query.search, $options: 'i' } },
+    ];
   }
 
-  const [users, total] = await Promise.all([
-    databaseService.client.user.findMany({
-      where,
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        role: true,
-        isActive: true,
-        lastLoginAt: true,
-        createdAt: true,
-      },
-      skip: offset,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-    }),
-    databaseService.client.user.count({ where }),
-  ]);
+  const total = await databaseService.client.users.countDocuments(match);
+  const sort = {};
+  if (query.sortBy) sort[query.sortBy] = query.sortOrder === 'DESC' ? -1 : 1;
+  else sort.createdAt = -1;
+
+  const docs = await databaseService.client.users
+    .find(match, { projection: { password: 0 } })
+    .sort(sort).skip(offset).limit(limit).toArray();
 
   return {
-    data: users,
+    data: databaseService.formatDocs(docs),
     pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
   };
-}
-
-// ─── Helpers ───────────────────────────────────────────────
-
-function buildDateFilter(query) {
-  const where = {};
-  if (query.dateFrom || query.dateTo) {
-    where.createdAt = {};
-    if (query.dateFrom) where.createdAt.gte = new Date(query.dateFrom);
-    if (query.dateTo) where.createdAt.lte = new Date(query.dateTo);
-  }
-  return where;
 }
 
 module.exports = {

@@ -1,149 +1,99 @@
+const { ObjectId } = require('mongodb');
+const { NotFoundError } = require('../errors');
 const databaseService = require('./databaseService');
-const { NotFoundError, ConflictError } = require('../errors');
 const { extractPagination } = require('../utils/pagination');
 const logger = require('../utils/logger');
 
-// ─── Service Service ────────────────────────────────────────
-// CRUD operations for fitness services (Yoga, HIIT, etc.).
-// Admin manages all services; public sees only ACTIVE ones.
-// ───────────────────────────────────────────────────────────
-
 async function getAll(query = {}) {
   const { page, limit, offset } = extractPagination(query);
-  const where = {};
-
-  if (query.category) where.category = query.category;
-  if (query.status) where.status = query.status;
+  const match = {};
+  if (query.status) match.status = query.status;
+  if (query.category) match.category = query.category;
+  if (query.trainerId) match.trainerId = new ObjectId(query.trainerId);
   if (query.search) {
-    where.OR = [
-      { name: { contains: query.search } },
-      { description: { contains: query.search } },
+    match.$or = [
+      { name: { $regex: query.search, $options: 'i' } },
+      { description: { $regex: query.search, $options: 'i' } },
     ];
   }
 
-  const [services, total] = await Promise.all([
-    databaseService.client.service.findMany({
-      where,
-      skip: offset,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-    }),
-    databaseService.client.service.count({ where }),
-  ]);
+  const total = await databaseService.client.services.countDocuments(match);
+  const sort = {};
+  if (query.sortBy) sort[query.sortBy] = query.sortOrder === 'DESC' ? -1 : 1;
+  else sort.createdAt = -1;
+
+  const docs = await databaseService.client.services
+    .find(match).sort(sort).skip(offset).limit(limit).toArray();
 
   return {
-    data: services,
+    data: databaseService.formatDocs(docs),
     pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
   };
 }
 
 async function getActive(query = {}) {
-  const { page, limit, offset } = extractPagination(query);
-  const where = { status: 'ACTIVE' };
-
-  if (query.category) where.category = query.category;
-  if (query.search) {
-    where.OR = [
-      { name: { contains: query.search } },
-      { description: { contains: query.search } },
-    ];
-  }
-
-  const [services, total] = await Promise.all([
-    databaseService.client.service.findMany({
-      where,
-      skip: offset,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-    }),
-    databaseService.client.service.count({ where }),
-  ]);
-
-  return {
-    data: services,
-    pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
-  };
+  return getAll({ ...query, status: 'ACTIVE' });
 }
 
 async function getById(id) {
-  const service = await databaseService.client.service.findUnique({
-    where: { id },
-  });
-
-  if (!service) {
-    throw new NotFoundError('Service not found');
-  }
-
+  const doc = await databaseService.client.services.findOne({ _id: new ObjectId(id) });
+  const service = databaseService.formatDoc(doc);
+  if (!service) throw new NotFoundError('Service not found');
   return service;
 }
 
 async function getActiveById(id) {
-  const service = await databaseService.client.service.findFirst({
-    where: { id, status: 'ACTIVE' },
-  });
-
-  if (!service) {
-    throw new NotFoundError('Service not found');
-  }
-
+  const doc = await databaseService.client.services.findOne({ _id: new ObjectId(id), status: 'ACTIVE' });
+  const service = databaseService.formatDoc(doc);
+  if (!service) throw new NotFoundError('Service not found');
   return service;
 }
 
 async function create(data) {
-  const service = await databaseService.client.service.create({
-    data: {
-      name: data.name,
-      category: data.category || null,
-      description: data.description || null,
-      price: data.price || null,
-      duration: data.duration || null,
-      image: data.image || null,
-      benefits: data.benefits || null,
-      trainerId: data.trainerId || null,
-      status: data.status || 'ACTIVE',
-    },
-  });
-
+  const now = new Date();
+  const insertData = {
+    name: data.name,
+    category: data.category || null,
+    description: data.description || null,
+    price: data.price || null,
+    duration: data.duration || null,
+    image: data.image || null,
+    benefits: data.benefits || null,
+    trainerId: data.trainerId ? new ObjectId(data.trainerId) : null,
+    status: data.status || 'ACTIVE',
+    createdAt: now,
+    updatedAt: now,
+  };
+  const result = await databaseService.client.services.insertOne(insertData);
+  const doc = await databaseService.client.services.findOne({ _id: result.insertedId });
+  const service = databaseService.formatDoc(doc);
   logger.info('Service created', { serviceId: service.id, name: service.name });
   return service;
 }
 
 async function update(id, data) {
   await getById(id);
-
-  const updateData = {};
-  const fields = ['name', 'category', 'description', 'price', 'duration', 'image', 'benefits', 'trainerId', 'status'];
-
-  for (const field of fields) {
-    if (data[field] !== undefined) {
-      updateData[field] = data[field];
-    }
-  }
-
-  const service = await databaseService.client.service.update({
-    where: { id },
-    data: updateData,
-  });
-
+  const updateFields = { ...data, updatedAt: new Date() };
+  if (data.trainerId) updateFields.trainerId = new ObjectId(data.trainerId);
+  await databaseService.client.services.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: updateFields }
+  );
+  const doc = await databaseService.client.services.findOne({ _id: new ObjectId(id) });
+  const service = databaseService.formatDoc(doc);
   logger.info('Service updated', { serviceId: service.id });
   return service;
 }
 
 async function remove(id) {
   await getById(id);
-
-  await databaseService.client.service.delete({ where: { id } });
+  await databaseService.client.services.deleteOne({ _id: new ObjectId(id) });
   logger.info('Service deleted', { serviceId: id });
 }
 
 async function getCategories() {
-  const result = await databaseService.client.service.findMany({
-    where: { status: 'ACTIVE' },
-    select: { category: true },
-    distinct: ['category'],
-  });
-
-  return result.map((r) => r.category).filter(Boolean);
+  const result = await databaseService.client.services.distinct('category', { status: 'ACTIVE' });
+  return result.filter(Boolean);
 }
 
 module.exports = {

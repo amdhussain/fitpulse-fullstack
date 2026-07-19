@@ -1,68 +1,52 @@
-const databaseService = require('./databaseService');
 const { NotFoundError } = require('../errors');
+const databaseService = require('./databaseService');
 const logger = require('../utils/logger');
-
-// ─── CMS Section Service ───────────────────────────────────
-// Manages singleton CMS sections (Hero, About, Contact, Footer).
-// Each section type exists as exactly one row, identified by `type`.
-// The `content` field stores section-specific data as a JSON string.
-// ───────────────────────────────────────────────────────────
 
 const VALID_TYPES = ['HERO', 'ABOUT', 'CONTACT', 'FOOTER'];
 
 async function getByType(type) {
-  const section = await databaseService.client.cmsSection.findUnique({
-    where: { type },
-  });
-
-  return section ? formatSection(section) : null;
+  const doc = await databaseService.client.cmsSections.findOne({ type });
+  return doc ? formatSection(databaseService.formatDoc(doc)) : null;
 }
 
 async function getAll() {
-  const sections = await databaseService.client.cmsSection.findMany({
-    orderBy: { type: 'asc' },
-  });
-
-  return sections.map(formatSection);
+  const docs = await databaseService.client.cmsSections.find().sort({ type: 1 }).toArray();
+  return docs.map((doc) => formatSection(databaseService.formatDoc(doc)));
 }
 
 async function upsert(type, data) {
   const { title, subtitle, content, status } = data;
 
-  const existing = await databaseService.client.cmsSection.findUnique({
-    where: { type },
-  });
+  const existing = await databaseService.client.cmsSections.findOne({ type });
 
   const contentString = content !== undefined
     ? (typeof content === 'string' ? content : JSON.stringify(content))
     : undefined;
 
+  const now = new Date();
+
   let section;
 
   if (existing) {
-    const updateData = {};
-    if (title !== undefined) updateData.title = title;
-    if (subtitle !== undefined) updateData.subtitle = subtitle;
-    if (contentString !== undefined) updateData.content = contentString;
-    if (status !== undefined) updateData.status = status;
+    const updateFields = {};
+    if (title !== undefined) updateFields.title = title;
+    if (subtitle !== undefined) updateFields.subtitle = subtitle;
+    if (contentString !== undefined) updateFields.content = contentString;
+    if (status !== undefined) updateFields.status = status;
+    updateFields.updatedAt = now;
 
-    section = await databaseService.client.cmsSection.update({
-      where: { type },
-      data: updateData,
-    });
-
+    await databaseService.client.cmsSections.updateOne(
+      { _id: existing._id },
+      { $set: updateFields }
+    );
+    const updated = await databaseService.client.cmsSections.findOne({ _id: existing._id });
+    section = databaseService.formatDoc(updated);
     logger.info(`CMS section ${type} updated`);
   } else {
-    section = await databaseService.client.cmsSection.create({
-      data: {
-        type,
-        title: title || null,
-        subtitle: subtitle || null,
-        content: contentString || null,
-        status: status || 'ACTIVE',
-      },
-    });
-
+    const insertData = { type, title: title || null, subtitle: subtitle || null, content: contentString || null, status: status || 'ACTIVE', createdAt: now, updatedAt: now };
+    const result = await databaseService.client.cmsSections.insertOne(insertData);
+    const created = await databaseService.client.cmsSections.findOne({ _id: result.insertedId });
+    section = databaseService.formatDoc(created);
     logger.info(`CMS section ${type} created`);
   }
 
@@ -80,13 +64,12 @@ async function initializeDefaults() {
   const results = [];
 
   for (const def of defaults) {
-    const existing = await databaseService.client.cmsSection.findUnique({
-      where: { type: def.type },
-    });
-
+    const existing = await databaseService.client.cmsSections.findOne({ type: def.type });
     if (!existing) {
-      const section = await databaseService.client.cmsSection.create({ data: def });
-      results.push(formatSection(section));
+      const now = new Date();
+      const result = await databaseService.client.cmsSections.insertOne({ ...def, content: null, status: 'ACTIVE', createdAt: now, updatedAt: now });
+      const created = await databaseService.client.cmsSections.findOne({ _id: result.insertedId });
+      results.push(formatSection(databaseService.formatDoc(created)));
     }
   }
 

@@ -1,6 +1,7 @@
 const userService = require('./service');
 const { successResponse, updatedResponse, deletedResponse, paginatedResponse } = require('../../helpers/apiResponse');
 const asyncHandler = require('../../middlewares/asyncHandler');
+const { fromNodeHeaders } = require('better-auth/node');
 
 const getMyProfile = asyncHandler(async (req, res) => {
   const user = await userService.getMyProfile(req.user.id);
@@ -18,8 +19,9 @@ const updateMyProfile = asyncHandler(async (req, res) => {
 
 const changePassword = asyncHandler(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
+  const headers = fromNodeHeaders(req.headers);
 
-  const result = await userService.changePassword(req.user.id, { currentPassword, newPassword });
+  const result = await userService.changePassword(req.user.id, { currentPassword, newPassword }, headers);
 
   return updatedResponse(res, null, result.message);
 });

@@ -1,108 +1,91 @@
-const databaseService = require('./databaseService');
+const { ObjectId } = require('mongodb');
 const { NotFoundError } = require('../errors');
+const databaseService = require('./databaseService');
 const { extractPagination } = require('../utils/pagination');
 const logger = require('../utils/logger');
 
-// ─── Contact Service ────────────────────────────────────────
-// Manages contact form submissions (ContactMessage) and
-// contact information (stored as CmsSection type=CONTACT).
-//
-// Public: submit contact messages.
-// Admin: list, read, mark as read, delete messages.
-// ───────────────────────────────────────────────────────────
-
-// ─── Contact Messages ──────────────────────────────────────
-
 async function createMessage(data) {
-  const message = await databaseService.client.contactMessage.create({
-    data: {
-      name: data.name,
-      email: data.email.toLowerCase(),
-      phone: data.phone || null,
-      subject: data.subject || null,
-      message: data.message,
-      userId: data.userId || null,
-    },
-  });
-
+  const now = new Date();
+  const insertData = {
+    name: data.name,
+    email: data.email,
+    phone: data.phone || null,
+    subject: data.subject || null,
+    message: data.message,
+    userId: data.userId ? new ObjectId(data.userId) : null,
+    isRead: false,
+    createdAt: now,
+    updatedAt: now,
+  };
+  const result = await databaseService.client.contactMessages.insertOne(insertData);
+  const doc = await databaseService.client.contactMessages.findOne({ _id: result.insertedId });
+  const message = databaseService.formatDoc(doc);
   logger.info('Contact message created', { messageId: message.id, email: message.email });
   return message;
 }
 
 async function getMessages(query = {}) {
   const { page, limit, offset } = extractPagination(query);
-  const where = {};
+  const match = {};
+  if (query.isRead !== undefined) match.isRead = query.isRead === true || query.isRead === 'true';
 
-  if (query.isRead !== undefined) where.isRead = query.isRead === 'true';
   if (query.search) {
-    where.OR = [
-      { name: { contains: query.search } },
-      { email: { contains: query.search } },
-      { subject: { contains: query.search } },
+    match.$or = [
+      { name: { $regex: query.search, $options: 'i' } },
+      { email: { $regex: query.search, $options: 'i' } },
+      { subject: { $regex: query.search, $options: 'i' } },
     ];
   }
 
-  const [messages, total] = await Promise.all([
-    databaseService.client.contactMessage.findMany({
-      where,
-      skip: offset,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-    }),
-    databaseService.client.contactMessage.count({ where }),
-  ]);
+  const total = await databaseService.client.contactMessages.countDocuments(match);
+  const sort = {};
+  if (query.sortBy) sort[query.sortBy] = query.sortOrder === 'DESC' ? -1 : 1;
+  else sort.createdAt = -1;
+
+  const docs = await databaseService.client.contactMessages
+    .find(match).sort(sort).skip(offset).limit(limit).toArray();
 
   return {
-    data: messages,
+    data: databaseService.formatDocs(docs),
     pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
   };
 }
 
 async function getMessageById(id) {
-  const message = await databaseService.client.contactMessage.findUnique({
-    where: { id },
-  });
-
-  if (!message) {
-    throw new NotFoundError('Contact message not found');
-  }
-
+  const doc = await databaseService.client.contactMessages.findOne({ _id: new ObjectId(id) });
+  const message = databaseService.formatDoc(doc);
+  if (!message) throw new NotFoundError('Contact message not found');
   return message;
 }
 
 async function markAsRead(id) {
   await getMessageById(id);
-
-  const message = await databaseService.client.contactMessage.update({
-    where: { id },
-    data: { isRead: true },
-  });
-
+  await databaseService.client.contactMessages.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: { isRead: true, updatedAt: new Date() } }
+  );
+  const doc = await databaseService.client.contactMessages.findOne({ _id: new ObjectId(id) });
+  const message = databaseService.formatDoc(doc);
   logger.info('Contact message marked as read', { messageId: id });
   return message;
 }
 
 async function markAllAsRead() {
-  await databaseService.client.contactMessage.updateMany({
-    where: { isRead: false },
-    data: { isRead: true },
-  });
-
+  await databaseService.client.contactMessages.updateMany(
+    { isRead: false },
+    { $set: { isRead: true, updatedAt: new Date() } }
+  );
   logger.info('All contact messages marked as read');
 }
 
 async function removeMessage(id) {
   await getMessageById(id);
-
-  await databaseService.client.contactMessage.delete({ where: { id } });
+  await databaseService.client.contactMessages.deleteOne({ _id: new ObjectId(id) });
   logger.info('Contact message deleted', { messageId: id });
 }
 
 async function getUnreadCount() {
-  const count = await databaseService.client.contactMessage.count({
-    where: { isRead: false },
-  });
-  return count;
+  return databaseService.client.contactMessages.countDocuments({ isRead: false });
 }
 
 module.exports = {

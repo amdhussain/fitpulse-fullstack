@@ -1,683 +1,360 @@
 const databaseService = require('../../services/databaseService');
 
-const USER_SELECT = {
-  id: true,
-  firstName: true,
-  lastName: true,
-  email: true,
-  phone: true,
-  profileImage: true,
-  role: true,
-  isActive: true,
-  isVerified: true,
-  createdAt: true,
-};
-
-const TRAINER_SELECT = {
-  id: true,
-  userId: true,
-  bio: true,
-  specialization: true,
-  designation: true,
-  experience: true,
-  hourlyRate: true,
-  rating: true,
-  reviewsCount: true,
-  status: true,
-  createdAt: true,
-  user: { select: USER_SELECT },
-};
-
-const CLASS_SELECT = {
-  id: true,
-  name: true,
-  category: true,
-  difficulty: true,
-  capacity: true,
-  availableSeats: true,
-  price: true,
-  status: true,
-  createdAt: true,
-  trainer: {
-    select: {
-      id: true,
-      user: { select: { id: true, firstName: true, lastName: true } },
-    },
-  },
-};
-
-const BOOKING_SELECT = {
-  id: true,
-  userId: true,
-  classId: true,
-  serviceId: true,
-  trainerId: true,
-  bookingDate: true,
-  bookingTime: true,
-  status: true,
-  attended: true,
-  createdAt: true,
-  user: { select: { id: true, firstName: true, lastName: true, email: true } },
-  class: { select: { id: true, name: true, category: true } },
-  trainer: {
-    select: {
-      id: true,
-      user: { select: { id: true, firstName: true, lastName: true } },
-    },
-  },
-};
+function buildDateMatch(where) {
+  const match = {};
+  if (where && where.createdAt) {
+    match.createdAt = {};
+    if (where.createdAt.$gte) match.createdAt.$gte = where.createdAt.$gte;
+    if (where.createdAt.$lte) match.createdAt.$lte = where.createdAt.$lte;
+  }
+  return match;
+}
 
 const DashboardRepository = {
-  // ─── Count Queries ─────────────────────────────────────
-
   async countUsers(where = {}) {
-    return databaseService.client.user.count({ where });
+    return databaseService.client.users.countDocuments(where);
   },
 
   async countTrainers(where = {}) {
-    return databaseService.client.trainer.count({ where });
+    return databaseService.client.trainers.countDocuments(where);
   },
 
   async countClasses(where = {}) {
-    return databaseService.client.class.count({ where });
+    return databaseService.client.classes.countDocuments(where);
   },
 
   async countBookings(where = {}) {
-    return databaseService.client.booking.count({ where });
+    return databaseService.client.bookings.countDocuments(where);
   },
 
   async sumRevenue(where = {}) {
-    const result = await databaseService.client.payment.aggregate({
-      where,
-      _sum: { amount: true },
-    });
-    return result._sum.amount || 0;
+    const match = buildDateMatch(where);
+    const results = await databaseService.client.payments.aggregate([
+      { $match: match },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]).toArray();
+    return results[0] ? results[0].total : 0;
   },
 
-  // ─── Statistics ────────────────────────────────────────
-
   async getOverviewStats() {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
-
-    const [
-      totalUsers,
-      totalTrainers,
-      totalClasses,
-      totalBookings,
-      totalRevenue,
-      activeMembers,
-      activeTrainers,
-      monthlyBookings,
-      monthlyRevenue,
-    ] = await Promise.all([
-      this.countUsers(),
-      this.countTrainers(),
-      this.countClasses(),
-      this.countBookings(),
-      this.sumRevenue({ status: 'PAID' }),
-      this.countUsers({ role: 'MEMBER', isActive: true }),
-      this.countTrainers({ status: 'ACTIVE' }),
-      this.countBookings({ createdAt: { gte: startOfMonth } }),
-      this.sumRevenue({ status: 'PAID', createdAt: { gte: startOfMonth } }),
+    const [totalUsers, totalTrainers, totalClasses, totalBookings, activeMembers, activeTrainers] = await Promise.all([
+      databaseService.client.users.countDocuments(),
+      databaseService.client.trainers.countDocuments(),
+      databaseService.client.classes.countDocuments(),
+      databaseService.client.bookings.countDocuments(),
+      databaseService.client.users.countDocuments({ isActive: true, role: 'MEMBER' }),
+      databaseService.client.trainers.countDocuments({ status: 'ACTIVE' }),
     ]);
 
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const [monthlyBookings, monthlyRevenue] = await Promise.all([
+      databaseService.client.bookings.countDocuments({ createdAt: { $gte: monthStart } }),
+      this.sumRevenue({ createdAt: { $gte: monthStart } }),
+    ]);
+
+    const totalRevenue = await this.sumRevenue();
+
     return {
-      totalUsers,
-      totalTrainers,
-      totalClasses,
-      totalBookings,
-      totalRevenue,
-      activeMembers,
-      activeTrainers,
-      monthlyBookings,
-      monthlyRevenue,
+      totalUsers, totalTrainers, totalClasses, totalBookings,
+      totalRevenue, activeMembers, activeTrainers, monthlyBookings, monthlyRevenue,
     };
   },
 
-  // ─── Analytics ─────────────────────────────────────────
-
   async getMonthlyBookings({ startDate, endDate, months = 12 }) {
-    const where = {};
+    const now = new Date();
+    const start = startDate ? new Date(startDate) : new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
+    const end = endDate ? new Date(endDate) : now;
 
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = new Date(startDate);
-      if (endDate) where.createdAt.lte = new Date(endDate);
-    } else {
-      const now = new Date();
-      where.createdAt = {
-        gte: new Date(now.getFullYear(), now.getMonth() - months + 1, 1),
-      };
-    }
-
-    const bookings = await databaseService.client.booking.findMany({
-      where,
-      select: {
-        createdAt: true,
-        status: true,
+    return databaseService.client.bookings.aggregate([
+      { $match: { createdAt: { $gte: start, $lte: end } } },
+      {
+        $group: {
+          _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+          count: { $sum: 1 },
+        },
       },
-      orderBy: { createdAt: 'asc' },
-    });
-
-    const monthlyMap = {};
-    for (const b of bookings) {
-      const key = `${b.createdAt.getFullYear()}-${String(b.createdAt.getMonth() + 1).padStart(2, '0')}`;
-      if (!monthlyMap[key]) {
-        monthlyMap[key] = { month: key, total: 0, confirmed: 0, cancelled: 0, pending: 0, completed: 0 };
-      }
-      monthlyMap[key].total += 1;
-      if (b.status === 'CONFIRMED') monthlyMap[key].confirmed += 1;
-      if (b.status === 'CANCELLED') monthlyMap[key].cancelled += 1;
-      if (b.status === 'PENDING') monthlyMap[key].pending += 1;
-      if (b.status === 'COMPLETED') monthlyMap[key].completed += 1;
-    }
-
-    return Object.values(monthlyMap);
+      { $sort: { '_id.year': 1, '_id.month': 1 } },
+    ]).toArray();
   },
 
   async getMonthlyRevenue({ startDate, endDate, months = 12 }) {
-    const where = { status: 'PAID' };
+    const now = new Date();
+    const start = startDate ? new Date(startDate) : new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
+    const end = endDate ? new Date(endDate) : now;
 
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = new Date(startDate);
-      if (endDate) where.createdAt.lte = new Date(endDate);
-    } else {
-      const now = new Date();
-      where.createdAt = {
-        gte: new Date(now.getFullYear(), now.getMonth() - months + 1, 1),
-      };
-    }
-
-    const payments = await databaseService.client.payment.findMany({
-      where,
-      select: {
-        amount: true,
-        createdAt: true,
+    return databaseService.client.payments.aggregate([
+      { $match: { createdAt: { $gte: start, $lte: end }, status: 'PAID' } },
+      {
+        $group: {
+          _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+          total: { $sum: '$amount' },
+          count: { $sum: 1 },
+        },
       },
-      orderBy: { createdAt: 'asc' },
-    });
-
-    const monthlyMap = {};
-    for (const p of payments) {
-      const key = `${p.createdAt.getFullYear()}-${String(p.createdAt.getMonth() + 1).padStart(2, '0')}`;
-      if (!monthlyMap[key]) {
-        monthlyMap[key] = { month: key, totalRevenue: 0, transactionCount: 0 };
-      }
-      monthlyMap[key].totalRevenue = Number(monthlyMap[key].totalRevenue) + Number(p.amount);
-      monthlyMap[key].transactionCount += 1;
-    }
-
-    return Object.values(monthlyMap);
+      { $sort: { '_id.year': 1, '_id.month': 1 } },
+    ]).toArray();
   },
 
   async getClassPopularity({ startDate, endDate, limit = 10 }) {
-    const where = {};
-
+    const match = {};
     if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = new Date(startDate);
-      if (endDate) where.createdAt.lte = new Date(endDate);
+      match.createdAt = {};
+      if (startDate) match.createdAt.$gte = new Date(startDate);
+      if (endDate) match.createdAt.$lte = new Date(endDate);
     }
 
-    const classes = await databaseService.client.class.findMany({
-      where: where.class ? undefined : undefined,
-      select: {
-        id: true,
-        name: true,
-        category: true,
-        difficulty: true,
-        capacity: true,
-        price: true,
-        _count: {
-          select: { bookings: true },
+    return databaseService.client.bookings.aggregate([
+      { $match: { ...match, classId: { $ne: null } } },
+      { $group: { _id: '$classId', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: limit },
+      {
+        $lookup: {
+          from: 'classes',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'classInfo',
+          pipeline: [{ $project: { _id: 1, name: 1, category: 1, image: 1 } }],
         },
       },
-      orderBy: {
-        bookings: { _count: 'desc' },
-      },
-      take: limit,
-    });
-
-    return classes.map((c) => ({
-      id: c.id,
-      name: c.name,
-      category: c.category,
-      difficulty: c.difficulty,
-      capacity: c.capacity,
-      price: c.price,
-      bookingCount: c._count.bookings,
-    }));
+      { $addFields: { class: { $arrayElemAt: ['$classInfo', 0] } } },
+      { $project: { classInfo: 0, _id: 0, classId: '$_id', count: 1, class: 1 } },
+    ]).toArray();
   },
 
   async getTrainerPerformance({ startDate, endDate, limit = 10 }) {
-    const trainers = await databaseService.client.trainer.findMany({
-      where: { status: 'ACTIVE' },
-      select: {
-        id: true,
-        userId: true,
-        specialization: true,
-        rating: true,
-        reviewsCount: true,
-        experience: true,
-        user: { select: { id: true, firstName: true, lastName: true, email: true, profileImage: true } },
-        _count: {
-          select: { classes: true, bookings: true },
+    const match = {};
+    if (startDate || endDate) {
+      match.createdAt = {};
+      if (startDate) match.createdAt.$gte = new Date(startDate);
+      if (endDate) match.createdAt.$lte = new Date(endDate);
+    }
+
+    return databaseService.client.bookings.aggregate([
+      { $match: { ...match, trainerId: { $ne: null } } },
+      { $group: { _id: '$trainerId', bookingCount: { $sum: 1 } } },
+      { $sort: { bookingCount: -1 } },
+      { $limit: limit },
+      {
+        $lookup: {
+          from: 'trainers',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'trainerArr',
+          pipeline: [
+            { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'userArr', pipeline: [{ $project: { _id: 1, firstName: 1, lastName: 1 } }] } },
+            { $addFields: { user: { $arrayElemAt: ['$userArr', 0] } } },
+            { $project: { userArr: 0, _id: 1, userId: 1, specialization: 1, rating: 1, user: 1 } },
+          ],
         },
       },
-      orderBy: { rating: 'desc' },
-      take: limit,
-    });
-
-    const trainerIds = trainers.map((t) => t.id);
-
-    const bookingStats = await databaseService.client.booking.groupBy({
-      by: ['trainerId', 'status'],
-      where: {
-        trainerId: { in: trainerIds },
-        ...(startDate || endDate
-          ? {
-              createdAt: {
-                ...(startDate ? { gte: new Date(startDate) } : {}),
-                ...(endDate ? { lte: new Date(endDate) } : {}),
-              },
-            }
-          : {}),
-      },
-      _count: true,
-    });
-
-    const statsMap = {};
-    for (const bs of bookingStats) {
-      if (!statsMap[bs.trainerId]) {
-        statsMap[bs.trainerId] = { total: 0, confirmed: 0, completed: 0, cancelled: 0 };
-      }
-      statsMap[bs.trainerId].total += bs._count;
-      if (bs.status === 'CONFIRMED') statsMap[bs.trainerId].confirmed += bs._count;
-      if (bs.status === 'COMPLETED') statsMap[bs.trainerId].completed += bs._count;
-      if (bs.status === 'CANCELLED') statsMap[bs.trainerId].cancelled += bs._count;
-    }
-
-    const revenueStats = await databaseService.client.payment.groupBy({
-      by: ['bookingId'],
-      where: {
-        status: 'PAID',
-        booking: { trainerId: { in: trainerIds } },
-        ...(startDate || endDate
-          ? {
-              createdAt: {
-                ...(startDate ? { gte: new Date(startDate) } : {}),
-                ...(endDate ? { lte: new Date(endDate) } : {}),
-              },
-            }
-          : {}),
-      },
-      _sum: { amount: true },
-    });
-
-    const bookingTrainerMap = {};
-    const bookingIds = revenueStats.map((r) => r.bookingId);
-    if (bookingIds.length > 0) {
-      const bookings = await databaseService.client.booking.findMany({
-        where: { id: { in: bookingIds } },
-        select: { id: true, trainerId: true },
-      });
-      for (const b of bookings) {
-        bookingTrainerMap[b.id] = b.trainerId;
-      }
-    }
-
-    const revenueMap = {};
-    for (const rs of revenueStats) {
-      const trainerId = bookingTrainerMap[rs.bookingId];
-      if (trainerId) {
-        if (!revenueMap[trainerId]) revenueMap[trainerId] = 0;
-        revenueMap[trainerId] = Number(revenueMap[trainerId]) + Number(rs._sum.amount || 0);
-      }
-    }
-
-    return trainers.map((t) => ({
-      id: t.id,
-      userId: t.userId,
-      firstName: t.user.firstName,
-      lastName: t.user.lastName,
-      email: t.user.email,
-      profileImage: t.user.profileImage,
-      specialization: t.specialization,
-      rating: t.rating,
-      reviewsCount: t.reviewsCount,
-      experience: t.experience,
-      totalClasses: t._count.classes,
-      totalBookings: statsMap[t.id]?.total || 0,
-      confirmedBookings: statsMap[t.id]?.confirmed || 0,
-      completedBookings: statsMap[t.id]?.completed || 0,
-      cancelledBookings: statsMap[t.id]?.cancelled || 0,
-      totalRevenue: revenueMap[t.id] || 0,
-    }));
+      { $addFields: { trainer: { $arrayElemAt: ['$trainerArr', 0] } } },
+      { $project: { trainerArr: 0, _id: 0, trainerId: '$_id', bookingCount: 1, trainer: 1 } },
+    ]).toArray();
   },
 
   async getRecentRegistrations({ limit = 10 }) {
-    return databaseService.client.user.findMany({
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        profileImage: true,
-        role: true,
-        isActive: true,
-        isVerified: true,
-        createdAt: true,
-      },
-    });
+    const docs = await databaseService.client.users
+      .find({}, { projection: { password: 0 } })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .toArray();
+    return databaseService.formatDocs(docs);
   },
 
   async getRecentBookings({ limit = 10 }) {
-    return databaseService.client.booking.findMany({
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      select: BOOKING_SELECT,
-    });
+    const pipeline = [
+      { $sort: { createdAt: -1 } },
+      { $limit: limit },
+      {
+        $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'userArr', pipeline: [{ $project: { _id: 1, firstName: 1, lastName: 1, email: 1 } }] },
+      },
+      { $lookup: { from: 'classes', localField: 'classId', foreignField: '_id', as: 'classArr', pipeline: [{ $project: { _id: 1, name: 1, category: 1 } }] } },
+      { $addFields: { user: { $arrayElemAt: ['$userArr', 0] }, class: { $arrayElemAt: ['$classArr', 0] }, userId: { $toString: '$userId' } } },
+      { $project: { userArr: 0, classArr: 0 } },
+    ];
+    return databaseService.client.bookings.aggregate(pipeline).toArray();
   },
 
-  // ─── Admin Dashboard ───────────────────────────────────
-
   async getLatestUsers({ limit = 5 }) {
-    return databaseService.client.user.findMany({
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        profileImage: true,
-        role: true,
-        isActive: true,
-        isVerified: true,
-        lastLoginAt: true,
-        createdAt: true,
-      },
-    });
+    const docs = await databaseService.client.users
+      .find({}, { projection: { password: 0 } })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .toArray();
+    return databaseService.formatDocs(docs);
   },
 
   async getLatestTrainers({ limit = 5 }) {
-    return databaseService.client.trainer.findMany({
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      select: TRAINER_SELECT,
-    });
+    const pipeline = [
+      { $sort: { createdAt: -1 } },
+      { $limit: limit },
+      { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'userArr', pipeline: [{ $project: { _id: 1, firstName: 1, lastName: 1, email: 1, profileImage: 1 } }] } },
+      { $addFields: { user: { $arrayElemAt: ['$userArr', 0] } } },
+      { $project: { userArr: 0 } },
+    ];
+    return databaseService.client.trainers.aggregate(pipeline).toArray();
   },
 
   async getLatestBookings({ limit = 5 }) {
-    return databaseService.client.booking.findMany({
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      select: BOOKING_SELECT,
-    });
+    return this.getRecentBookings({ limit });
   },
 
   async getSystemOverview() {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay());
-    startOfWeek.setHours(0, 0, 0, 0);
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const [users, trainers, classes, bookings, payments, services, gallery, contactMessages] = await Promise.all([
+      databaseService.client.users.countDocuments(),
+      databaseService.client.trainers.countDocuments(),
+      databaseService.client.classes.countDocuments(),
+      databaseService.client.bookings.countDocuments(),
+      databaseService.client.payments.countDocuments(),
+      databaseService.client.services.countDocuments(),
+      databaseService.client.gallery.countDocuments(),
+      databaseService.client.contactMessages.countDocuments(),
+    ]);
 
-    const [
-      totalUsers,
-      totalTrainers,
-      totalMembers,
-      totalClasses,
-      activeClasses,
-      totalBookings,
-      todayBookings,
-      weekBookings,
-      monthBookings,
-      totalPayments,
-      pendingPayments,
-      totalServices,
-      totalGalleryItems,
-      totalContactMessages,
-      unreadMessages,
-    ] = await Promise.all([
-      this.countUsers(),
-      this.countTrainers(),
-      this.countUsers({ role: 'MEMBER' }),
-      this.countClasses(),
-      this.countClasses({ status: 'ACTIVE' }),
-      this.countBookings(),
-      this.countBookings({ createdAt: { gte: today } }),
-      this.countBookings({ createdAt: { gte: startOfWeek } }),
-      this.countBookings({ createdAt: { gte: startOfMonth } }),
-      this.countPayments(),
-      this.countPayments({ status: 'PENDING' }),
-      databaseService.client.service.count(),
-      databaseService.client.gallery.count(),
-      databaseService.client.contactMessage.count(),
-      databaseService.client.contactMessage.count({ where: { isRead: false } }),
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay());
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    const [todayBookings, thisWeekBookings, thisMonthBookings, pendingBookings, unreadMessages] = await Promise.all([
+      databaseService.client.bookings.countDocuments({ createdAt: { $gte: today } }),
+      databaseService.client.bookings.countDocuments({ createdAt: { $gte: weekStart } }),
+      databaseService.client.bookings.countDocuments({ createdAt: { $gte: monthStart } }),
+      databaseService.client.payments.countDocuments({ status: 'PENDING' }),
+      databaseService.client.contactMessages.countDocuments({ isRead: false }),
     ]);
 
     return {
-      users: { total: totalUsers, totalTrainers, totalMembers },
-      classes: { total: totalClasses, active: activeClasses },
-      bookings: { total: totalBookings, today: todayBookings, thisWeek: weekBookings, thisMonth: monthBookings },
-      payments: { total: totalPayments, pending: pendingPayments },
-      services: { total: totalServices },
-      gallery: { total: totalGalleryItems },
-      contactMessages: { total: totalContactMessages, unread: unreadMessages },
+      users: { total: users, totalTrainers: trainers, totalMembers: users - trainers },
+      classes: { total: classes, active: await databaseService.client.classes.countDocuments({ status: 'ACTIVE' }) },
+      bookings: { total: bookings, today: todayBookings, thisWeek: thisWeekBookings, thisMonth: thisMonthBookings },
+      payments: { total: payments, pending: pendingBookings },
+      services: { total: services },
+      gallery: { total: gallery },
+      contactMessages: { total: contactMessages, unread: unreadMessages },
     };
   },
 
   async countPayments(where = {}) {
-    return databaseService.client.payment.count({ where });
+    return databaseService.client.payments.countDocuments(where);
   },
 
   async getRevenueSummary({ startDate, endDate }) {
-    const where = { status: 'PAID' };
-
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = new Date(startDate);
-      if (endDate) where.createdAt.lte = new Date(endDate);
-    }
-
+    const totalRevenue = await this.sumRevenue();
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+    const yearStart = new Date(now.getFullYear(), 0, 1);
 
-    const [
-      totalRevenue,
-      monthRevenue,
-      lastMonthRevenue,
-      yearRevenue,
-      totalTransactions,
-      monthTransactions,
-    ] = await Promise.all([
-      this.sumRevenue(where),
-      this.sumRevenue({ status: 'PAID', createdAt: { gte: startOfMonth } }),
-      this.sumRevenue({ status: 'PAID', createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } }),
-      this.sumRevenue({ status: 'PAID', createdAt: { gte: startOfYear } }),
-      this.countPayments(where),
-      this.countPayments({ status: 'PAID', createdAt: { gte: startOfMonth } }),
+    const [thisMonthRevenue, lastMonthRevenue, yearRevenue, totalTransactions, monthTransactions] = await Promise.all([
+      this.sumRevenue({ createdAt: { $gte: monthStart } }),
+      this.sumRevenue({ createdAt: { $gte: lastMonthStart, $lte: lastMonthEnd } }),
+      this.sumRevenue({ createdAt: { $gte: yearStart } }),
+      this.countPayments(),
+      this.countPayments({ createdAt: { $gte: monthStart } }),
     ]);
 
-    const lastMonthNum = Number(lastMonthRevenue);
-    const currentMonthNum = Number(monthRevenue);
-    const growth = lastMonthNum > 0
-      ? ((currentMonthNum - lastMonthNum) / lastMonthNum * 100).toFixed(2)
-      : currentMonthNum > 0
-        ? 100
-        : 0;
+    const monthOverMonthGrowth = lastMonthRevenue > 0
+      ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100
+      : 0;
 
     return {
-      totalRevenue,
-      thisMonthRevenue: monthRevenue,
-      lastMonthRevenue,
-      yearRevenue,
-      totalTransactions,
-      monthTransactions,
-      monthOverMonthGrowth: parseFloat(growth),
+      totalRevenue, thisMonthRevenue, lastMonthRevenue, yearRevenue,
+      totalTransactions, monthTransactions, monthOverMonthGrowth,
     };
   },
 
   async getBookingSummary({ startDate, endDate }) {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay());
-    startOfWeek.setHours(0, 0, 0, 0);
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay());
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
 
-    const [
-      totalBookings,
-      todayBookings,
-      weekBookings,
-      monthBookings,
-      lastMonthBookings,
-      pendingBookings,
-      confirmedBookings,
-      completedBookings,
-      cancelledBookings,
-    ] = await Promise.all([
-      this.countBookings(),
-      this.countBookings({ createdAt: { gte: today } }),
-      this.countBookings({ createdAt: { gte: startOfWeek } }),
-      this.countBookings({ createdAt: { gte: startOfMonth } }),
-      this.countBookings({ createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } }),
-      this.countBookings({ status: 'PENDING' }),
-      this.countBookings({ status: 'CONFIRMED' }),
-      this.countBookings({ status: 'COMPLETED' }),
-      this.countBookings({ status: 'CANCELLED' }),
+    const [totalBookings, todayBookings, thisWeekBookings, thisMonthBookings, lastMonthBookings, pendingBookings, confirmedBookings, completedBookings, cancelledBookings] = await Promise.all([
+      databaseService.client.bookings.countDocuments(),
+      databaseService.client.bookings.countDocuments({ createdAt: { $gte: today } }),
+      databaseService.client.bookings.countDocuments({ createdAt: { $gte: weekStart } }),
+      databaseService.client.bookings.countDocuments({ createdAt: { $gte: monthStart } }),
+      databaseService.client.bookings.countDocuments({ createdAt: { $gte: lastMonthStart, $lte: lastMonthEnd } }),
+      databaseService.client.bookings.countDocuments({ status: 'PENDING' }),
+      databaseService.client.bookings.countDocuments({ status: 'CONFIRMED' }),
+      databaseService.client.bookings.countDocuments({ status: 'COMPLETED' }),
+      databaseService.client.bookings.countDocuments({ status: 'CANCELLED' }),
     ]);
 
-    const lastMonthNum = lastMonthBookings;
-    const currentMonthNum = monthBookings;
-    const growth = lastMonthNum > 0
-      ? ((currentMonthNum - lastMonthNum) / lastMonthNum * 100).toFixed(2)
-      : currentMonthNum > 0
-        ? 100
-        : 0;
+    const monthOverMonthGrowth = lastMonthBookings > 0
+      ? ((thisMonthBookings - lastMonthBookings) / lastMonthBookings) * 100
+      : 0;
 
     return {
-      totalBookings,
-      todayBookings,
-      thisWeekBookings: weekBookings,
-      thisMonthBookings: monthBookings,
-      lastMonthBookings,
-      pendingBookings,
-      confirmedBookings,
-      completedBookings,
-      cancelledBookings,
-      monthOverMonthGrowth: parseFloat(growth),
+      totalBookings, todayBookings, thisWeekBookings, thisMonthBookings,
+      lastMonthBookings, pendingBookings, confirmedBookings, completedBookings,
+      cancelledBookings, monthOverMonthGrowth,
     };
   },
 
   async getBookingStatusBreakdown({ startDate, endDate }) {
-    const where = {};
-
+    const match = {};
     if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = new Date(startDate);
-      if (endDate) where.createdAt.lte = new Date(endDate);
+      match.createdAt = {};
+      if (startDate) match.createdAt.$gte = new Date(startDate);
+      if (endDate) match.createdAt.$lte = new Date(endDate);
     }
 
-    const results = await databaseService.client.booking.groupBy({
-      by: ['status'],
-      where,
-      _count: true,
-    });
-
-    return results.map((r) => ({
-      status: r.status,
-      count: r._count,
-    }));
+    return databaseService.client.bookings.aggregate([
+      { $match: match },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+      { $project: { _id: 0, status: '$_id', count: 1 } },
+    ]).toArray();
   },
 
   async getTopClassesByBookings({ limit = 5, startDate, endDate }) {
-    const where = {};
-
+    const match = { classId: { $ne: null } };
     if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = new Date(startDate);
-      if (endDate) where.createdAt.lte = new Date(endDate);
+      match.createdAt = {};
+      if (startDate) match.createdAt.$gte = new Date(startDate);
+      if (endDate) match.createdAt.$lte = new Date(endDate);
     }
 
-    const classes = await databaseService.client.class.findMany({
-      select: {
-        id: true,
-        name: true,
-        category: true,
-        difficulty: true,
-        price: true,
-        _count: {
-          select: { bookings: where.createdAt ? { where } : true },
-        },
-      },
-      orderBy: {
-        bookings: { _count: 'desc' },
-      },
-      take: limit,
-    });
-
-    return classes.map((c) => ({
-      id: c.id,
-      name: c.name,
-      category: c.category,
-      difficulty: c.difficulty,
-      price: c.price,
-      bookingCount: c._count.bookings,
-    }));
+    return databaseService.client.bookings.aggregate([
+      { $match: match },
+      { $group: { _id: '$classId', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: limit },
+      { $lookup: { from: 'classes', localField: '_id', foreignField: '_id', as: 'classArr', pipeline: [{ $project: { _id: 1, name: 1, category: 1 } }] } },
+      { $addFields: { class: { $arrayElemAt: ['$classArr', 0] } } },
+      { $project: { classArr: 0, _id: 0, classId: '$_id', count: 1, class: 1 } },
+    ]).toArray();
   },
 
   async getTopTrainersByBookings({ limit = 5, startDate, endDate }) {
-    const trainers = await databaseService.client.trainer.findMany({
-      where: { status: 'ACTIVE' },
-      select: {
-        id: true,
-        user: { select: { firstName: true, lastName: true, email: true, profileImage: true } },
-        rating: true,
-        specialization: true,
-        _count: {
-          select: {
-            bookings: startDate || endDate
-              ? {
-                  where: {
-                    createdAt: {
-                      ...(startDate ? { gte: new Date(startDate) } : {}),
-                      ...(endDate ? { lte: new Date(endDate) } : {}),
-                    },
-                  },
-                }
-              : true,
-          },
-        },
-      },
-      orderBy: {
-        bookings: { _count: 'desc' },
-      },
-      take: limit,
-    });
+    const match = { trainerId: { $ne: null } };
+    if (startDate || endDate) {
+      match.createdAt = {};
+      if (startDate) match.createdAt.$gte = new Date(startDate);
+      if (endDate) match.createdAt.$lte = new Date(endDate);
+    }
 
-    return trainers.map((t) => ({
-      id: t.id,
-      firstName: t.user.firstName,
-      lastName: t.user.lastName,
-      email: t.user.email,
-      profileImage: t.user.profileImage,
-      rating: t.rating,
-      specialization: t.specialization,
-      bookingCount: t._count.bookings,
-    }));
+    return databaseService.client.bookings.aggregate([
+      { $match: match },
+      { $group: { _id: '$trainerId', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: limit },
+      { $lookup: { from: 'trainers', localField: '_id', foreignField: '_id', as: 'trainerArr', pipeline: [
+        { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'userArr', pipeline: [{ $project: { _id: 1, firstName: 1, lastName: 1 } }] } },
+        { $addFields: { user: { $arrayElemAt: ['$userArr', 0] } } },
+        { $project: { userArr: 0 } },
+      ] } },
+      { $addFields: { trainer: { $arrayElemAt: ['$trainerArr', 0] } } },
+      { $project: { trainerArr: 0, _id: 0, trainerId: '$_id', count: 1, trainer: 1 } },
+    ]).toArray();
   },
 };
 

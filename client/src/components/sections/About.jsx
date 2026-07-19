@@ -103,10 +103,10 @@ function About() {
             <motion.h2
               variants={fadeUp}
               custom={1}
-              className="mt-6 text-3xl sm:text-4xl lg:text-5xl font-bold text-base-content leading-tight tracking-tight"
+              className="mt-6 text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight tracking-tight"
             >
               We Help You{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-indigo-300">
                 Achieve More
               </span>
             </motion.h2>
@@ -114,7 +114,7 @@ function About() {
             <motion.p
               variants={fadeUp}
               custom={2}
-              className="mt-5 text-base-content/50 text-lg leading-relaxed"
+              className="mt-5 text-gray-300 text-lg leading-relaxed"
             >
               FitBookPro is your all-in-one fitness platform designed to
               connect you with world-class trainers, premium classes, and a
@@ -124,7 +124,7 @@ function About() {
             <motion.p
               variants={fadeUp}
               custom={3}
-              className="mt-4 text-base-content/40 leading-relaxed"
+              className="mt-4 text-gray-300 leading-relaxed"
             >
               Whether you are just starting your fitness journey or looking to
               push past your limits, our flexible booking system and expert
@@ -137,16 +137,16 @@ function About() {
               className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4"
             >
               {features.map((feature) => (
-                <Card key={feature.title} className="group p-5" glow="purple-500">
+                <Card key={feature.title} className="group p-5 !bg-white/5 !backdrop-blur-xl !border-white/10" glow="purple-500">
                   <div className="flex items-start gap-4">
                     <div className="w-11 h-11 rounded-xl bg-purple-500/10 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-purple-500 group-hover:shadow-lg group-hover:shadow-purple-500/25">
                       <feature.icon className="w-5 h-5 text-purple-400 transition-colors duration-300 group-hover:text-white" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold text-base-content">
+                      <h3 className="text-sm font-semibold text-white">
                         {feature.title}
                       </h3>
-                      <p className="mt-1 text-xs text-base-content/45 leading-relaxed">
+                      <p className="mt-1 text-xs text-gray-300 leading-relaxed">
                         {feature.description}
                       </p>
                     </div>

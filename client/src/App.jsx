@@ -1,15 +1,20 @@
 import { Suspense } from "react";
-import { RouterProvider } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import { ErrorBoundary } from "./components/ui";
 import PageLoader from "./components/ui/PageLoader";
-import router from "./routes/router";
+import { AuthProvider } from "./context/AuthContext";
+import AppRoutes from "./routes/AppRoutes";
 
 function App() {
   return (
     <ErrorBoundary>
-      <Suspense fallback={<PageLoader />}>
-        <RouterProvider router={router} />
-      </Suspense>
+      <BrowserRouter>
+        <AuthProvider>
+          <Suspense fallback={<PageLoader />}>
+            <AppRoutes />
+          </Suspense>
+        </AuthProvider>
+      </BrowserRouter>
     </ErrorBoundary>
   );
 }

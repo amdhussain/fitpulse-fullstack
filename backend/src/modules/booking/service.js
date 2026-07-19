@@ -1,5 +1,6 @@
-const databaseService = require('../../services/databaseService');
 const BookingRepository = require('./repository');
+const ClassRepository = require('../class/repository');
+const databaseService = require('../../services/databaseService');
 const { NotFoundError, BadRequestError, ForbiddenError, ConflictError } = require('../../errors');
 const logger = require('../../utils/logger');
 
@@ -26,38 +27,13 @@ async function bookClass(userId, { classId, bookingDate, bookingTime, notes }) {
     throw new ConflictError('You have already booked this class');
   }
 
-  const booking = await databaseService.transaction(async (tx) => {
-    const newBooking = await tx.booking.create({
-      data: {
-        userId,
-        classId,
-        trainerId: cls.trainerId,
-        bookingDate: new Date(bookingDate),
-        bookingTime,
-        notes: notes || null,
-        status: 'PENDING',
-      },
-      select: {
-        id: true,
-        userId: true,
-        classId: true,
-        trainerId: true,
-        bookingDate: true,
-        bookingTime: true,
-        status: true,
-        attended: true,
-        notes: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-
-    await tx.class.update({
-      where: { id: classId },
-      data: { availableSeats: { decrement: 1 } },
-    });
-
-    return newBooking;
+  const booking = await databaseService.transaction(async (session) => {
+    const b = await BookingRepository.create(
+      { userId, classId, trainerId: cls.trainerId, bookingDate, bookingTime, notes },
+      session
+    );
+    await ClassRepository.decrementAvailableSeats(classId, 1, session);
+    return b;
   });
 
   logger.info('Class booked', { userId, classId, bookingId: booking.id });
@@ -84,37 +60,16 @@ async function cancelBooking(userId, bookingId, cancelReason) {
     throw new BadRequestError('Cannot cancel a completed booking');
   }
 
-  const updated = await databaseService.transaction(async (tx) => {
-    const cancelled = await tx.booking.update({
-      where: { id: bookingId },
-      data: {
-        status: 'CANCELLED',
-        cancelReason: cancelReason || null,
-      },
-      select: {
-        id: true,
-        userId: true,
-        classId: true,
-        trainerId: true,
-        bookingDate: true,
-        bookingTime: true,
-        status: true,
-        attended: true,
-        notes: true,
-        cancelReason: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-
+  const updated = await databaseService.transaction(async (session) => {
+    const u = await BookingRepository.update(
+      bookingId,
+      { status: 'CANCELLED', cancelReason: cancelReason || null },
+      session
+    );
     if (booking.classId) {
-      await tx.class.update({
-        where: { id: booking.classId },
-        data: { availableSeats: { increment: 1 } },
-      });
+      await ClassRepository.incrementAvailableSeats(booking.classId, 1, session);
     }
-
-    return cancelled;
+    return u;
   });
 
   logger.info('Booking cancelled', { userId, bookingId });
@@ -132,9 +87,9 @@ async function getMyBookings(userId, { page, limit, search, status, sortBy, sort
   }
 
   if (search) {
-    where.OR = [
-      { class: { name: { contains: search } } },
-      { notes: { contains: search } },
+    where.$or = [
+      { notes: { $regex: search, $options: 'i' } },
+      { 'class.name': { $regex: search, $options: 'i' } },
     ];
   }
 
@@ -202,11 +157,11 @@ async function getBookingsForMyClasses(trainerUserId, { page, limit, search, sta
   }
 
   if (search) {
-    where.OR = [
-      { user: { firstName: { contains: search } } },
-      { user: { lastName: { contains: search } } },
-      { user: { email: { contains: search } } },
-      { notes: { contains: search } },
+    where.$or = [
+      { 'user.firstName': { $regex: search, $options: 'i' } },
+      { 'user.lastName': { $regex: search, $options: 'i' } },
+      { 'user.email': { $regex: search, $options: 'i' } },
+      { notes: { $regex: search, $options: 'i' } },
     ];
   }
 
@@ -288,32 +243,10 @@ async function rejectBooking(trainerUserId, bookingId) {
     throw new ConflictError(`Booking cannot be rejected. Current status: ${booking.status}`);
   }
 
-  const updated = await databaseService.transaction(async (tx) => {
-    const rejected = await tx.booking.update({
-      where: { id: bookingId },
-      data: { status: 'CANCELLED' },
-      select: {
-        id: true,
-        userId: true,
-        classId: true,
-        trainerId: true,
-        bookingDate: true,
-        bookingTime: true,
-        status: true,
-        attended: true,
-        notes: true,
-        cancelReason: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-
-    await tx.class.update({
-      where: { id: booking.classId },
-      data: { availableSeats: { increment: 1 } },
-    });
-
-    return rejected;
+  const updated = await databaseService.transaction(async (session) => {
+    const u = await BookingRepository.update(bookingId, { status: 'CANCELLED' }, session);
+    await ClassRepository.incrementAvailableSeats(booking.classId, 1, session);
+    return u;
   });
 
   logger.info('Booking rejected', { trainerId: trainer.id, bookingId });
@@ -382,12 +315,12 @@ async function getAllBookings({ page, limit, search, status, userId, classId, tr
   }
 
   if (search) {
-    where.OR = [
-      { user: { firstName: { contains: search } } },
-      { user: { lastName: { contains: search } } },
-      { user: { email: { contains: search } } },
-      { class: { name: { contains: search } } },
-      { notes: { contains: search } },
+    where.$or = [
+      { 'user.firstName': { $regex: search, $options: 'i' } },
+      { 'user.lastName': { $regex: search, $options: 'i' } },
+      { 'user.email': { $regex: search, $options: 'i' } },
+      { 'class.name': { $regex: search, $options: 'i' } },
+      { notes: { $regex: search, $options: 'i' } },
     ];
   }
 
@@ -419,34 +352,12 @@ async function updateBookingStatus(bookingId, status) {
     throw new ConflictError(`Booking is already ${status}`);
   }
 
-  const updated = await databaseService.transaction(async (tx) => {
-    const result = await tx.booking.update({
-      where: { id: bookingId },
-      data: { status },
-      select: {
-        id: true,
-        userId: true,
-        classId: true,
-        trainerId: true,
-        bookingDate: true,
-        bookingTime: true,
-        status: true,
-        attended: true,
-        notes: true,
-        cancelReason: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-
+  const updated = await databaseService.transaction(async (session) => {
+    const u = await BookingRepository.update(bookingId, { status }, session);
     if (status === 'CANCELLED' && booking.classId) {
-      await tx.class.update({
-        where: { id: booking.classId },
-        data: { availableSeats: { increment: 1 } },
-      });
+      await ClassRepository.incrementAvailableSeats(booking.classId, 1, session);
     }
-
-    return result;
+    return u;
   });
 
   logger.info('Booking status updated', { bookingId, newStatus: status });
@@ -461,14 +372,10 @@ async function deleteBooking(bookingId) {
     throw new NotFoundError('Booking not found');
   }
 
-  await databaseService.transaction(async (tx) => {
-    await tx.booking.delete({ where: { id: bookingId } });
-
+  await databaseService.transaction(async (session) => {
+    await BookingRepository.delete(bookingId, session);
     if (booking.classId && booking.status !== 'CANCELLED') {
-      await tx.class.update({
-        where: { id: booking.classId },
-        data: { availableSeats: { increment: 1 } },
-      });
+      await ClassRepository.incrementAvailableSeats(booking.classId, 1, session);
     }
   });
 

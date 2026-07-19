@@ -1,20 +1,8 @@
+const { ObjectId } = require('mongodb');
 const databaseService = require('./databaseService');
 const { NotFoundError, ForbiddenError, BadRequestError } = require('../errors');
 const { extractPagination } = require('../utils/pagination');
 const logger = require('../utils/logger');
-
-// ─── Booking Service ───────────────────────────────────────
-// CRUD operations for bookings with role-based access:
-//   - Admin:  full access to all bookings
-//   - Member: manage own bookings only
-//   - Trainer: view/update status of assigned bookings
-//
-// Status transitions:
-//   PENDING  -> CONFIRMED | CANCELLED
-//   CONFIRMED -> COMPLETED | CANCELLED
-//   CANCELLED -> (terminal)
-//   COMPLETED -> (terminal)
-// ───────────────────────────────────────────────────────────
 
 const VALID_STATUSES = ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'];
 
@@ -25,377 +13,214 @@ const STATUS_TRANSITIONS = {
   COMPLETED: [],
 };
 
-// ─── Includes (shared across queries) ──────────────────────
+const BOOKING_LOOKUP_PIPELINE = [
+  { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'userArr', pipeline: [{ $project: { _id: 1, firstName: 1, lastName: 1, email: 1, phone: 1, role: 1 } }] } },
+  { $lookup: { from: 'services', localField: 'serviceId', foreignField: '_id', as: 'serviceArr', pipeline: [{ $project: { _id: 1, name: 1, category: 1, price: 1, duration: 1, image: 1 } }] } },
+  { $lookup: { from: 'trainers', localField: 'trainerId', foreignField: '_id', as: 'trainerArr', pipeline: [
+    { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'userArr', pipeline: [{ $project: { _id: 1, firstName: 1, lastName: 1, email: 1 } }] } },
+    { $addFields: { user: { $arrayElemAt: ['$userArr', 0] } } },
+    { $project: { userArr: 0, _id: 1, userId: 1, specialization: 1, designation: 1, user: 1 } },
+  ] } },
+  { $lookup: { from: 'classes', localField: 'classId', foreignField: '_id', as: 'classArr', pipeline: [{ $project: { _id: 1, name: 1, category: 1, difficulty: 1, capacity: 1, availableSeats: 1, schedule: 1, duration: 1, price: 1, image: 1, status: 1 } }] } },
+  { $addFields: {
+    user: { $arrayElemAt: ['$userArr', 0] },
+    service: { $arrayElemAt: ['$serviceArr', 0] },
+    trainer: { $arrayElemAt: ['$trainerArr', 0] },
+    class: { $arrayElemAt: ['$classArr', 0] },
+    userId: { $toString: '$userId' },
+    serviceId: { $cond: { if: '$serviceId', then: { $toString: '$serviceId' }, else: null } },
+    trainerId: { $cond: { if: '$trainerId', then: { $toString: '$trainerId' }, else: null } },
+    classId: { $cond: { if: '$classId', then: { $toString: '$classId' }, else: null } },
+  } },
+  { $project: { userArr: 0, serviceArr: 0, trainerArr: 0, classArr: 0 } },
+];
 
-const BOOKING_INCLUDES = {
-  user: {
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      phone: true,
-      role: true,
-    },
-  },
-  service: {
-    select: {
-      id: true,
-      name: true,
-      category: true,
-      price: true,
-      duration: true,
-      image: true,
-    },
-  },
-  trainer: {
-    select: {
-      id: true,
-      userId: true,
-      specialization: true,
-      designation: true,
-      user: {
-        select: { id: true, firstName: true, lastName: true, email: true },
-      },
-    },
-  },
-};
+function formatBooking(doc) {
+  if (!doc) return null;
+  const { _id, user, service, trainer, class: cls, ...rest } = doc;
+  const formatted = { ...rest, id: _id.toString() };
+  if (user) { formatted.user = { ...user, id: user._id.toString() }; delete formatted.user._id; }
+  if (service) { formatted.service = { ...service, id: service._id.toString() }; delete formatted.service._id; }
+  if (trainer) {
+    formatted.trainer = { ...trainer, id: trainer._id.toString() }; delete formatted.trainer._id;
+    if (formatted.trainer.user) { formatted.trainer.user = { ...formatted.trainer.user, id: formatted.trainer.user._id.toString() }; delete formatted.trainer.user._id; }
+  }
+  if (cls) { formatted.class = { ...cls, id: cls._id.toString() }; delete formatted.class._id; }
+  return formatted;
+}
 
-// ─── Admin: List All Bookings ──────────────────────────────
+async function runBookingQuery(match, { page, limit, offset, sortBy, sortOrder }) {
+  const pipeline = [{ $match: match }, ...BOOKING_LOOKUP_PIPELINE];
+  const countPipeline = [...pipeline, { $count: 'total' }];
+  const countResult = await databaseService.client.bookings.aggregate(countPipeline).toArray();
+  const total = countResult[0] ? countResult[0].total : 0;
+  const sort = {};
+  if (sortBy) sort[sortBy] = sortOrder === 'DESC' ? -1 : 1;
+  else sort.createdAt = -1;
+  pipeline.push({ $sort: sort }, { $skip: offset }, { $limit: limit });
+  const results = await databaseService.client.bookings.aggregate(pipeline).toArray();
+  return { data: results.map(formatBooking), total };
+}
 
 async function adminGetAll(query = {}) {
   const { page, limit, offset } = extractPagination(query);
-  const where = {};
-
-  if (query.status) where.status = query.status;
-  if (query.userId) where.userId = query.userId;
-  if (query.serviceId) where.serviceId = query.serviceId;
-  if (query.trainerId) where.trainerId = query.trainerId;
-
-  if (query.dateFrom || query.dateTo) {
-    where.bookingDate = {};
-    if (query.dateFrom) where.bookingDate.gte = new Date(query.dateFrom);
-    if (query.dateTo) where.bookingDate.lte = new Date(query.dateTo);
-  }
-
-  if (query.search) {
-    where.OR = [
-      { user: { firstName: { contains: query.search } } },
-      { user: { lastName: { contains: query.search } } },
-      { user: { email: { contains: query.search } } },
-      { notes: { contains: query.search } },
-    ];
-  }
-
-  const [bookings, total] = await Promise.all([
-    databaseService.client.booking.findMany({
-      where,
-      include: BOOKING_INCLUDES,
-      skip: offset,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-    }),
-    databaseService.client.booking.count({ where }),
-  ]);
-
-  return {
-    data: bookings,
-    pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
-  };
+  const match = {};
+  if (query.status) match.status = query.status;
+  if (query.userId) match.userId = new ObjectId(query.userId);
+  if (query.serviceId) match.serviceId = new ObjectId(query.serviceId);
+  if (query.trainerId) match.trainerId = new ObjectId(query.trainerId);
+  const { data, total } = await runBookingQuery(match, { page, limit, offset, sortBy: query.sortBy, sortOrder: query.sortOrder });
+  return { data, pagination: { total, page, limit, totalPages: Math.ceil(total / limit) } };
 }
 
-// ─── Admin: Get Booking By ID ──────────────────────────────
-
 async function adminGetById(id) {
-  const booking = await databaseService.client.booking.findUnique({
-    where: { id },
-    include: BOOKING_INCLUDES,
-  });
-
-  if (!booking) {
-    throw new NotFoundError('Booking not found');
-  }
-
+  const pipeline = [{ $match: { _id: new ObjectId(id) } }, ...BOOKING_LOOKUP_PIPELINE];
+  const results = await databaseService.client.bookings.aggregate(pipeline).toArray();
+  const booking = formatBooking(results[0] || null);
+  if (!booking) throw new NotFoundError('Booking not found');
   return booking;
 }
 
-// ─── Admin: Create Booking ─────────────────────────────────
-
 async function adminCreate(data) {
-  if (data.serviceId) {
-    const service = await databaseService.client.service.findUnique({ where: { id: data.serviceId } });
-    if (!service) throw new NotFoundError('Service not found');
-  }
-
-  if (data.trainerId) {
-    const trainer = await databaseService.client.trainer.findUnique({ where: { id: data.trainerId } });
-    if (!trainer) throw new NotFoundError('Trainer not found');
-  }
-
-  const user = await databaseService.client.user.findUnique({ where: { id: data.userId } });
-  if (!user) throw new NotFoundError('User not found');
-
-  const booking = await databaseService.client.booking.create({
-    data: {
-      userId: data.userId,
-      serviceId: data.serviceId || null,
-      trainerId: data.trainerId || null,
-      bookingDate: new Date(data.bookingDate),
-      bookingTime: data.bookingTime,
-      status: data.status || 'PENDING',
-      notes: data.notes || null,
-    },
-    include: BOOKING_INCLUDES,
-  });
-
+  const now = new Date();
+  const insertData = {
+    userId: new ObjectId(data.userId),
+    classId: data.classId ? new ObjectId(data.classId) : null,
+    serviceId: data.serviceId ? new ObjectId(data.serviceId) : null,
+    trainerId: data.trainerId ? new ObjectId(data.trainerId) : null,
+    bookingDate: data.bookingDate || null,
+    bookingTime: data.bookingTime || null,
+    status: data.status || 'PENDING',
+    attended: data.attended || false,
+    notes: data.notes || null,
+    cancelReason: data.cancelReason || null,
+    createdAt: now,
+    updatedAt: now,
+  };
+  const result = await databaseService.client.bookings.insertOne(insertData);
+  const booking = await adminGetById(result.insertedId.toString());
   logger.info('Booking created (admin)', { bookingId: booking.id, userId: data.userId });
   return booking;
 }
 
-// ─── Admin: Update Booking ─────────────────────────────────
-
 async function adminUpdate(id, data) {
   await adminGetById(id);
-
-  const updateData = {};
-  const fields = ['userId', 'serviceId', 'trainerId', 'bookingDate', 'bookingTime', 'notes'];
-
-  for (const field of fields) {
-    if (data[field] !== undefined) {
-      updateData[field] = field === 'bookingDate' ? new Date(data[field]) : data[field];
-    }
-  }
-
-  if (data.status !== undefined) {
-    updateData.status = data.status;
-  }
-
-  const booking = await databaseService.client.booking.update({
-    where: { id },
-    data: updateData,
-    include: BOOKING_INCLUDES,
-  });
-
+  const updateFields = { ...data, updatedAt: new Date() };
+  if (data.userId) updateFields.userId = new ObjectId(data.userId);
+  if (data.classId) updateFields.classId = new ObjectId(data.classId);
+  if (data.serviceId) updateFields.serviceId = new ObjectId(data.serviceId);
+  if (data.trainerId) updateFields.trainerId = new ObjectId(data.trainerId);
+  await databaseService.client.bookings.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: updateFields }
+  );
   logger.info('Booking updated (admin)', { bookingId: id });
-  return booking;
+  return adminGetById(id);
 }
-
-// ─── Admin: Delete Booking ─────────────────────────────────
 
 async function adminRemove(id) {
   await adminGetById(id);
-  await databaseService.client.booking.delete({ where: { id } });
+  await databaseService.client.bookings.deleteOne({ _id: new ObjectId(id) });
   logger.info('Booking deleted (admin)', { bookingId: id });
 }
 
-// ─── Member: Get Own Bookings ──────────────────────────────
+async function adminUpdateStatus(id, status) {
+  const booking = await adminGetById(id);
+  await databaseService.client.bookings.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: { status, updatedAt: new Date() } }
+  );
+  logger.info('Booking status updated (admin)', { bookingId: id, status });
+  return adminGetById(id);
+}
 
 async function memberGetAll(userId, query = {}) {
   const { page, limit, offset } = extractPagination(query);
-  const where = { userId };
-
-  if (query.status) where.status = query.status;
-
-  if (query.dateFrom || query.dateTo) {
-    where.bookingDate = {};
-    if (query.dateFrom) where.bookingDate.gte = new Date(query.dateFrom);
-    if (query.dateTo) where.bookingDate.lte = new Date(query.dateTo);
-  }
-
-  const [bookings, total] = await Promise.all([
-    databaseService.client.booking.findMany({
-      where,
-      include: BOOKING_INCLUDES,
-      skip: offset,
-      take: limit,
-      orderBy: { bookingDate: 'desc' },
-    }),
-    databaseService.client.booking.count({ where }),
-  ]);
-
-  return {
-    data: bookings,
-    pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
-  };
+  const match = { userId: new ObjectId(userId) };
+  if (query.status) match.status = query.status;
+  const { data, total } = await runBookingQuery(match, { page, limit, offset, sortBy: query.sortBy, sortOrder: query.sortOrder });
+  return { data, pagination: { total, page, limit, totalPages: Math.ceil(total / limit) } };
 }
 
-// ─── Member: Get Own Booking By ID ─────────────────────────
-
 async function memberGetById(userId, bookingId) {
-  const booking = await databaseService.client.booking.findFirst({
-    where: { id: bookingId, userId },
-    include: BOOKING_INCLUDES,
-  });
-
-  if (!booking) {
-    throw new NotFoundError('Booking not found');
-  }
-
+  const booking = await adminGetById(bookingId);
+  if (booking.userId !== userId) throw new NotFoundError('Booking not found');
   return booking;
 }
 
-// ─── Member: Create Booking ────────────────────────────────
-
 async function memberCreate(userId, data) {
-  if (data.serviceId) {
-    const service = await databaseService.client.service.findUnique({ where: { id: data.serviceId } });
-    if (!service) throw new NotFoundError('Service not found');
-  }
-
-  if (data.trainerId) {
-    const trainer = await databaseService.client.trainer.findUnique({ where: { id: data.trainerId } });
-    if (!trainer) throw new NotFoundError('Trainer not found');
-  }
-
-  const booking = await databaseService.client.booking.create({
-    data: {
-      userId,
-      serviceId: data.serviceId || null,
-      trainerId: data.trainerId || null,
-      bookingDate: new Date(data.bookingDate),
-      bookingTime: data.bookingTime,
-      notes: data.notes || null,
-    },
-    include: BOOKING_INCLUDES,
-  });
-
+  const now = new Date();
+  const insertData = {
+    userId: new ObjectId(userId),
+    classId: data.classId ? new ObjectId(data.classId) : null,
+    serviceId: data.serviceId ? new ObjectId(data.serviceId) : null,
+    trainerId: data.trainerId ? new ObjectId(data.trainerId) : null,
+    bookingDate: data.bookingDate || null,
+    bookingTime: data.bookingTime || null,
+    status: 'PENDING',
+    attended: false,
+    notes: data.notes || null,
+    createdAt: now,
+    updatedAt: now,
+  };
+  const result = await databaseService.client.bookings.insertOne(insertData);
+  const booking = await adminGetById(result.insertedId.toString());
   logger.info('Booking created (member)', { bookingId: booking.id, userId });
   return booking;
 }
 
-// ─── Member: Update Own Booking ────────────────────────────
-
 async function memberUpdate(userId, bookingId, data) {
   const booking = await memberGetById(userId, bookingId);
-
   if (booking.status === 'CANCELLED' || booking.status === 'COMPLETED') {
     throw new BadRequestError(`Cannot update a ${booking.status.toLowerCase()} booking`);
   }
-
-  const updateData = {};
-  if (data.bookingDate !== undefined) updateData.bookingDate = new Date(data.bookingDate);
-  if (data.bookingTime !== undefined) updateData.bookingTime = data.bookingTime;
-  if (data.notes !== undefined) updateData.notes = data.notes;
-  if (data.serviceId !== undefined) updateData.serviceId = data.serviceId;
-  if (data.trainerId !== undefined) updateData.trainerId = data.trainerId;
-
-  const updated = await databaseService.client.booking.update({
-    where: { id: bookingId },
-    data: updateData,
-    include: BOOKING_INCLUDES,
-  });
-
+  const updateFields = { ...data, updatedAt: new Date() };
+  if (data.serviceId) updateFields.serviceId = new ObjectId(data.serviceId);
+  if (data.trainerId) updateFields.trainerId = new ObjectId(data.trainerId);
+  await databaseService.client.bookings.updateOne(
+    { _id: new ObjectId(bookingId) },
+    { $set: updateFields }
+  );
   logger.info('Booking updated (member)', { bookingId, userId });
-  return updated;
+  return adminGetById(bookingId);
 }
-
-// ─── Member: Cancel Own Booking ────────────────────────────
 
 async function memberCancel(userId, bookingId, cancelReason) {
   const booking = await memberGetById(userId, bookingId);
-
-  if (booking.status === 'CANCELLED') {
-    throw new BadRequestError('Booking is already cancelled');
-  }
-
-  if (booking.status === 'COMPLETED') {
-    throw new BadRequestError('Cannot cancel a completed booking');
-  }
-
-  const updated = await databaseService.client.booking.update({
-    where: { id: bookingId },
-    data: {
-      status: 'CANCELLED',
-      cancelReason: cancelReason || null,
-    },
-    include: BOOKING_INCLUDES,
-  });
-
+  if (booking.status === 'CANCELLED') throw new BadRequestError('Booking is already cancelled');
+  if (booking.status === 'COMPLETED') throw new BadRequestError('Cannot cancel a completed booking');
+  await databaseService.client.bookings.updateOne(
+    { _id: new ObjectId(bookingId) },
+    { $set: { status: 'CANCELLED', cancelReason: cancelReason || null, updatedAt: new Date() } }
+  );
   logger.info('Booking cancelled (member)', { bookingId, userId, reason: cancelReason });
-  return updated;
+  return adminGetById(bookingId);
 }
-
-// ─── Trainer: Get Assigned Bookings ────────────────────────
 
 async function trainerGetAll(trainerId, query = {}) {
   const { page, limit, offset } = extractPagination(query);
-  const where = { trainerId };
-
-  if (query.status) where.status = query.status;
-
-  if (query.dateFrom || query.dateTo) {
-    where.bookingDate = {};
-    if (query.dateFrom) where.bookingDate.gte = new Date(query.dateFrom);
-    if (query.dateTo) where.bookingDate.lte = new Date(query.dateTo);
-  }
-
-  const [bookings, total] = await Promise.all([
-    databaseService.client.booking.findMany({
-      where,
-      include: BOOKING_INCLUDES,
-      skip: offset,
-      take: limit,
-      orderBy: { bookingDate: 'desc' },
-    }),
-    databaseService.client.booking.count({ where }),
-  ]);
-
-  return {
-    data: bookings,
-    pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
-  };
+  const match = { trainerId: new ObjectId(trainerId) };
+  if (query.status) match.status = query.status;
+  const { data, total } = await runBookingQuery(match, { page, limit, offset, sortBy: query.sortBy, sortOrder: query.sortOrder });
+  return { data, pagination: { total, page, limit, totalPages: Math.ceil(total / limit) } };
 }
-
-// ─── Trainer: Update Status of Assigned Booking ────────────
 
 async function trainerUpdateStatus(trainerId, bookingId, status) {
-  const booking = await databaseService.client.booking.findFirst({
-    where: { id: bookingId, trainerId },
-  });
-
-  if (!booking) {
-    throw new NotFoundError('Booking not found or not assigned to you');
-  }
-
+  const booking = await adminGetById(bookingId);
+  if (booking.trainerId !== trainerId) throw new NotFoundError('Booking not found or not assigned to you');
   const allowed = STATUS_TRANSITIONS[booking.status];
-  if (!allowed.includes(status)) {
-    throw new BadRequestError(
-      `Cannot change status from '${booking.status}' to '${status}'`
-    );
-  }
-
-  const updated = await databaseService.client.booking.update({
-    where: { id: bookingId },
-    data: { status },
-    include: BOOKING_INCLUDES,
-  });
-
+  if (!allowed.includes(status)) throw new BadRequestError(`Cannot change status from '${booking.status}' to '${status}'`);
+  await databaseService.client.bookings.updateOne(
+    { _id: new ObjectId(bookingId) },
+    { $set: { status, updatedAt: new Date() } }
+  );
   logger.info('Booking status updated (trainer)', { bookingId, trainerId, status });
-  return updated;
+  return adminGetById(bookingId);
 }
-
-// ─── Admin: Update Status ──────────────────────────────────
-
-async function adminUpdateStatus(id, status) {
-  const booking = await adminGetById(id);
-
-  const updated = await databaseService.client.booking.update({
-    where: { id },
-    data: { status },
-    include: BOOKING_INCLUDES,
-  });
-
-  logger.info('Booking status updated (admin)', { bookingId: id, status });
-  return updated;
-}
-
-// ─── Helpers ───────────────────────────────────────────────
 
 async function getTrainerIdForUser(userId) {
-  const trainer = await databaseService.client.trainer.findUnique({
-    where: { userId },
-  });
-  return trainer ? trainer.id : null;
+  const trainer = await databaseService.client.trainers.findOne({ userId: new ObjectId(userId) });
+  return trainer ? trainer._id.toString() : null;
 }
 
 module.exports = {

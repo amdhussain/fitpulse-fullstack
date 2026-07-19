@@ -1,4 +1,3 @@
-const databaseService = require('../../services/databaseService');
 const PaymentRepository = require('./repository');
 const { NotFoundError, BadRequestError, ForbiddenError, ConflictError } = require('../../errors');
 const logger = require('../../utils/logger');

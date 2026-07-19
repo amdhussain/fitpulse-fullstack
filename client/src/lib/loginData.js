@@ -73,5 +73,5 @@ export const getValidationMessages = () => ({
   emailRequired: "Email is required",
   emailInvalid: "Please enter a valid email address",
   passwordRequired: "Password is required",
-  passwordMinLength: "Password must be at least 6 characters",
+  passwordMinLength: "Password must be at least 8 characters",
 });

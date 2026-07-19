@@ -10,9 +10,6 @@ node_modules/
 dist/
 build/
 
-# Prisma generated client (regenerated via `npm run prisma:generate`)
-src/generated/
-
 # Logs
 logs/
 *.log
@@ -36,5 +33,3 @@ coverage/
 # Temp
 tmp/
 temp/
-
-/src/generated/prisma

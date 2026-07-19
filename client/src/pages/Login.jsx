@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiMail,
@@ -11,6 +12,7 @@ import {
 } from "react-icons/fi";
 import { Button, Logo } from "../components/ui";
 import { fadeUp, staggerContainer } from "../lib/animations";
+import { useAuth } from "../context/AuthContext";
 import {
   loginBranding,
   getWelcomeFeatures,
@@ -30,7 +32,7 @@ function validate(values, messages) {
   }
   if (!values.password) {
     errors.password = messages.passwordRequired;
-  } else if (values.password.length < 6) {
+  } else if (values.password.length < 8) {
     errors.password = messages.passwordMinLength;
   }
   return errors;
@@ -361,6 +363,10 @@ function SuccessModal({ isOpen, onClose, email }) {
 }
 
 function LoginForm() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -369,9 +375,12 @@ function LoginForm() {
   const [touched, setTouched] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [serverError, setServerError] = useState("");
 
   const placeholders = getFormPlaceholders();
   const validationMessages = getValidationMessages();
+
+  const from = location.state?.from?.pathname || "/dashboard";
 
   const handleBlur = useCallback(
     (field) => {
@@ -382,66 +391,28 @@ function LoginForm() {
     [email, password, validationMessages]
   );
 
-  // const handleSubmit = useCallback(
-  //   (e) => {
-  //     e.preventDefault();
-  //     const fieldErrors = validate({ email, password }, validationMessages);
-  //     setErrors(fieldErrors);
-  //     setTouched({ email: true, password: true });
-
-  //     if (Object.keys(fieldErrors).length === 0) {
-  //       setIsSubmitting(true);
-  //       setTimeout(() => {
-  //         setIsSubmitting(false);
-  //         setShowSuccess(true);
-  //       }, 1200);
-  //     }
-  //   },
-  //   [email, password, validationMessages]
-  // );
-
-
   const handleSubmit = useCallback(
-    async (e) => { // এখানে async যোগ করুন
+    async (e) => {
       e.preventDefault();
       const fieldErrors = validate({ email, password }, validationMessages);
       setErrors(fieldErrors);
       setTouched({ email: true, password: true });
+      setServerError("");
 
       if (Object.keys(fieldErrors).length === 0) {
         setIsSubmitting(true);
-        
         try {
-          // আপনার API কলটি এখানে দিন (axios বা fetch)
-          const API_BASE = import.meta.env.VITE_API_URL || "https://fitpulse-fullstack.onrender.com";
-          const response = await fetch(`${API_BASE}/api/v1/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-          });
-
-          const result = await response.json();
-
-          if (response.ok) {
-            const { user, token } = result.data;
-            localStorage.setItem("user", JSON.stringify(user));
-            localStorage.setItem("token", token);
-            
-            setTimeout(() => {
-              setIsSubmitting(false);
-              setShowSuccess(true);
-            }, 1200);
-          } else {
-            setIsSubmitting(false);
-            alert("Login failed: " + result.message);
-          }
-        } catch (error) {
+          await login(email, password);
+          setShowSuccess(true);
+          navigate(from, { replace: true });
+        } catch (err) {
+          setServerError(err.message || "Login failed. Please try again.");
+        } finally {
           setIsSubmitting(false);
-          console.error("Error:", error);
         }
       }
     },
-    [email, password, validationMessages]
+    [email, password, validationMessages, login, navigate, from]
   );
 
   const inputBase =
@@ -481,6 +452,16 @@ function LoginForm() {
         </motion.div>
 
         <form onSubmit={handleSubmit} noValidate className="space-y-5">
+          {serverError && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
+            >
+              {serverError}
+            </motion.div>
+          )}
+
           <motion.div variants={fadeUp} custom={2}>
             <label
               htmlFor="email"
@@ -679,9 +660,12 @@ function LoginForm() {
           className="mt-8 text-center text-sm text-white/30"
         >
           Don&apos;t have an account?{" "}
-          <span className="text-blue-400 hover:text-blue-300 font-semibold transition-colors duration-200 cursor-pointer">
-            Coming Soon
-          </span>
+          <Link
+            to="/register"
+            className="text-blue-400 hover:text-blue-300 font-semibold transition-colors duration-200"
+          >
+            Sign Up
+          </Link>
         </motion.p>
       </motion.div>
 

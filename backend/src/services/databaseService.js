@@ -1,87 +1,88 @@
-const { prisma } = require('../config/database');
+const { MongoClient, ObjectId } = require('mongodb');
+const env = require('../config/env');
 const logger = require('../utils/logger');
 
-// ─── Database Service ─────────────────────────────────────
-// Centralized database service that wraps Prisma Client.
-//
-// All modules (Users, Trainers, Classes, Bookings, Payments,
-// Community, CMS, Settings, Dashboard) must use this service
-// to interact with the database.
-//
-// Usage:
-//   const databaseService = require('../services/databaseService');
-//   const user = await databaseService.client.user.findMany();
-//
-// Or via the barrel export:
-//   const { databaseService } = require('../services');
-//   const user = await databaseService.client.user.findMany();
-//
-// ─── Adding New Models ─────────────────────────────────────
-// When a new model is added to schema.prisma and migrated,
-// it becomes available via databaseService.client.<modelName>.
-//
-// Example:
-//   // After adding User model to schema.prisma:
-//   const users = await databaseService.client.user.findMany();
-//   const user  = await databaseService.client.user.findUnique({ where: { id } });
-//   const created = await databaseService.client.user.create({ data: { ... } });
-//
-// ───────────────────────────────────────────────────────────
+const DATABASE_NAME = env.database.name || 'fitpulse_db';
+
+let client = null;
+let db = null;
+
+const COLLECTIONS = [
+  'users',
+  'trainers',
+  'classes',
+  'bookings',
+  'payments',
+  'services',
+  'cmsSections',
+  'gallery',
+  'siteSettings',
+  'contactMessages',
+];
+
+function formatDoc(doc) {
+  if (!doc) return null;
+  const { _id, ...rest } = doc;
+  return { ...rest, id: _id.toString() };
+}
+
+function formatDocs(docs) {
+  if (!Array.isArray(docs)) return [];
+  return docs.map(formatDoc);
+}
+
+function toObjectId(id) {
+  if (id instanceof ObjectId) return id;
+  if (typeof id === 'string') return new ObjectId(id);
+  return null;
+}
+
+const collections = {};
 
 const databaseService = {
-  // ─── Prisma Client Reference ──────────────────────────
-  // Direct access to the Prisma Client for all model operations.
-  // Once models are defined in schema.prisma and migrated,
-  // each model is available as: databaseService.client.<modelName>
-  //
-  // Example (after User model exists):
-  //   databaseService.client.user.findMany()
-  //   databaseService.client.user.findUnique({ where: { id } })
-  //   databaseService.client.user.create({ data: { email, name } })
-  //   databaseService.client.user.update({ where: { id }, data: { name } })
-  //   databaseService.client.user.delete({ where: { id } })
-  client: prisma,
+  client: {},
 
-  // ─── Connection Management ─────────────────────────────
-
-  /**
-   * Test the database connection.
-   * @returns {Promise<boolean>} true if connected successfully
-   */
   async connect() {
+    if (db) return true;
     try {
-      await prisma.$connect();
-      logger.info('Database connected successfully');
+      const uri = env.database.url;
+      client = new MongoClient(uri);
+      await client.connect();
+      db = client.db(DATABASE_NAME);
+
+      for (const name of COLLECTIONS) {
+        collections[name] = db.collection(name);
+      }
+
+      databaseService.client = collections;
+
+      logger.info('MongoDB connected successfully', { database: db.databaseName });
       return true;
     } catch (error) {
-      logger.error('Failed to connect to database', { error: error.message });
+      logger.error('MongoDB connection failed', { error: error.message });
       throw error;
     }
   },
 
-  /**
-   * Disconnect from the database.
-   * Called during graceful shutdown.
-   */
   async disconnect() {
     try {
-      await prisma.$disconnect();
-      logger.info('Database disconnected successfully');
+      if (client) {
+        await client.close();
+        client = null;
+        db = null;
+        logger.info('MongoDB disconnected');
+      }
       return true;
     } catch (error) {
-      logger.error('Failed to disconnect from database', { error: error.message });
-      throw error;
+      logger.error('MongoDB disconnect failed', { error: error.message });
+      return false;
     }
   },
 
-  /**
-   * Check database health.
-   * @returns {Promise<Object>} health status with latency
-   */
   async healthCheck() {
     const start = Date.now();
     try {
-      await prisma.$queryRaw`SELECT 1`;
+      await db.command({ ping: 1 });
       const latency = Date.now() - start;
       return {
         status: 'healthy',
@@ -97,41 +98,37 @@ const databaseService = {
     }
   },
 
-  // ─── Transaction Wrapper ───────────────────────────────
-
-  /**
-   * Execute a callback within a database transaction.
-   * The transaction is automatically committed or rolled back.
-   *
-   * @param {Function} callback - Async function receiving the Prisma client
-   * @param {Object} options - Transaction options (timeout, maxWait)
-   * @returns {Promise<*>} The return value of the callback
-   *
-   * @example
-   *   const result = await databaseService.transaction(async (tx) => {
-   *     const user = await tx.user.create({ data: { name: 'John' } });
-   *     const booking = await tx.booking.create({ data: { userId: user.id } });
-   *     return { user, booking };
-   *   });
-   */
-  async transaction(callback, options = {}) {
-    const { timeout = 10000, maxWait = 5000 } = options;
-    return prisma.$transaction(callback, { timeout, maxWait });
+  async transaction(callback) {
+    const session = client.startSession();
+    try {
+      session.startTransaction();
+      const result = await callback(session);
+      await session.commitTransaction();
+      return result;
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   },
 
-  // ─── Raw Query Support ────────────────────────────────
-
-  /**
-   * Execute a raw SQL query.
-   * Use sparingly - prefer Prisma's query builder when possible.
-   *
-   * @param {string} query - Raw SQL query
-   * @param {Array} params - Query parameters
-   * @returns {Promise<*>} Query result
-   */
-  async raw(query, ...params) {
-    return prisma.$queryRawUnsafe(query, ...params);
+  async raw(operation) {
+    return db.command(operation);
   },
+
+  get mongoClient() {
+    return client;
+  },
+
+  get db() {
+    return db;
+  },
+
+  formatDoc,
+  formatDocs,
+  toObjectId,
+  collections,
 };
 
 module.exports = databaseService;

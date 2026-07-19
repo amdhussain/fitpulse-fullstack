@@ -1,10 +1,9 @@
-const bcrypt = require('bcryptjs');
-const databaseService = require('../../services/databaseService');
+const { getAuth } = require('../../config/betterAuth');
 const TrainerRepository = require('./repository');
+const UserRepository = require('../user/repository');
+const databaseService = require('../../services/databaseService');
 const { NotFoundError, ConflictError, BadRequestError } = require('../../errors');
 const logger = require('../../utils/logger');
-
-const SALT_ROUNDS = 12;
 
 function parseJsonField(value) {
   if (!value) return null;
@@ -37,38 +36,60 @@ function formatTrainer(trainer) {
 // ─── Admin APIs ───────────────────────────────────────────
 
 async function createTrainer({ email, password, firstName, lastName, phone, profileImage, bio, specialization, designation, experience, hourlyRate, skills, programs, certificates, achievements, availableDays, socialLinks }) {
-  const existingUser = await databaseService.client.user.findUnique({
-    where: { email: email.toLowerCase() },
-  });
+  const existingUser = await UserRepository.findByEmail(email.toLowerCase());
 
   if (existingUser) {
     throw new ConflictError('Email address is already registered');
   }
 
-  const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+  const auth = getAuth();
+  const fullName = `${firstName} ${lastName}`;
 
-  const result = await databaseService.transaction(async (tx) => {
-    const user = await tx.user.create({
-      data: {
+  const signUpResult = await auth.api.signUpEmail({
+    body: {
+      name: fullName,
+      email,
+      password,
+    },
+  });
+
+  if (!signUpResult || signUpResult.error) {
+    const message = signUpResult?.error?.message || 'Failed to create trainer account';
+    if (message.includes('already') || message.includes('exists')) {
+      throw new ConflictError('Email address is already registered');
+    }
+    throw new ConflictError(message);
+  }
+
+  const baUser = signUpResult.user || signUpResult.data?.user;
+
+  if (!baUser) {
+    throw new ConflictError('Failed to create trainer account');
+  }
+
+  const result = await databaseService.transaction(async (session) => {
+    const user = await UserRepository.create(
+      {
+        _id: databaseService.toObjectId(baUser.id),
+        email: email.toLowerCase(),
         firstName,
         lastName,
-        email: email.toLowerCase(),
-        password: hashedPassword,
+        phone,
         role: 'TRAINER',
-        phone: phone || null,
         profileImage: profileImage || null,
       },
-      select: { id: true, email: true, firstName: true, lastName: true, role: true },
-    });
+      session
+    );
 
-    const trainer = await tx.trainer.create({
-      data: {
+    const trainer = await TrainerRepository.create(
+      {
         userId: user.id,
         bio: bio || null,
         specialization: specialization || null,
         designation: designation || null,
-        experience: experience || 0,
+        experience: experience || null,
         hourlyRate: hourlyRate || null,
+        profileImage: profileImage || null,
         skills: serializeJsonField(skills),
         programs: serializeJsonField(programs),
         certificates: serializeJsonField(certificates),
@@ -76,7 +97,8 @@ async function createTrainer({ email, password, firstName, lastName, phone, prof
         availableDays: serializeJsonField(availableDays),
         socialLinks: serializeJsonField(socialLinks),
       },
-    });
+      session
+    );
 
     return { user, trainer };
   });
@@ -154,9 +176,9 @@ async function deleteTrainer(trainerId) {
     throw new NotFoundError('Trainer not found');
   }
 
-  await databaseService.transaction(async (tx) => {
-    await tx.trainer.delete({ where: { id: trainerId } });
-    await tx.user.delete({ where: { id: trainer.userId } });
+  await databaseService.transaction(async (session) => {
+    await TrainerRepository.delete(trainerId, session);
+    await UserRepository.delete(trainer.userId, session);
   });
 
   logger.info('Trainer deleted', { trainerId });

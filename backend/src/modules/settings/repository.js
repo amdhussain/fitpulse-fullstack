@@ -1,76 +1,66 @@
 const databaseService = require('../../services/databaseService');
 
-const SETTINGS_SELECT = {
-  id: true,
-  key: true,
-  value: true,
-  createdAt: true,
-  updatedAt: true,
-};
-
 const SettingsRepository = {
   async findByKey(key) {
-    return databaseService.client.siteSettings.findUnique({
-      where: { key },
-      select: SETTINGS_SELECT,
-    });
+    const doc = await databaseService.client.siteSettings.findOne({ key });
+    return databaseService.formatDoc(doc);
   },
 
   async findManyByKeys(keys) {
-    return databaseService.client.siteSettings.findMany({
-      where: { key: { in: keys } },
-      select: SETTINGS_SELECT,
-    });
+    const docs = await databaseService.client.siteSettings.find({ key: { $in: keys } }).toArray();
+    return databaseService.formatDocs(docs);
   },
 
   async findAll() {
-    return databaseService.client.siteSettings.findMany({
-      select: SETTINGS_SELECT,
-      orderBy: { key: 'asc' },
-    });
+    const docs = await databaseService.client.siteSettings.find().sort({ key: 1 }).toArray();
+    return databaseService.formatDocs(docs);
   },
 
   async findMany({ where, page, limit, offset, sortBy, sortOrder }) {
-    const allowedSortFields = ['key', 'createdAt', 'updatedAt'];
-    const orderField = allowedSortFields.includes(sortBy) ? sortBy : 'key';
-    const orderDirection = sortOrder === 'ASC' ? 'asc' : 'desc';
+    const match = {};
+    if (where.key && where.key.$regex) {
+      match.key = { $regex: where.key.$regex, $options: 'i' };
+    } else if (where.key && where.key.$in) {
+      match.key = { $in: where.key.$in };
+    }
 
-    const [settings, total] = await Promise.all([
-      databaseService.client.siteSettings.findMany({
-        where,
-        select: SETTINGS_SELECT,
-        skip: offset,
-        take: limit,
-        orderBy: { [orderField]: orderDirection },
-      }),
-      databaseService.client.siteSettings.count({ where }),
-    ]);
+    const total = await databaseService.client.siteSettings.countDocuments(match);
+    const sort = {};
+    if (sortBy) sort[sortBy] = sortOrder === 'DESC' ? -1 : 1;
+    else sort.key = 1;
 
-    return { settings, total };
+    const docs = await databaseService.client.siteSettings
+      .find(match).sort(sort).skip(offset).limit(limit).toArray();
+
+    return { settings: databaseService.formatDocs(docs), total };
   },
 
   async create(key, value) {
-    return databaseService.client.siteSettings.create({
-      data: { key, value },
-      select: SETTINGS_SELECT,
+    const now = new Date();
+    const result = await databaseService.client.siteSettings.insertOne({
+      key, value, createdAt: now, updatedAt: now,
     });
+    const doc = await databaseService.client.siteSettings.findOne({ _id: result.insertedId });
+    return databaseService.formatDoc(doc);
   },
 
   async update(key, value) {
-    return databaseService.client.siteSettings.update({
-      where: { key },
-      data: { value },
-      select: SETTINGS_SELECT,
-    });
+    const doc = await databaseService.client.siteSettings.findOneAndUpdate(
+      { key },
+      { $set: { value, updatedAt: new Date() } },
+      { returnDocument: 'after' }
+    );
+    return databaseService.formatDoc(doc);
   },
 
   async upsert(key, value) {
-    return databaseService.client.siteSettings.upsert({
-      where: { key },
-      create: { key, value },
-      update: { value },
-      select: SETTINGS_SELECT,
-    });
+    const now = new Date();
+    const doc = await databaseService.client.siteSettings.findOneAndUpdate(
+      { key },
+      { $setOnInsert: { key }, $set: { value, updatedAt: now } },
+      { upsert: true, returnDocument: 'after' }
+    );
+    return databaseService.formatDoc(doc);
   },
 
   async upsertMany(settings) {
@@ -83,27 +73,23 @@ const SettingsRepository = {
   },
 
   async delete(key) {
-    return databaseService.client.siteSettings.delete({
-      where: { key },
-    });
+    await databaseService.client.siteSettings.deleteOne({ key });
   },
 
   async deleteMany(keys) {
-    return databaseService.client.siteSettings.deleteMany({
-      where: { key: { in: keys } },
-    });
+    await databaseService.client.siteSettings.deleteMany({ key: { $in: keys } });
   },
 
   async count(where = {}) {
-    return databaseService.client.siteSettings.count({ where });
+    return databaseService.client.siteSettings.countDocuments(where);
   },
 
   async findByKeyLike(prefix) {
-    return databaseService.client.siteSettings.findMany({
-      where: { key: { startsWith: prefix } },
-      select: SETTINGS_SELECT,
-      orderBy: { key: 'asc' },
-    });
+    const docs = await databaseService.client.siteSettings
+      .find({ key: { $regex: `^${prefix}` } })
+      .sort({ key: 1 })
+      .toArray();
+    return databaseService.formatDocs(docs);
   },
 };
 

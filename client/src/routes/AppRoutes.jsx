@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { createBrowserRouter } from "react-router-dom";
+import { useRoutes } from "react-router-dom";
 import { MainLayout } from "../components/layout";
 import { DashboardLayout } from "../components/dashboard";
 import ProtectedRoute from "../components/auth/ProtectedRoute";
@@ -61,7 +61,7 @@ const WebsiteSettings = lazy(() => import("../pages/dashboard/WebsiteSettings"))
 const NotificationCenter = lazy(() => import("../pages/dashboard/NotificationCenter"));
 const FitnessToolsManagement = lazy(() => import("../pages/dashboard/FitnessToolsManagement"));
 
-const router = createBrowserRouter([
+const routes = [
   {
     path: "/",
     element: <MainLayout />,
@@ -126,6 +126,8 @@ const router = createBrowserRouter([
       { path: "fitness-tools", element: <DashboardSuspense><FitnessToolsManagement /></DashboardSuspense> },
     ],
   },
-]);
+];
 
-export default router;
+export default function AppRoutes() {
+  return useRoutes(routes);
+}

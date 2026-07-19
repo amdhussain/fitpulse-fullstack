@@ -16,8 +16,7 @@ const messages = {
   emailTaken: 'Email address is already in use',
   url: 'Please provide a valid URL',
   phone: 'Please provide a valid phone number',
-  password:
-    'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#)',
+  password: 'Password must contain at least one uppercase letter, one lowercase letter, one number, one special character, and be at least 8 characters long.',
   passwordMismatch: 'Passwords do not match',
   token: 'Token is required',
   tokenInvalid: 'Token is invalid or expired',

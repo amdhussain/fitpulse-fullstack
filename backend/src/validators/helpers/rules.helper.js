@@ -47,7 +47,7 @@ const password = (field = 'password') =>
     .trim()
     .notEmpty().withMessage(msg.required(field))
     .isLength({ min: 8 }).withMessage(msg.tooShort(field, 8))
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]/)
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#^()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d@$!%*?&.#^()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/)
     .withMessage(msg.password);
 
 const passwordConfirmation = (passwordField = 'password', confirmField = 'passwordConfirm') =>

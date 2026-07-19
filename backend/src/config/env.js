@@ -7,16 +7,10 @@ const REQUIRED_VARS = [
   'NODE_ENV',
   'PORT',
   'CLIENT_URL',
-  'JWT_SECRET',
-  'JWT_EXPIRES_IN',
-  'COOKIE_SECRET',
-  'DATABASE_URL',
-  'CLOUDINARY_CLOUD_NAME',
-  'CLOUDINARY_API_KEY',
-  'CLOUDINARY_API_SECRET',
-  'STRIPE_SECRET_KEY',
   'BETTER_AUTH_SECRET',
   'BETTER_AUTH_URL',
+  'COOKIE_SECRET',
+  'MONGODB_URI',
 ];
 
 function validateEnv() {
@@ -61,8 +55,13 @@ const env = {
   apiPrefix: optionalEnv('API_PREFIX', '/api/v1'),
 
   jwt: {
-    secret: requireEnv('JWT_SECRET'),
-    expiresIn: requireEnv('JWT_EXPIRES_IN'),
+    secret: optionalEnv('JWT_SECRET', ''),
+    expiresIn: optionalEnv('JWT_EXPIRES_IN', '7d'),
+  },
+
+  betterAuth: {
+    secret: requireEnv('BETTER_AUTH_SECRET'),
+    url: requireEnv('BETTER_AUTH_URL'),
   },
 
   cookie: {
@@ -71,22 +70,8 @@ const env = {
   },
 
   database: {
-    url: requireEnv('DATABASE_URL'),
-  },
-
-  cloudinary: {
-    cloudName: requireEnv('CLOUDINARY_CLOUD_NAME'),
-    apiKey: requireEnv('CLOUDINARY_API_KEY'),
-    apiSecret: requireEnv('CLOUDINARY_API_SECRET'),
-  },
-
-  stripe: {
-    secretKey: requireEnv('STRIPE_SECRET_KEY'),
-  },
-
-  betterAuth: {
-    secret: requireEnv('BETTER_AUTH_SECRET'),
-    url: requireEnv('BETTER_AUTH_URL'),
+    url: requireEnv('MONGODB_URI'),
+    name: optionalEnv('MONGODB_DB', 'fitpulse_db'),
   },
 
   rateLimit: {
