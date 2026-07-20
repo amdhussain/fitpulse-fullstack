@@ -48,8 +48,12 @@ const UserRepository = {
     );
   },
 
-  async findAll({ page, limit, offset, search, role, isActive, sortBy, sortOrder }) {
+  async findAll({ page, limit, offset, search, role, isActive, sortBy, sortOrder, excludeId }) {
     const where = {};
+
+    if (excludeId) {
+      where._id = { $ne: databaseService.toObjectId(excludeId) };
+    }
 
     if (search) {
       where.$or = [

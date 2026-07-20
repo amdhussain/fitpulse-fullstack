@@ -5,7 +5,6 @@ import {
   FiUser,
   FiMail,
   FiPhone,
-  FiMapPin,
   FiEdit2,
   FiLock,
   FiShield,
@@ -14,53 +13,72 @@ import {
   FiAward,
   FiCamera,
 } from "react-icons/fi";
-import { Button, SavedBadge, FileUpload } from "../../components/ui";
+import { Button, SavedBadge } from "../../components/ui";
 import { staggerContainer } from "../../lib/animations";
 import { PageBanner, StatCard, CmsModal } from "../../components/dashboard";
 import { getInputClass } from "../../lib/dashboardHelpers";
+import { useAuth } from "../../context/AuthContext";
 
 const accent = "indigo";
+const API_URL = import.meta.env.API_URL;
 
-const initialData = {
-  name: "Admin User",
-  email: "admin@fitbookpro.com",
-  phone: "+1 (555) 987-6543",
-  role: "Super Admin",
-  address: "123 Fitness Street, Wellness City, FC 12345",
-  bio: "Platform administrator with 8+ years of experience managing fitness operations and digital platforms.",
-  image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&auto=format&q=80",
-};
-
-const activityItems = [
-  { text: "Logged in from new device", time: "2 min ago", color: "bg-green-500" },
-  { text: "Updated profile information", time: "1 hour ago", color: "bg-blue-500" },
-  { text: "Changed password", time: "3 days ago", color: "bg-yellow-500" },
-  { text: "Exported booking data", time: "1 week ago", color: "bg-blue-500" },
-  { text: "Updated website settings", time: "2 weeks ago", color: "bg-yellow-500" },
-];
+function getAuthHeaders() {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
 
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#^()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d@$!%*?&.#^()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/;
 
 function ProfileManagement() {
-  const [form, setForm] = useState({ ...initialData });
+  const { user, updateUser } = useAuth();
+  const [form, setForm] = useState({ firstName: "", lastName: "", phone: "", profileImage: "" });
   const [passwordForm, setPasswordForm] = useState({ current: "", newPass: "", confirm: "" });
   const [saved, setSaved] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [profileError, setProfileError] = useState("");
   const [passwordSaved, setPasswordSaved] = useState(false);
   const [passwordError, setPasswordError] = useState("");
   const inputClass = getInputClass(accent);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, []);
+    async function fetchProfile() {
+      try {
+        const res = await fetch(`${API_URL}/api/v1/user/me`, { headers: getAuthHeaders() });
+        if (res.ok) {
+          const result = await res.json();
+          const data = result.data;
+          setForm({
+            firstName: data.firstName || "",
+            lastName: data.lastName || "",
+            phone: data.phone || "",
+            profileImage: data.profileImage || "",
+          });
+        }
+      } catch {
+        // Use auth context data as fallback
+        if (user) {
+          setForm({
+            firstName: user.firstName || "",
+            lastName: user.lastName || "",
+            phone: user.phone || "",
+            profileImage: user.profileImage || "",
+          });
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProfile();
+  }, [user]);
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setProfileError("");
   };
 
   const handlePasswordChange = (e) => {
@@ -68,15 +86,31 @@ function ProfileManagement() {
     setPasswordError("");
   };
 
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
-    setEditing(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setProfileError("");
+    try {
+      const res = await fetch(`${API_URL}/api/v1/user/me`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ firstName: form.firstName, lastName: form.lastName, phone: form.phone, profileImage: form.profileImage }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.message || "Failed to update profile");
+      }
+      updateUser(result.data);
+      setEditing(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setProfileError(err.message);
+    }
   };
 
-  const handlePasswordSubmit = (e) => {
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
+    setPasswordError("");
     if (passwordForm.newPass !== passwordForm.confirm) {
       setPasswordError("Passwords do not match");
       return;
@@ -85,13 +119,26 @@ function ProfileManagement() {
       setPasswordError("Password must be at least 8 characters and include at least one uppercase letter, one lowercase letter, one number, and one special character.");
       return;
     }
-    setPasswordSaved(true);
-    setPasswordError("");
-    setTimeout(() => {
-      setPasswordSaved(false);
-      setShowPasswordModal(false);
-      setPasswordForm({ current: "", newPass: "", confirm: "" });
-    }, 1500);
+    try {
+      const res = await fetch(`${API_URL}/api/v1/user/me/password`, {
+        method: "PUT",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ currentPassword: passwordForm.current, newPassword: passwordForm.newPass }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.message || "Failed to change password");
+      }
+      setPasswordSaved(true);
+      setPasswordError("");
+      setTimeout(() => {
+        setPasswordSaved(false);
+        setShowPasswordModal(false);
+        setPasswordForm({ current: "", newPass: "", confirm: "" });
+      }, 1500);
+    } catch (err) {
+      setPasswordError(err.message);
+    }
   };
 
   const getPasswordStrength = () => {
@@ -110,6 +157,10 @@ function ProfileManagement() {
   };
 
   const pwStrength = getPasswordStrength();
+  const fullName = `${form.firstName} ${form.lastName}`.trim() || "User";
+  const userInitial = form.firstName?.charAt(0)?.toUpperCase() || "U";
+  const roleLabel = user?.role === "ADMIN" ? "Administrator" : user?.role === "TRAINER" ? "Trainer" : "Member";
+  const memberSince = user?.createdAt ? new Date(user.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "N/A";
 
   if (loading) {
     return (
@@ -199,13 +250,13 @@ function ProfileManagement() {
       animate="visible"
       className="space-y-6"
     >
-      <PageBanner pageKey="profile" subtitle="Manage your admin profile" />
+      <PageBanner pageKey="profile" subtitle="Manage your profile" />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={FiAward} label="Total Logins" value="1,247" pageKey="profile" index={0} />
-        <StatCard icon={FiCalendar} label="Member Since" value="Jan 2023" pageKey="profile" index={1} />
+        <StatCard icon={FiAward} label="Total Logins" value={user?.lastLoginAt ? "Active" : "N/A"} pageKey="profile" index={0} />
+        <StatCard icon={FiCalendar} label="Member Since" value={memberSince} pageKey="profile" index={1} />
         <StatCard icon={FiActivity} label="Last Active" value="Just now" pageKey="profile" index={2} />
-        <StatCard icon={FiShield} label="Role" value="Super Admin" pageKey="profile" index={3} />
+        <StatCard icon={FiShield} label="Role" value={roleLabel} pageKey="profile" index={3} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -227,11 +278,17 @@ function ProfileManagement() {
               <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-gray-100 dark:border-gray-700">
                 <div className="relative shrink-0">
                   <div className="w-28 h-28 rounded-2xl overflow-hidden border-2 border-indigo-200 dark:border-indigo-700">
-                    <img
-                      src={form.image}
-                      alt={form.name}
-                      className="w-full h-full object-cover"
-                    />
+                    {form.profileImage ? (
+                      <img
+                        src={form.profileImage}
+                        alt={fullName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold">
+                        {userInitial}
+                      </div>
+                    )}
                   </div>
                   {editing && (
                     <button
@@ -244,11 +301,11 @@ function ProfileManagement() {
                   )}
                 </div>
                 <div className="text-center sm:text-left">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{form.name}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{form.email}</p>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{fullName}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
                   <span className="inline-flex items-center gap-1 mt-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-xs font-medium">
                     <FiShield className="w-3 h-3" />
-                    {form.role}
+                    {roleLabel}
                   </span>
                 </div>
               </div>
@@ -257,12 +314,26 @@ function ProfileManagement() {
                 <div>
                   <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     <FiUser className="w-3.5 h-3.5 inline mr-1.5" />
-                    Full Name
+                    First Name
                   </label>
                   <input
                     type="text"
-                    name="name"
-                    value={form.name}
+                    name="firstName"
+                    value={form.firstName}
+                    onChange={handleChange}
+                    readOnly={!editing}
+                    className={`${inputClass} ${!editing ? "cursor-not-allowed opacity-70" : ""}`}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+                    <FiUser className="w-3.5 h-3.5 inline mr-1.5" />
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={form.lastName}
                     onChange={handleChange}
                     readOnly={!editing}
                     className={`${inputClass} ${!editing ? "cursor-not-allowed opacity-70" : ""}`}
@@ -276,10 +347,9 @@ function ProfileManagement() {
                   <input
                     type="email"
                     name="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    readOnly={!editing}
-                    className={`${inputClass} ${!editing ? "cursor-not-allowed opacity-70" : ""}`}
+                    value={user?.email || ""}
+                    readOnly
+                    className={`${inputClass} cursor-not-allowed opacity-70`}
                   />
                 </div>
                 <div>
@@ -293,54 +363,13 @@ function ProfileManagement() {
                     value={form.phone}
                     onChange={handleChange}
                     readOnly={!editing}
+                    placeholder="Add phone number"
                     className={`${inputClass} ${!editing ? "cursor-not-allowed opacity-70" : ""}`}
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-                    <FiShield className="w-3.5 h-3.5 inline mr-1.5" />
-                    Role
-                  </label>
-                  <input
-                    type="text"
-                    name="role"
-                    value={form.role}
-                    readOnly
-                    className={`${inputClass} cursor-not-allowed opacity-70`}
-                  />
-                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
-                  <FiMapPin className="w-3.5 h-3.5 inline mr-1.5" />
-                  Address
-                </label>
-                <input
-                  type="text"
-                  name="address"
-                  value={form.address}
-                  onChange={handleChange}
-                  readOnly={!editing}
-                  className={`${inputClass} ${!editing ? "cursor-not-allowed opacity-70" : ""}`}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">Bio</label>
-                <textarea
-                  name="bio"
-                  rows={3}
-                  value={form.bio}
-                  onChange={handleChange}
-                  readOnly={!editing}
-                  className={`${inputClass} resize-none ${!editing ? "cursor-not-allowed opacity-70" : ""}`}
-                />
-              </div>
-
-              {editing && (
-                <FileUpload label="Profile Photo" color="indigo" />
-              )}
+              {profileError && <p className="text-xs text-red-500">{profileError}</p>}
 
               <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
                 <Button type="submit" variant="indigo" size="md" disabled={!editing}>
@@ -374,30 +403,41 @@ function ProfileManagement() {
                 <FiActivity className="w-4 h-4" />
                 View Activity Log
               </button>
-              <button
-                type="button"
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 border border-gray-100 dark:border-gray-600 hover:border-indigo-200 dark:hover:border-indigo-700 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-200 text-sm font-medium"
-              >
-                <FiEdit2 className="w-4 h-4" />
-                Download Data
-              </button>
             </div>
           </div>
 
           <div className="rounded-2xl bg-white dark:bg-gray-800 backdrop-blur-xl border border-indigo-100 dark:border-indigo-800/50 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
-              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">Recent Activity</h3>
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wider">Account Info</h3>
             </div>
-            <div className="divide-y divide-gray-50 dark:divide-gray-700">
-              {activityItems.map((item, idx) => (
-                <div key={idx} className="px-6 py-3.5 flex items-center gap-3">
-                  <span className={`w-2 h-2 rounded-full ${item.color} shrink-0`} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-600 dark:text-gray-300 truncate">{item.text}</p>
-                  </div>
-                  <span className="text-xs text-gray-400 dark:text-gray-500 shrink-0">{item.time}</span>
+            <div className="p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+                  <FiShield className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                 </div>
-              ))}
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Role</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{roleLabel}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+                  <FiMail className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{user?.email}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+                  <FiUser className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Account Status</p>
+                  <p className="text-sm font-medium text-green-600 dark:text-green-400">Active</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

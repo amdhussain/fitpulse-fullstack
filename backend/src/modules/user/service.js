@@ -1,4 +1,3 @@
-const { fromNodeHeaders } = require('better-auth/node');
 const { getAuth } = require('../../config/betterAuth');
 const UserRepository = require('./repository');
 const { NotFoundError, ConflictError, ForbiddenError, BadRequestError } = require('../../errors');
@@ -44,7 +43,18 @@ async function updateMyProfile(userId, { firstName, lastName, phone, profileImag
   return updated;
 }
 
-async function changePassword(userId, { currentPassword, newPassword }, headers) {
+function buildAuthHeaders(rawHeaders) {
+  const headers = new Headers();
+  if (rawHeaders.authorization) {
+    headers.set('Authorization', rawHeaders.authorization);
+  }
+  if (rawHeaders.cookie) {
+    headers.set('Cookie', rawHeaders.cookie);
+  }
+  return headers;
+}
+
+async function changePassword(userId, { currentPassword, newPassword }, rawHeaders) {
   const user = await UserRepository.findById(userId);
 
   if (!user) {
@@ -56,9 +66,10 @@ async function changePassword(userId, { currentPassword, newPassword }, headers)
   }
 
   const auth = getAuth();
+  const headers = buildAuthHeaders(rawHeaders);
 
   try {
-    await auth.api.changePassword({
+    const result = await auth.api.changePassword({
       body: {
         newPassword,
         currentPassword,
@@ -66,10 +77,16 @@ async function changePassword(userId, { currentPassword, newPassword }, headers)
       },
       headers,
     });
+
+    if (result?.error) {
+      throw new BadRequestError(result.error.message || 'Current password is incorrect');
+    }
   } catch (err) {
+    if (err instanceof BadRequestError) throw err;
     if (err.message && err.message.toLowerCase().includes('password')) {
       throw new BadRequestError('Current password is incorrect');
     }
+    logger.error('Password change failed', { userId, error: err.message });
     throw new BadRequestError('Failed to change password');
   }
 
@@ -106,7 +123,7 @@ async function deleteMyAccount(userId) {
   return { message: 'Account deleted successfully' };
 }
 
-async function getAllUsers({ page, limit, search, role, isActive, sortBy, sortOrder }) {
+async function getAllUsers({ page, limit, search, role, isActive, sortBy, sortOrder, excludeId }) {
   const offset = (page - 1) * limit;
 
   const { users, total } = await UserRepository.findAll({
@@ -118,6 +135,7 @@ async function getAllUsers({ page, limit, search, role, isActive, sortBy, sortOr
     isActive,
     sortBy,
     sortOrder,
+    excludeId,
   });
 
   return { data: users, total, page, limit };
@@ -239,7 +257,7 @@ async function updateAdminProfile(userId, { firstName, lastName, profileImage })
   return updated;
 }
 
-async function updateAdminEmail(userId, { newEmail, password }, headers) {
+async function updateAdminEmail(userId, { newEmail, password }, rawHeaders) {
   const user = await UserRepository.findById(userId);
 
   if (!user) {
@@ -256,6 +274,7 @@ async function updateAdminEmail(userId, { newEmail, password }, headers) {
   }
 
   const auth = getAuth();
+  const headers = buildAuthHeaders(rawHeaders);
   try {
     await auth.api.changeEmail({
       body: {
@@ -278,7 +297,7 @@ async function updateAdminEmail(userId, { newEmail, password }, headers) {
   return updated;
 }
 
-async function changeAdminPassword(userId, { currentPassword, newPassword }, headers) {
+async function changeAdminPassword(userId, { currentPassword, newPassword }, rawHeaders) {
   const user = await UserRepository.findById(userId);
 
   if (!user) {
@@ -294,9 +313,10 @@ async function changeAdminPassword(userId, { currentPassword, newPassword }, hea
   }
 
   const auth = getAuth();
+  const headers = buildAuthHeaders(rawHeaders);
 
   try {
-    await auth.api.changePassword({
+    const result = await auth.api.changePassword({
       body: {
         newPassword,
         currentPassword,
@@ -304,10 +324,16 @@ async function changeAdminPassword(userId, { currentPassword, newPassword }, hea
       },
       headers,
     });
+
+    if (result?.error) {
+      throw new BadRequestError(result.error.message || 'Current password is incorrect');
+    }
   } catch (err) {
+    if (err instanceof BadRequestError) throw err;
     if (err.message && err.message.toLowerCase().includes('password')) {
       throw new BadRequestError('Current password is incorrect');
     }
+    logger.error('Admin password change failed', { userId, error: err.message });
     throw new BadRequestError('Failed to change password');
   }
 
