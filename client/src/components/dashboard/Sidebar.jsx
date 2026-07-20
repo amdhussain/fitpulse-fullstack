@@ -56,6 +56,7 @@ const memberBottomItems = [
 ];
 
 const adminBottomItems = [
+  { to: "/dashboard/admin-profile", icon: FiUser, label: "Admin Profile" },
   { to: "/dashboard/admin-settings", icon: FiSettings, label: "Admin Settings" },
   { to: "/", icon: FiLogOut, label: "Logout" },
 ];

@@ -61,6 +61,7 @@ const WebsiteSettings = lazy(() => import("../pages/dashboard/WebsiteSettings"))
 const NotificationCenter = lazy(() => import("../pages/dashboard/NotificationCenter"));
 const FitnessToolsManagement = lazy(() => import("../pages/dashboard/FitnessToolsManagement"));
 const AdminSettings = lazy(() => import("../pages/dashboard/AdminSettings"));
+const AdminProfile = lazy(() => import("../pages/dashboard/AdminProfile"));
 
 const routes = [
   {
@@ -125,6 +126,7 @@ const routes = [
       { path: "settings", element: <DashboardSuspense><WebsiteSettings /></DashboardSuspense> },
       { path: "notifications", element: <DashboardSuspense><NotificationCenter /></DashboardSuspense> },
       { path: "fitness-tools", element: <DashboardSuspense><FitnessToolsManagement /></DashboardSuspense> },
+      { path: "admin-profile", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><AdminProfile /></DashboardSuspense></ProtectedRoute> },
       { path: "admin-settings", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><AdminSettings /></DashboardSuspense></ProtectedRoute> },
     ],
   },

@@ -11,6 +11,8 @@ import { getTheme } from "../../lib/dashboardTheme";
 const iconMap = {
   dashboard: FiGrid,
   profile: FiUser,
+  "admin-profile": FiUser,
+  "admin-settings": FiSettings,
   hero: FiImage,
   about: FiInfo,
   services: FiPackage,
