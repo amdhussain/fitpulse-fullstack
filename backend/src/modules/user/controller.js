@@ -90,6 +90,32 @@ const deleteUser = asyncHandler(async (req, res) => {
   return deletedResponse(res, result.message);
 });
 
+const updateAdminProfile = asyncHandler(async (req, res) => {
+  const { firstName, lastName, profileImage } = req.body;
+
+  const user = await userService.updateAdminProfile(req.user.id, { firstName, lastName, profileImage });
+
+  return updatedResponse(res, user, 'Admin profile updated successfully');
+});
+
+const updateAdminEmail = asyncHandler(async (req, res) => {
+  const { newEmail, password } = req.body;
+  const headers = fromNodeHeaders(req.headers);
+
+  const user = await userService.updateAdminEmail(req.user.id, { newEmail, password }, headers);
+
+  return updatedResponse(res, user, 'Admin email updated successfully');
+});
+
+const changeAdminPassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const headers = fromNodeHeaders(req.headers);
+
+  const result = await userService.changeAdminPassword(req.user.id, { currentPassword, newPassword }, headers);
+
+  return updatedResponse(res, null, result.message);
+});
+
 module.exports = {
   getMyProfile,
   updateMyProfile,
@@ -102,4 +128,7 @@ module.exports = {
   blockUser,
   unblockUser,
   deleteUser,
+  updateAdminProfile,
+  updateAdminEmail,
+  changeAdminPassword,
 };

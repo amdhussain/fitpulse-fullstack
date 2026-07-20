@@ -7,8 +7,9 @@ import {
 } from "react-icons/fi";
 import { useState } from "react";
 import Logo from "../ui/Logo";
+import { useAuth } from "../../context/AuthContext";
 
-const menuGroups = [
+const memberMenuGroups = [
   {
     label: "Overview",
     items: [{ to: "/dashboard", icon: FiGrid, label: "Dashboard", end: true }],
@@ -35,6 +36,10 @@ const menuGroups = [
       { to: "/dashboard/contact", icon: FiMail, label: "Contact" },
     ],
   },
+];
+
+const adminMenuGroups = [
+  ...memberMenuGroups,
   {
     label: "Settings",
     items: [
@@ -45,8 +50,13 @@ const menuGroups = [
   },
 ];
 
-const bottomItems = [
+const memberBottomItems = [
   { to: "/dashboard/profile", icon: FiUser, label: "Profile" },
+  { to: "/", icon: FiLogOut, label: "Logout" },
+];
+
+const adminBottomItems = [
+  { to: "/dashboard/admin-settings", icon: FiSettings, label: "Admin Settings" },
   { to: "/", icon: FiLogOut, label: "Logout" },
 ];
 
@@ -124,6 +134,10 @@ function SidebarGroup({ group, isOpen, onToggle, onClose }) {
 
 function Sidebar({ open, onClose }) {
   const location = useLocation();
+  const { user, isAdmin } = useAuth();
+  const menuGroups = isAdmin ? adminMenuGroups : memberMenuGroups;
+  const bottomItems = isAdmin ? adminBottomItems : memberBottomItems;
+
   const [openGroups, setOpenGroups] = useState(() => {
     const initial = {};
     menuGroups.forEach((group, i) => {
@@ -137,12 +151,16 @@ function Sidebar({ open, onClose }) {
 
   const toggleGroup = (i) => setOpenGroups((prev) => ({ ...prev, [i]: !prev[i] }));
 
+  const userInitial = user?.firstName?.charAt(0)?.toUpperCase() || "U";
+  const userName = user ? `${user.firstName} ${user.lastName}` : "User";
+  const userEmail = user?.email || "";
+
   const sidebarContent = (
     <div className="flex flex-col h-full bg-white dark:bg-[#0f1219]">
       <div className="px-5 py-5 border-b border-gray-100 dark:border-white/5">
         <Logo size="md" color="royal" className="xl:flex" />
         <p className="hidden xl:block text-[10px] text-gray-400 dark:text-gray-500 mt-1 ml-11 tracking-wide">
-          Admin Panel
+          {isAdmin ? "Admin Panel" : "Dashboard"}
         </p>
       </div>
 
@@ -167,11 +185,11 @@ function Sidebar({ open, onClose }) {
       <div className="px-5 py-4 border-t border-gray-100 dark:border-white/5">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-blue-500/25">
-            A
+            {userInitial}
           </div>
           <div className="hidden xl:block min-w-0">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">Admin</p>
-            <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">admin@fitbookpro.com</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">{userName}</p>
+            <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">{userEmail}</p>
           </div>
         </div>
       </div>

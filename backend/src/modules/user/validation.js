@@ -43,6 +43,26 @@ const getAllUsers = validateQuery([
 
 const idParam = validateParams({ id: 'string' });
 
+const updateAdminProfile = [
+  rules.optionalName('firstName'),
+  rules.optionalName('lastName'),
+  rules.optionalUrl('profileImage'),
+];
+
+const updateAdminEmail = [
+  rules.email('newEmail'),
+  body('password')
+    .trim()
+    .notEmpty().withMessage('Password is required to change email'),
+];
+
+const changeAdminPassword = [
+  body('currentPassword')
+    .trim()
+    .notEmpty().withMessage('Current password is required'),
+  rules.password('newPassword'),
+];
+
 module.exports = {
   updateProfile: validateRequest(updateProfile),
   changePassword: validateRequest(changePassword),
@@ -50,4 +70,7 @@ module.exports = {
   updateRole: validateRequest(updateRole),
   getAllUsers,
   idParam,
+  updateAdminProfile: validateRequest(updateAdminProfile),
+  updateAdminEmail: validateRequest(updateAdminEmail),
+  changeAdminPassword: validateRequest(changeAdminPassword),
 };

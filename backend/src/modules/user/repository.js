@@ -120,6 +120,24 @@ const UserRepository = {
     const options = session ? { session } : {};
     await databaseService.client.users.deleteOne({ _id: databaseService.toObjectId(id) }, options);
   },
+
+  async updateAdminProfile(id, data) {
+    const updateFields = { ...data, updatedAt: new Date() };
+    const doc = await databaseService.client.users.findOneAndUpdate(
+      { _id: databaseService.toObjectId(id), role: 'ADMIN' },
+      { $set: updateFields },
+      { returnDocument: 'after', projection: { password: 0 } }
+    );
+    return databaseService.formatDoc(doc);
+  },
+
+  async findAdminUser() {
+    const doc = await databaseService.client.users.findOne(
+      { role: 'ADMIN' },
+      { projection: { password: 0 } }
+    );
+    return databaseService.formatDoc(doc);
+  },
 };
 
 module.exports = UserRepository;

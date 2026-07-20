@@ -96,13 +96,26 @@ export function AuthProvider({ children }) {
     }
   }, [navigate]);
 
+  const updateUser = useCallback(
+    (updatedData) => {
+      const newUserData = { ...user, ...updatedData };
+      localStorage.setItem("user", JSON.stringify(newUserData));
+      setUser(newUserData);
+    },
+    [user]
+  );
+
+  const isAdmin = user?.role === "ADMIN";
+
   const value = {
     user,
     loading,
     isAuthenticated: !!user,
+    isAdmin,
     login,
     register,
     logout,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

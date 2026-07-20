@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiMenu, FiBell, FiSearch, FiSun, FiMoon, FiX } from "react-icons/fi";
 import { getNotifications } from "../../lib/dashboardData";
+import { useAuth } from "../../context/AuthContext";
 
 const routeTitles = {
   "/dashboard": "Dashboard Overview",
@@ -19,6 +20,7 @@ const routeTitles = {
   "/dashboard/settings": "Website Settings",
   "/dashboard/fitness-tools": "Fitness Tools",
   "/dashboard/notifications": "Notifications",
+  "/dashboard/admin-settings": "Admin Settings",
 };
 
 const notifColors = {
@@ -90,12 +92,18 @@ function NotificationPanel({ isOpen, onClose }) {
 
 function Topbar({ onMenuClick }) {
   const { pathname } = useLocation();
+  const { user, isAdmin } = useAuth();
   const title = routeTitles[pathname] || "Dashboard";
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [darkMode, setDarkMode] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const unreadCount = getNotifications().filter((n) => !n.read).length;
+
+  const userInitial = user?.firstName?.charAt(0)?.toUpperCase() || "U";
+  const userName = user ? `${user.firstName} ${user.lastName}` : "User";
+  const userEmail = user?.email || "";
+  const profileLink = isAdmin ? "/dashboard/admin-settings" : "/dashboard/profile";
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-6 bg-white/70 dark:bg-[#0f1219]/70 backdrop-blur-2xl border-b border-gray-200/60 dark:border-white/5">
@@ -148,13 +156,13 @@ function Topbar({ onMenuClick }) {
 
         <div className="w-px h-6 bg-gray-200 dark:border-gray-700 mx-1 hidden sm:block" />
 
-        <Link to="/dashboard/profile" className="flex items-center gap-2.5 p-1.5 pr-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+        <Link to={profileLink} className="flex items-center gap-2.5 p-1.5 pr-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-blue-500/25">
-            A
+            {userInitial}
           </div>
           <div className="hidden sm:block text-left">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-200 leading-tight">Admin</p>
-            <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-tight">admin@fitbookpro.com</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-200 leading-tight">{userName}</p>
+            <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-tight">{userEmail}</p>
           </div>
         </Link>
       </div>

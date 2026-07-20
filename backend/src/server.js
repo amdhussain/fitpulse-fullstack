@@ -1,11 +1,13 @@
 const env = require('./config/env');
 const databaseService = require('./services/databaseService');
+const seedAdmin = require('./config/seedAdmin');
 const app = require('./app');
 
 const PORT = env.port;
 
 async function startServer() {
   await databaseService.connect();
+  await seedAdmin();
 
   const server = app.listen(PORT, () => {
     console.log('');

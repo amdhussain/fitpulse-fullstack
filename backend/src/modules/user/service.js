@@ -2,6 +2,7 @@ const { fromNodeHeaders } = require('better-auth/node');
 const { getAuth } = require('../../config/betterAuth');
 const UserRepository = require('./repository');
 const { NotFoundError, ConflictError, ForbiddenError, BadRequestError } = require('../../errors');
+const databaseService = require('../../services/databaseService');
 const logger = require('../../utils/logger');
 
 function sanitizeUser(user) {
@@ -200,6 +201,121 @@ async function deleteUser(userId) {
   return { message: 'User deleted successfully' };
 }
 
+async function updateAdminProfile(userId, { firstName, lastName, profileImage }) {
+  const user = await UserRepository.findById(userId);
+
+  if (!user) {
+    throw new NotFoundError('User not found');
+  }
+
+  if (user.role !== 'ADMIN') {
+    throw new ForbiddenError('Only admin can access this resource');
+  }
+
+  const updateData = {};
+  if (firstName !== undefined) updateData.firstName = firstName;
+  if (lastName !== undefined) updateData.lastName = lastName;
+  if (profileImage !== undefined) updateData.profileImage = profileImage;
+
+  if (Object.keys(updateData).length === 0) {
+    throw new BadRequestError('No fields to update');
+  }
+
+  const updated = await UserRepository.updateAdminProfile(userId, updateData);
+
+  const auth = getAuth();
+  const fullName = `${updated.firstName} ${updated.lastName}`;
+  try {
+    await auth.api.updateUser({
+      userId: databaseService.toObjectId(userId),
+      fields: { name: fullName },
+    });
+  } catch {
+    logger.warn('Could not update Better Auth user name', { userId });
+  }
+
+  logger.info('Admin profile updated', { userId });
+
+  return updated;
+}
+
+async function updateAdminEmail(userId, { newEmail, password }, headers) {
+  const user = await UserRepository.findById(userId);
+
+  if (!user) {
+    throw new NotFoundError('User not found');
+  }
+
+  if (user.role !== 'ADMIN') {
+    throw new ForbiddenError('Only admin can access this resource');
+  }
+
+  const existingUser = await UserRepository.findByEmail(newEmail);
+  if (existingUser && existingUser.id !== userId) {
+    throw new ConflictError('Email address is already in use');
+  }
+
+  const auth = getAuth();
+  try {
+    await auth.api.changeEmail({
+      body: {
+        newEmail,
+        password,
+      },
+      headers,
+    });
+  } catch (err) {
+    if (err.message && err.message.toLowerCase().includes('password')) {
+      throw new BadRequestError('Password is incorrect');
+    }
+    throw new BadRequestError('Failed to update email');
+  }
+
+  const updated = await UserRepository.updateAdminProfile(userId, { email: newEmail.toLowerCase() });
+
+  logger.info('Admin email updated', { userId });
+
+  return updated;
+}
+
+async function changeAdminPassword(userId, { currentPassword, newPassword }, headers) {
+  const user = await UserRepository.findById(userId);
+
+  if (!user) {
+    throw new NotFoundError('User not found');
+  }
+
+  if (user.role !== 'ADMIN') {
+    throw new ForbiddenError('Only admin can access this resource');
+  }
+
+  if (currentPassword === newPassword) {
+    throw new BadRequestError('New password must be different from current password');
+  }
+
+  const auth = getAuth();
+
+  try {
+    await auth.api.changePassword({
+      body: {
+        newPassword,
+        currentPassword,
+        revokeOtherSessions: false,
+      },
+      headers,
+    });
+  } catch (err) {
+    if (err.message && err.message.toLowerCase().includes('password')) {
+      throw new BadRequestError('Current password is incorrect');
+    }
+    throw new BadRequestError('Failed to change password');
+  }
+
+  logger.info('Admin password changed', { userId });
+
+  return { message: 'Password changed successfully' };
+}
+
 module.exports = {
   getMyProfile,
   updateMyProfile,
@@ -212,4 +328,7 @@ module.exports = {
   blockUser,
   unblockUser,
   deleteUser,
+  updateAdminProfile,
+  updateAdminEmail,
+  changeAdminPassword,
 };
