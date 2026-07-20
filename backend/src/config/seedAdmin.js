@@ -7,12 +7,50 @@ const ADMIN_PASSWORD = 'FitPulse@Admin123';
 const ADMIN_FIRST_NAME = 'FitPulse';
 const ADMIN_LAST_NAME = 'Admin';
 
+async function normalizeRoles(usersCollection) {
+  const roleMap = [
+    { from: 'admin', to: 'ADMIN' },
+    { from: 'member', to: 'MEMBER' },
+    { from: 'trainer', to: 'TRAINER' },
+  ];
+
+  let totalFixed = 0;
+  for (const { from, to } of roleMap) {
+    const result = await usersCollection.updateMany(
+      { role: from },
+      { $set: { role: to, updatedAt: new Date() } }
+    );
+    if (result.modifiedCount > 0) {
+      totalFixed += result.modifiedCount;
+      logger.info(`Role migration: ${result.modifiedCount} user(s) upgraded from "${from}" to "${to}"`);
+    }
+  }
+  return totalFixed;
+}
+
 async function seedAdmin() {
   try {
+    const usersCollection = databaseService.client.users;
     const emailLower = ADMIN_EMAIL.toLowerCase();
 
+    // Step 1: Fix all lowercase role values to uppercase
+    const fixed = await normalizeRoles(usersCollection);
+    if (fixed > 0) {
+      logger.info(`Role migration complete: ${fixed} total role(s) normalized`);
+    }
+
+    // Step 2: Ensure the admin account always has role: 'ADMIN'
+    const existingAppUser = await usersCollection.findOne({ email: emailLower });
+    if (existingAppUser && existingAppUser.role !== 'ADMIN') {
+      await usersCollection.updateOne(
+        { email: emailLower },
+        { $set: { role: 'ADMIN', updatedAt: new Date() } }
+      );
+      logger.info('Admin account role corrected to "ADMIN"');
+    }
+
+    // Step 3: Seed admin if it doesn't exist
     const existingBaUser = await databaseService.db.collection('user').findOne({ email: emailLower });
-    const existingAppUser = await databaseService.client.users.findOne({ email: emailLower });
 
     if (existingBaUser && existingAppUser) {
       logger.info('Admin account already exists, skipping seed');
@@ -58,7 +96,7 @@ async function seedAdmin() {
 
     if (!existingAppUser) {
       const now = new Date();
-      await databaseService.client.users.insertOne({
+      await usersCollection.insertOne({
         _id: databaseService.toObjectId(baUserId),
         firstName: ADMIN_FIRST_NAME,
         lastName: ADMIN_LAST_NAME,
