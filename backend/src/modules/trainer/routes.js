@@ -6,6 +6,7 @@ const trainerValidation = require('./validation');
 function trainerRoutes(router) {
   // Public routes
   router.get('/public', trainerValidation.listPublicTrainers, trainerController.listTrainers);
+  router.get('/public/:id', trainerValidation.idParam, trainerController.getPublicTrainerById);
 
   // Trainer self routes (must be before /:id to avoid param conflict)
   router.put('/me/profile', protect, authorize('TRAINER'), trainerValidation.updateProfile, trainerController.updateProfile);

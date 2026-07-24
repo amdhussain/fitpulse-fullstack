@@ -402,7 +402,11 @@ function LoginForm() {
       if (Object.keys(fieldErrors).length === 0) {
         setIsSubmitting(true);
         try {
-          await login(email, password);
+          const userData = await login(email, password);
+          if (userData && userData.role && userData.role.toUpperCase() !== "ADMIN") {
+            setServerError("Access denied. This login is for administrators only.");
+            return;
+          }
           setShowSuccess(true);
           navigate(from, { replace: true });
         } catch (err) {
@@ -473,8 +477,9 @@ function LoginForm() {
               <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-white/25 pointer-events-none" />
               <input
                 id="email"
+                name="login_email"
                 type="email"
-                autoComplete="email"
+                autoComplete="new-password"
                 placeholder={placeholders.email}
                 value={email}
                 onChange={(e) => {
@@ -523,8 +528,9 @@ function LoginForm() {
               <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-white/25 pointer-events-none" />
               <input
                 id="password"
+                name="login_password"
                 type={showPassword ? "text" : "password"}
-                autoComplete="current-password"
+                autoComplete="new-password"
                 placeholder={placeholders.password}
                 value={password}
                 onChange={(e) => {

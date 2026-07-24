@@ -39,6 +39,15 @@ const TrainerRepository = {
     return formatTrainer(results[0] || null);
   },
 
+  async findPublicById(id) {
+    const pipeline = [
+      { $match: { _id: new ObjectId(id), status: 'ACTIVE' } },
+      ...trainerLookupPipeline(),
+    ];
+    const results = await databaseService.client.trainers.aggregate(pipeline).toArray();
+    return formatTrainer(results[0] || null);
+  },
+
   async findByUserId(userId) {
     const pipeline = [
       { $match: { userId: new ObjectId(userId) } },
@@ -48,7 +57,7 @@ const TrainerRepository = {
     return formatTrainer(results[0] || null);
   },
 
-  async create({ userId, bio, specialization, designation, experience, hourlyRate, skills, programs, certificates, achievements, availableDays, socialLinks, profileImage }, session) {
+  async create({ userId, bio, specialization, designation, experience, hourlyRate, skills, programs, certificates, achievements, availableDays, socialLinks, profileImage, sessionDuration, availableTimeSlots, sessionTypes, membershipCompatibility }, session) {
     const now = new Date();
     const insertData = {
       userId: new ObjectId(userId),
@@ -66,6 +75,10 @@ const TrainerRepository = {
       availableDays: availableDays || null,
       socialLinks: socialLinks || null,
       profileImage: profileImage || null,
+      sessionDuration: sessionDuration || 60,
+      availableTimeSlots: availableTimeSlots || null,
+      sessionTypes: sessionTypes || null,
+      membershipCompatibility: membershipCompatibility || null,
       status: 'ACTIVE',
       createdAt: now,
       updatedAt: now,

@@ -148,7 +148,28 @@ async function getUserById(userId) {
     throw new NotFoundError('User not found');
   }
 
-  return user;
+  const databaseService = require('../../services/databaseService');
+  const { ObjectId } = require('mongodb');
+
+  const totalBookings = await databaseService.client.bookings.countDocuments({
+    userId: new ObjectId(userId),
+  });
+
+  const latestPayment = await databaseService.client.payments.findOne(
+    { userId: new ObjectId(userId), status: 'PAID' },
+    { sort: { createdAt: -1 }, projection: { amount: 1, paymentMethod: 1, createdAt: 1, metadata: 1 } }
+  );
+
+  let membership = null;
+  if (latestPayment) {
+    membership = latestPayment.metadata?.membershipType || latestPayment.metadata?.plan || null;
+  }
+
+  return {
+    ...user,
+    totalBookings,
+    membership,
+  };
 }
 
 async function updateUserRole(userId, role) {

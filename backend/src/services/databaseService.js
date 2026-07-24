@@ -18,6 +18,7 @@ const COLLECTIONS = [
   'gallery',
   'siteSettings',
   'contactMessages',
+  'notifications',
 ];
 
 function formatDoc(doc) {

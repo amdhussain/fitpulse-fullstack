@@ -6,8 +6,10 @@ const bookingValidation = require('./validation');
 function bookingRoutes(router) {
   // ─── Member Routes ─────────────────────────────────────
   router.post('/me/book', protect, authorize('MEMBER'), bookingValidation.bookClass, bookingController.bookClass);
+  router.post('/me/book-trainer', protect, authorize('MEMBER'), bookingValidation.bookTrainer, bookingController.bookTrainer);
   router.get('/me', protect, authorize('MEMBER'), bookingValidation.getMyBookings, bookingController.getMyBookings);
   router.get('/me/:id', protect, authorize('MEMBER'), bookingValidation.idParam, bookingController.getBookingDetails);
+  router.patch('/me/:id', protect, authorize('MEMBER'), bookingValidation.idParam, bookingValidation.memberUpdateBooking, bookingController.memberUpdateBooking);
   router.patch('/me/:id/cancel', protect, authorize('MEMBER'), bookingValidation.idParam, bookingValidation.cancelBooking, bookingController.cancelBooking);
 
   // ─── Trainer Routes ────────────────────────────────────
@@ -19,6 +21,7 @@ function bookingRoutes(router) {
   // ─── Admin Routes ──────────────────────────────────────
   router.get('/', protect, authorize('ADMIN'), bookingValidation.getAllBookings, bookingController.getAllBookings);
   router.patch('/:id/status', protect, authorize('ADMIN'), bookingValidation.idParam, bookingValidation.updateBookingStatus, bookingController.updateBookingStatus);
+  router.put('/:id', protect, authorize('ADMIN'), bookingValidation.idParam, bookingValidation.updateBooking, bookingController.updateBooking);
   router.delete('/:id', protect, authorize('ADMIN'), bookingValidation.idParam, bookingController.deleteBooking);
 }
 

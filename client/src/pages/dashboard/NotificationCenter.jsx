@@ -17,10 +17,19 @@ import {
 import { Button, Skeleton } from "../../components/ui";
 import { staggerContainer, fadeUp } from "../../lib/animations";
 import { PageBanner, StatCard } from "../../components/dashboard";
-import {
-  getNotifications,
-  getNotificationStats,
-} from "../../lib/notificationsData";
+
+const API_URL = import.meta.env.API_URL;
+
+function getAuthToken() {
+  return localStorage.getItem("token");
+}
+
+function authHeaders() {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${getAuthToken()}`,
+  };
+}
 
 const typeIcons = {
   booking: FiCalendar,
@@ -29,34 +38,47 @@ const typeIcons = {
   system: FiSettings,
 };
 
+function formatTimeAgo(dateStr) {
+  if (!dateStr) return "";
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return "1 day ago";
+  return `${days} days ago`;
+}
+
 const typeColors = {
   booking: {
-    bg: "bg-blue-50",
-    text: "text-blue-600",
-    border: "border-blue-200",
-    dot: "bg-blue-500",
-    glow: "shadow-blue-500/10",
+    bg: "bg-blue-500/10",
+    text: "text-blue-400",
+    border: "border-blue-500/20",
+    dot: "bg-blue-400",
+    glow: "shadow-blue-500/20",
   },
   membership: {
-    bg: "bg-amber-50",
-    text: "text-amber-600",
-    border: "border-amber-200",
-    dot: "bg-amber-500",
-    glow: "shadow-amber-500/10",
+    bg: "bg-amber-500/10",
+    text: "text-amber-400",
+    border: "border-amber-500/20",
+    dot: "bg-amber-400",
+    glow: "shadow-amber-500/20",
   },
   message: {
-    bg: "bg-emerald-50",
-    text: "text-emerald-600",
-    border: "border-emerald-200",
-    dot: "bg-emerald-500",
-    glow: "shadow-emerald-500/10",
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-400",
+    border: "border-emerald-500/20",
+    dot: "bg-emerald-400",
+    glow: "shadow-emerald-500/20",
   },
   system: {
-    bg: "bg-purple-50",
-    text: "text-purple-600",
-    border: "border-purple-200",
-    dot: "bg-purple-500",
-    glow: "shadow-purple-500/10",
+    bg: "bg-purple-500/10",
+    text: "text-purple-400",
+    border: "border-purple-500/20",
+    dot: "bg-purple-400",
+    glow: "shadow-purple-500/20",
   },
 };
 
@@ -82,7 +104,7 @@ function NotificationSkeleton({ index }) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.06, duration: 0.35 }}
-      className="flex items-start gap-4 p-4 sm:p-5 border-b border-gray-50 last:border-b-0"
+      className="flex items-start gap-4 p-4 sm:p-5 border-b border-white/[0.04] last:border-b-0"
     >
       <Skeleton className="w-11 h-11 rounded-xl flex-shrink-0" />
       <div className="flex-1 space-y-3">
@@ -106,7 +128,7 @@ function NotificationSkeleton({ index }) {
 
 function TypeBadge({ type }) {
   const colors = typeColors[type] || {
-    bg: "bg-gray-50",
+    bg: "bg-white/5",
     text: "text-gray-400",
   };
 
@@ -144,14 +166,14 @@ function EmptyState({ activeTab }) {
       className="flex flex-col items-center justify-center py-24 gap-6"
     >
       <div className="relative">
-        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-50 to-cyan-50/50 flex items-center justify-center border border-blue-100">
-          <FiBell className="w-10 h-10 text-blue-500/20" />
+        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500/10 to-cyan-500/5 flex items-center justify-center border border-blue-500/20">
+          <FiBell className="w-10 h-10 text-blue-400/30" />
         </div>
-        <div className="absolute inset-0 w-24 h-24 rounded-full bg-blue-50/50 animate-ping" />
+        <div className="absolute inset-0 w-24 h-24 rounded-full bg-blue-500/10 animate-ping" />
       </div>
       <div className="text-center space-y-3 max-w-md">
-        <p className="text-gray-500 text-lg font-medium">No notifications found</p>
-        <p className="text-gray-400 text-sm leading-relaxed">
+        <p className="text-gray-300 text-lg font-medium">No notifications found</p>
+        <p className="text-gray-500 text-sm leading-relaxed">
           {messages[activeTab] || messages.all}
         </p>
       </div>
@@ -162,9 +184,9 @@ function EmptyState({ activeTab }) {
 function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
   const Icon = typeIcons[notification.type] || FiBell;
   const colors = typeColors[notification.type] || {
-    bg: "bg-gray-50",
+    bg: "bg-white/5",
     text: "text-gray-400",
-    border: "border-gray-200",
+    border: "border-white/10",
     dot: "bg-gray-400",
   };
 
@@ -185,10 +207,10 @@ function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
         delay: index * 0.04,
         layout: { type: "spring", duration: 0.4, bounce: 0.15 },
       }}
-      className={`group relative flex items-start gap-4 p-4 sm:p-5 border-b border-gray-50 last:border-b-0 transition-all duration-300 ${
+      className={`group relative flex items-start gap-4 p-4 sm:p-5 border-b border-white/[0.04] last:border-b-0 transition-all duration-300 ${
         !notification.read
-          ? "bg-gradient-to-r from-blue-50 to-transparent border-l-[3px] border-l-blue-500"
-          : "border-l-[3px] border-l-transparent hover:bg-gray-50"
+          ? "bg-gradient-to-r from-blue-500/5 to-transparent border-l-[3px] border-l-blue-500"
+          : "border-l-[3px] border-l-transparent hover:bg-white/[0.02]"
       }`}
     >
       <div
@@ -200,7 +222,7 @@ function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", duration: 0.4, bounce: 0.5 }}
-            className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-blue-500 border-[2.5px] border-white"
+            className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-blue-500 border-[2.5px] border-[#0f1219]"
           />
         )}
       </div>
@@ -211,7 +233,7 @@ function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
             <div className="flex items-center gap-2.5 mb-1">
               <p
                 className={`font-semibold text-[13px] leading-snug truncate transition-colors duration-200 ${
-                  notification.read ? "text-gray-400" : "text-gray-900"
+                  notification.read ? "text-gray-500" : "text-gray-100"
                 }`}
               >
                 {notification.title}
@@ -221,22 +243,22 @@ function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", duration: 0.4 }}
-                  className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-blue-600"
+                  className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-blue-400"
                 />
               )}
             </div>
             <p
               className={`text-sm leading-relaxed line-clamp-2 transition-colors duration-200 ${
-                notification.read ? "text-gray-400" : "text-gray-500"
+                notification.read ? "text-gray-500" : "text-gray-400"
               }`}
             >
               {notification.message}
             </p>
             <div className="flex items-center gap-2.5 mt-3">
               <TypeBadge type={notification.type} />
-              <span className="flex items-center gap-1 text-xs text-gray-400">
+              <span className="flex items-center gap-1 text-xs text-gray-500">
                 <FiClock className="w-3 h-3" />
-                {notification.time}
+                {formatTimeAgo(notification.createdAt)}
               </span>
             </div>
           </div>
@@ -247,7 +269,7 @@ function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
                 whileHover={{ scale: 1.12 }}
                 whileTap={{ scale: 0.88 }}
                 onClick={() => onMarkAsRead(notification.id)}
-                className="p-2 rounded-lg bg-gray-50 border border-gray-100 text-gray-400 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-200"
+                className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-gray-400 hover:text-blue-400 hover:border-blue-500/30 hover:bg-blue-500/10 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-200"
                 title="Mark as read"
               >
                 <FiEye className="w-3.5 h-3.5" />
@@ -257,7 +279,7 @@ function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
               whileHover={{ scale: 1.12 }}
               whileTap={{ scale: 0.88 }}
               onClick={() => onDelete(notification.id)}
-              className="p-2 rounded-lg bg-gray-50 border border-gray-100 text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 hover:shadow-lg hover:shadow-red-500/5 transition-all duration-200"
+              className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-gray-400 hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/10 hover:shadow-lg hover:shadow-red-500/10 transition-all duration-200"
               title="Delete notification"
             >
               <FiTrash2 className="w-3.5 h-3.5" />
@@ -271,10 +293,10 @@ function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
 
 function TypeBreakdown({ stats }) {
   const breakdown = [
-    { key: "booking", label: "Bookings", count: stats.booking, icon: FiCalendar, color: "text-blue-600" },
-    { key: "membership", label: "Membership", count: stats.membership, icon: FiCreditCard, color: "text-amber-600" },
-    { key: "message", label: "Messages", count: stats.message, icon: FiMessageSquare, color: "text-emerald-600" },
-    { key: "system", label: "System", count: stats.system, icon: FiSettings, color: "text-purple-600" },
+    { key: "booking", label: "Bookings", count: stats.booking, icon: FiCalendar, color: "text-blue-400" },
+    { key: "membership", label: "Membership", count: stats.membership, icon: FiCreditCard, color: "text-amber-400" },
+    { key: "message", label: "Messages", count: stats.message, icon: FiMessageSquare, color: "text-emerald-400" },
+    { key: "system", label: "System", count: stats.system, icon: FiSettings, color: "text-purple-400" },
   ];
 
   return (
@@ -283,7 +305,7 @@ function TypeBreakdown({ stats }) {
         <div key={item.key} className="flex items-center gap-2">
           <item.icon className={`w-3.5 h-3.5 ${item.color}`} />
           <span className="text-xs text-gray-400">
-            <span className="font-medium text-gray-500">{item.count}</span>{" "}
+            <span className="font-medium text-gray-300">{item.count}</span>{" "}
             {item.label}
           </span>
         </div>
@@ -299,37 +321,37 @@ function SummaryBar({ stats }) {
   return (
     <motion.div
       variants={fadeUp}
-      className="rounded-2xl bg-white backdrop-blur-xl border border-blue-100 overflow-hidden"
+      className="rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] overflow-hidden"
     >
       <div className="p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-              <FiInfo className="w-4 h-4 text-blue-600" />
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+              <FiInfo className="w-4 h-4 text-blue-400" />
             </div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-400">
               You have{" "}
-              <span className="font-semibold text-blue-600">{stats.unread}</span>{" "}
+              <span className="font-semibold text-blue-400">{stats.unread}</span>{" "}
               unread notification{stats.unread !== 1 ? "s" : ""} out of{" "}
-              <span className="font-medium text-gray-600">{stats.total}</span> total.
+              <span className="font-medium text-gray-300">{stats.total}</span> total.
             </p>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="flex-1 sm:flex-none h-2 sm:w-32 rounded-full bg-gray-50 overflow-hidden">
+            <div className="flex-1 sm:flex-none h-2 sm:w-32 rounded-full bg-white/[0.03] overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${percentage}%` }}
                 transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
-                className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-500"
+                className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400"
               />
             </div>
-            <span className="text-xs font-medium text-gray-400 flex-shrink-0">
+            <span className="text-xs font-medium text-gray-500 flex-shrink-0">
               {percentage}% read
             </span>
           </div>
         </div>
       </div>
-      <div className="px-4 sm:px-5 py-3 border-t border-gray-50 bg-gray-50">
+      <div className="px-4 sm:px-5 py-3 border-t border-white/[0.04] bg-white/[0.02]">
         <TypeBreakdown stats={stats} />
       </div>
     </motion.div>
@@ -341,32 +363,78 @@ export default function NotificationCenter() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const data = getNotifications();
-      setNotifications(data);
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/v1/notification?limit=50`, {
+        headers: authHeaders(),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.data || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch notifications", err);
+    } finally {
       setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    }
   }, []);
 
-  const stats = useMemo(
-    () => getNotificationStats(notifications),
-    [notifications]
-  );
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
 
-  const markAsRead = useCallback((id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+  const stats = useMemo(() => {
+    const total = notifications.length;
+    const unread = notifications.filter((n) => !n.read).length;
+    const booking = notifications.filter((n) => n.type === "booking").length;
+    const membership = notifications.filter((n) => n.type === "membership").length;
+    const message = notifications.filter((n) => n.type === "message").length;
+    const system = notifications.filter((n) => n.type === "system").length;
+    return { total, unread, booking, membership, message, system };
+  }, [notifications]);
+
+  const markAsRead = useCallback(async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/api/v1/notification/${id}/read`, {
+        method: "PATCH",
+        headers: authHeaders(),
+      });
+      if (res.ok) {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+        );
+      }
+    } catch (err) {
+      console.error("Failed to mark as read", err);
+    }
   }, []);
 
-  const markAllRead = useCallback(() => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const markAllRead = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/v1/notification/read-all`, {
+        method: "PATCH",
+        headers: authHeaders(),
+      });
+      if (res.ok) {
+        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      }
+    } catch (err) {
+      console.error("Failed to mark all as read", err);
+    }
   }, []);
 
-  const deleteNotification = useCallback((id) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  const deleteNotification = useCallback(async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/api/v1/notification/${id}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      if (res.ok) {
+        setNotifications((prev) => prev.filter((n) => n.id !== id));
+      }
+    } catch (err) {
+      console.error("Failed to delete notification", err);
+    }
   }, []);
 
   const filteredNotifications = useMemo(() => {
@@ -423,9 +491,9 @@ export default function NotificationCenter() {
 
       <motion.div
         variants={fadeUp}
-        className="rounded-2xl bg-white backdrop-blur-xl border border-blue-100 overflow-hidden shadow-xl shadow-gray-100"
+        className="rounded-2xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] overflow-hidden shadow-xl shadow-black/10"
       >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 border-b border-gray-100">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-5 border-b border-white/[0.04]">
           <div className="flex flex-wrap items-center gap-2">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.key;
@@ -435,14 +503,14 @@ export default function NotificationCenter() {
                   onClick={() => setActiveTab(tab.key)}
                   className={`relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border overflow-hidden ${
                     isActive
-                      ? "bg-blue-100 text-blue-600 border-blue-200 shadow-lg shadow-blue-500/5"
-                      : "bg-gray-50 border-gray-100 text-gray-400 hover:text-gray-500 hover:bg-gray-100 hover:border-gray-200"
+                      ? "bg-blue-500/10 text-blue-400 border-blue-500/20 shadow-lg shadow-blue-500/10"
+                      : "bg-white/[0.03] border-white/[0.06] text-gray-400 hover:text-gray-300 hover:bg-white/[0.05] hover:border-white/[0.1]"
                   }`}
                 >
                   <span className="relative z-10 flex items-center gap-1.5">
                     {tab.label}
                     {tab.key === "unread" && stats.unread > 0 && (
-                      <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full bg-blue-200 text-blue-700">
+                      <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full bg-blue-500/20 text-blue-300">
                         {stats.unread}
                       </span>
                     )}
@@ -482,8 +550,8 @@ export default function NotificationCenter() {
         )}
 
         {!loading && filteredNotifications.length > 0 && (
-          <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 border-t border-gray-50 bg-gray-50">
-            <p className="text-xs text-gray-400">
+          <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 border-t border-white/[0.04] bg-white/[0.02]">
+            <p className="text-xs text-gray-500">
               Showing{" "}
               <span className="text-gray-400 font-medium">
                 {filteredNotifications.length}
@@ -497,7 +565,7 @@ export default function NotificationCenter() {
             {activeTab !== "all" && (
               <button
                 onClick={() => setActiveTab("all")}
-                className="inline-flex items-center gap-1 text-xs text-blue-600/60 hover:text-blue-600 transition-colors duration-200"
+                className="inline-flex items-center gap-1 text-xs text-blue-400/60 hover:text-blue-400 transition-colors duration-200"
               >
                 <FiX className="w-3 h-3" />
                 Clear filter

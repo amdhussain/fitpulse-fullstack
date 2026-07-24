@@ -105,13 +105,17 @@ export function AuthProvider({ children }) {
     [user]
   );
 
-  const isAdmin = user?.role === "ADMIN";
+  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
+  const isMember = user?.role?.toUpperCase() === "MEMBER";
+  const isTrainer = user?.role?.toUpperCase() === "TRAINER";
 
   const value = {
     user,
     loading,
     isAuthenticated: !!user,
     isAdmin,
+    isMember,
+    isTrainer,
     login,
     register,
     logout,

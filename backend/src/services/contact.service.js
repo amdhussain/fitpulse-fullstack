@@ -1,6 +1,7 @@
 const { ObjectId } = require('mongodb');
 const { NotFoundError } = require('../errors');
 const databaseService = require('./databaseService');
+const notificationService = require('./notificationService');
 const { extractPagination } = require('../utils/pagination');
 const logger = require('../utils/logger');
 
@@ -21,6 +22,9 @@ async function createMessage(data) {
   const doc = await databaseService.client.contactMessages.findOne({ _id: result.insertedId });
   const message = databaseService.formatDoc(doc);
   logger.info('Contact message created', { messageId: message.id, email: message.email });
+
+  notificationService.contactMessageSubmitted(message.id, data.name, data.subject || 'No subject').catch(() => {});
+
   return message;
 }
 

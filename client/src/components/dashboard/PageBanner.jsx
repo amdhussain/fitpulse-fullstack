@@ -4,6 +4,7 @@ import {
   FiGrid, FiImage, FiInfo, FiPackage, FiMapPin, FiUser,
   FiAward, FiCreditCard, FiMessageSquare, FiCamera, FiMail,
   FiSettings, FiBell, FiActivity, FiChevronRight,
+  FiCalendar, FiUserCheck, FiDollarSign, FiSearch,
 } from "react-icons/fi";
 import { fadeUp } from "../../lib/animations";
 import { getTheme } from "../../lib/dashboardTheme";
@@ -13,6 +14,7 @@ const iconMap = {
   profile: FiUser,
   "admin-profile": FiUser,
   "admin-settings": FiSettings,
+  users: FiUser,
   hero: FiImage,
   about: FiInfo,
   services: FiPackage,
@@ -25,6 +27,12 @@ const iconMap = {
   settings: FiSettings,
   notifications: FiBell,
   fitnessTools: FiActivity,
+  bookings: FiCalendar,
+  "my-bookings": FiCalendar,
+  trainerApproval: FiUserCheck,
+  payments: FiDollarSign,
+  newsletter: FiMail,
+  seo: FiSearch,
 };
 
 function PageBanner({ pageKey, icon: Icon, subtitle, breadcrumbs }) {

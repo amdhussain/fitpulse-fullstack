@@ -1,9 +1,34 @@
 import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiMenu, FiBell, FiSearch, FiSun, FiMoon, FiX } from "react-icons/fi";
-import { getNotifications } from "../../lib/dashboardData";
 import { useAuth } from "../../context/AuthContext";
+
+const API_URL = import.meta.env.API_URL;
+
+function getAuthToken() {
+  return localStorage.getItem("token");
+}
+
+function formatTimeAgo(dateStr) {
+  if (!dateStr) return "";
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days === 1) return "1 day ago";
+  return `${days} days ago`;
+}
+
+const typeColorMap = {
+  booking: "blue",
+  membership: "amber",
+  message: "emerald",
+  system: "purple",
+};
 
 const routeTitles = {
   "/dashboard": "Dashboard Overview",
@@ -32,7 +57,21 @@ const notifColors = {
 };
 
 function NotificationPanel({ isOpen, onClose }) {
-  const notifications = getNotifications();
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setLoading(true);
+    fetch(`${API_URL}/api/v1/notification?limit=8`, {
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+    })
+      .then((res) => (res.ok ? res.json() : { data: [] }))
+      .then((data) => setNotifications(data.data || []))
+      .catch(() => setNotifications([]))
+      .finally(() => setLoading(false));
+  }, [isOpen]);
+
   const unread = notifications.filter((n) => !n.read).length;
 
   return (
@@ -59,29 +98,48 @@ function NotificationPanel({ isOpen, onClose }) {
               </button>
             </div>
             <div className="max-h-80 overflow-y-auto">
-              {notifications.map((notif) => {
-                const Icon = notif.icon;
-                return (
-                  <div key={notif.id} className={`px-5 py-3.5 flex items-start gap-3 border-b border-gray-50 dark:border-white/5 transition-colors hover:bg-gray-50 dark:hover:bg-white/5 ${!notif.read ? "bg-blue-50/50 dark:bg-blue-500/5" : ""}`}>
-                    <div className={`p-2 rounded-lg shrink-0 mt-0.5 ${notifColors[notif.color] || notifColors.blue}`}>
-                      <Icon className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">{notif.title}</p>
-                        {!notif.read && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />}
+              {loading ? (
+                <div className="p-5 space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-start gap-3 animate-pulse">
+                      <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-white/5" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 bg-gray-100 dark:bg-white/5 rounded w-3/4" />
+                        <div className="h-2.5 bg-gray-100 dark:bg-white/5 rounded w-full" />
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">{notif.message}</p>
-                      <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">{notif.time}</p>
                     </div>
-                  </div>
-                );
-              })}
+                  ))}
+                </div>
+              ) : notifications.length === 0 ? (
+                <div className="p-8 text-center text-sm text-gray-400 dark:text-gray-500">
+                  No notifications yet
+                </div>
+              ) : (
+                notifications.map((notif) => {
+                  const colorKey = typeColorMap[notif.type] || "blue";
+                  const colorClass = notifColors[colorKey] || notifColors.blue;
+                  return (
+                    <div key={notif.id} className={`px-5 py-3.5 flex items-start gap-3 border-b border-gray-50 dark:border-white/5 transition-colors hover:bg-gray-50 dark:hover:bg-white/5 ${!notif.read ? "bg-blue-50/50 dark:bg-blue-500/5" : ""}`}>
+                      <div className={`p-2 rounded-lg shrink-0 mt-0.5 ${colorClass}`}>
+                        <FiBell className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">{notif.title}</p>
+                          {!notif.read && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />}
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">{notif.message}</p>
+                        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">{formatTimeAgo(notif.createdAt)}</p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
             <div className="px-5 py-3 border-t border-gray-100 dark:border-white/5">
-              <button className="w-full text-center text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors">
+              <Link to="/dashboard/notifications" onClick={onClose} className="block w-full text-center text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors">
                 View all notifications
-              </button>
+              </Link>
             </div>
           </motion.div>
         </>
@@ -98,7 +156,16 @@ function Topbar({ onMenuClick }) {
   const [searchValue, setSearchValue] = useState("");
   const [darkMode, setDarkMode] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const unreadCount = getNotifications().filter((n) => !n.read).length;
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/v1/notification?read=false&limit=1`, {
+      headers: { Authorization: `Bearer ${getAuthToken()}` },
+    })
+      .then((res) => (res.ok ? res.json() : { total: 0 }))
+      .then((data) => setUnreadCount(data.total || 0))
+      .catch(() => {});
+  }, []);
 
   const userInitial = user?.firstName?.charAt(0)?.toUpperCase() || "U";
   const userName = user ? `${user.firstName} ${user.lastName}` : "User";

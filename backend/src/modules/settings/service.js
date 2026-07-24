@@ -1,4 +1,5 @@
 const SettingsRepository = require('./repository');
+const notificationService = require('../../services/notificationService');
 const { NotFoundError, BadRequestError, ConflictError } = require('../../errors');
 const logger = require('../../utils/logger');
 
@@ -179,6 +180,8 @@ async function updateSettings(settingsArray) {
   }
 
   logger.info('Settings batch updated', { count: results.length });
+
+  notificationService.settingsUpdated('batch', 'Admin').catch(() => {});
 
   return results;
 }

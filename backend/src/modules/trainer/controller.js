@@ -94,6 +94,11 @@ const listTrainers = asyncHandler(async (req, res) => {
   return paginatedResponse(res, result);
 });
 
+const getPublicTrainerById = asyncHandler(async (req, res) => {
+  const trainer = await trainerService.getPublicTrainerById(req.params.id);
+  return successResponse(res, trainer, 'Trainer retrieved successfully');
+});
+
 module.exports = {
   createTrainer,
   getAllTrainers,
@@ -106,4 +111,5 @@ module.exports = {
   updateExperience,
   updateSpecializations,
   listTrainers,
+  getPublicTrainerById,
 };

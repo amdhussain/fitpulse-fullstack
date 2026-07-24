@@ -6,23 +6,24 @@ const asyncHandler = require('../../middlewares/asyncHandler');
 
 const bookClass = asyncHandler(async (req, res) => {
   const { classId, bookingDate, bookingTime, notes } = req.body;
-
   const booking = await bookingService.bookClass(req.user.id, { classId, bookingDate, bookingTime, notes });
-
   return createdResponse(res, booking, 'Class booked successfully');
+});
+
+const bookTrainer = asyncHandler(async (req, res) => {
+  const { trainerId, bookingDate, bookingTime, sessionType, notes } = req.body;
+  const booking = await bookingService.bookTrainer(req.user.id, { trainerId, bookingDate, bookingTime, sessionType, notes });
+  return createdResponse(res, booking, 'Trainer booked successfully');
 });
 
 const cancelBooking = asyncHandler(async (req, res) => {
   const { cancelReason } = req.body;
-
   const booking = await bookingService.cancelBooking(req.user.id, req.params.id, cancelReason);
-
   return updatedResponse(res, booking, 'Booking cancelled successfully');
 });
 
 const getMyBookings = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, search, status, sortBy, sortOrder } = req.query;
-
   const result = await bookingService.getMyBookings(req.user.id, {
     page: parseInt(page, 10) || 1,
     limit: parseInt(limit, 10) || 10,
@@ -31,14 +32,18 @@ const getMyBookings = asyncHandler(async (req, res) => {
     sortBy,
     sortOrder,
   });
-
   return paginatedResponse(res, result);
 });
 
 const getBookingDetails = asyncHandler(async (req, res) => {
   const booking = await bookingService.getBookingDetails(req.user.id, req.params.id);
-
   return successResponse(res, booking, 'Booking retrieved successfully');
+});
+
+const memberUpdateBooking = asyncHandler(async (req, res) => {
+  const { bookingDate, bookingTime, sessionType, notes } = req.body;
+  const booking = await bookingService.memberUpdateBooking(req.user.id, req.params.id, { bookingDate, bookingTime, sessionType, notes });
+  return updatedResponse(res, booking, 'Booking updated successfully');
 });
 
 // ─── Trainer APIs ─────────────────────────────────────────
@@ -101,28 +106,34 @@ const getAllBookings = asyncHandler(async (req, res) => {
 
 const updateBookingStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
-
   const booking = await bookingService.updateBookingStatus(req.params.id, status);
-
   return updatedResponse(res, booking, 'Booking status updated successfully');
+});
+
+const updateBooking = asyncHandler(async (req, res) => {
+  const { bookingDate, bookingTime, sessionType, notes, trainerId, status } = req.body;
+  const booking = await bookingService.updateBooking(req.params.id, { bookingDate, bookingTime, sessionType, notes, trainerId, status });
+  return updatedResponse(res, booking, 'Booking updated successfully');
 });
 
 const deleteBooking = asyncHandler(async (req, res) => {
   const result = await bookingService.deleteBooking(req.params.id);
-
   return deletedResponse(res, result.message);
 });
 
 module.exports = {
   bookClass,
+  bookTrainer,
   cancelBooking,
   getMyBookings,
   getBookingDetails,
+  memberUpdateBooking,
   getBookingsForMyClasses,
   approveBooking,
   rejectBooking,
   markAttendance,
   getAllBookings,
   updateBookingStatus,
+  updateBooking,
   deleteBooking,
 };

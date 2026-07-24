@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   FiStar,
@@ -13,7 +13,10 @@ import {
 } from "react-icons/fi";
 import { Container, Button, SectionTitle, Skeleton } from "../../components/ui";
 import { zoomFade, staggerContainer } from "../../lib/animations";
-import { getTrainers } from "../../lib/trainersData";
+import { useAuth } from "../../context/AuthContext";
+import BookingModal from "../../components/BookingModal";
+
+const API_URL = import.meta.env.API_URL;
 
 function TrainersSkeleton() {
   return (
@@ -65,13 +68,13 @@ function TrainersSkeleton() {
   );
 }
 
-function TrainerCard({ trainer, index }) {
+function TrainerCard({ trainer, index, onBookNow }) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const socialIcons = [
-    { icon: FiInstagram, href: trainer.social?.instagram || "#", label: "Instagram" },
-    { icon: FiTwitter, href: trainer.social?.twitter || "#", label: "Twitter" },
-    { icon: FiLinkedin, href: trainer.social?.linkedin || "#", label: "LinkedIn" },
+    { icon: FiInstagram, href: trainer.social?.instagram || trainer.socialLinks?.instagram || "#", label: "Instagram" },
+    { icon: FiTwitter, href: trainer.social?.twitter || trainer.socialLinks?.twitter || "#", label: "Twitter" },
+    { icon: FiLinkedin, href: trainer.social?.linkedin || trainer.socialLinks?.linkedin || "#", label: "LinkedIn" },
   ];
 
   return (
@@ -86,7 +89,7 @@ function TrainerCard({ trainer, index }) {
             <Skeleton variant="shimmer" className="absolute inset-0 h-full w-full rounded-none" />
           )}
           <img
-            src={trainer.image}
+            src={trainer.image || trainer.profileImage}
             alt={`${trainer.name} - ${trainer.specialization}`}
             loading="lazy"
             onLoad={() => setImageLoaded(true)}
@@ -109,7 +112,7 @@ function TrainerCard({ trainer, index }) {
                 {trainer.specialization}
               </span>
               <span className="px-2.5 py-1 rounded-full bg-teal-500/15 border border-teal-500/20 text-teal-400 text-[11px] font-semibold backdrop-blur-sm">
-                {trainer.experience || "N/A"}
+                {trainer.experience ? `${trainer.experience} years` : "N/A"}
               </span>
             </div>
             <h3 className="text-xl font-bold text-base-content">{trainer.name}</h3>
@@ -133,6 +136,13 @@ function TrainerCard({ trainer, index }) {
             ))}
           </div>
 
+          {trainer.hourlyRate > 0 && (
+            <div className="mb-4">
+              <span className="text-lg font-bold text-cyan-400">${trainer.hourlyRate}</span>
+              <span className="text-xs text-base-content/40 ml-1">/session</span>
+            </div>
+          )}
+
           <div className="flex items-center gap-2">
             <Link to={`/trainers/${trainer.id}`} className="flex-1">
               <Button variant="cyan" size="sm" className="w-full group/btn">
@@ -140,6 +150,14 @@ function TrainerCard({ trainer, index }) {
                 <FiArrowRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
               </Button>
             </Link>
+            <Button
+              variant="primary"
+              size="sm"
+              className="flex-1"
+              onClick={() => onBookNow(trainer)}
+            >
+              Book Now
+            </Button>
             {socialIcons.map((social) => (
               <a
                 key={social.label}
@@ -158,16 +176,43 @@ function TrainerCard({ trainer, index }) {
 }
 
 function TrainersPage() {
+  const navigate = useNavigate();
+  const { user, isMember } = useAuth();
   const [loading, setLoading] = useState(true);
   const [trainers, setTrainers] = useState([]);
+  const [selectedTrainer, setSelectedTrainer] = useState(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setTrainers(getTrainers());
-      setLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+    const fetchTrainers = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/v1/trainer/public?limit=50`);
+        if (res.ok) {
+          const data = await res.json();
+          const list = data.data?.trainers || data.data || [];
+          setTrainers(list);
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTrainers();
   }, []);
+
+  const handleBookNow = (trainer) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    if (!isMember) {
+      navigate("/login");
+      return;
+    }
+    setSelectedTrainer(trainer);
+    setShowBookingModal(true);
+  };
 
   if (loading) return <TrainersSkeleton />;
 
@@ -259,7 +304,7 @@ function TrainersPage() {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           >
             {trainers.map((trainer, i) => (
-              <TrainerCard key={trainer.id} trainer={trainer} index={i} />
+              <TrainerCard key={trainer.id} trainer={trainer} index={i} onBookNow={handleBookNow} />
             ))}
           </motion.div>
 
@@ -277,6 +322,15 @@ function TrainersPage() {
           </motion.div>
         </Container>
       </section>
+
+      <BookingModal
+        isOpen={showBookingModal}
+        onClose={() => {
+          setShowBookingModal(false);
+          setSelectedTrainer(null);
+        }}
+        trainer={selectedTrainer}
+      />
     </>
   );
 }

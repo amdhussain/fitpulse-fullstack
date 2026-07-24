@@ -2,6 +2,7 @@ const { getAuth } = require('../../config/betterAuth');
 const UserRepository = require('./repository');
 const { ConflictError, UnauthorizedError, NotFoundError } = require('../../errors');
 const databaseService = require('../../services/databaseService');
+const notificationService = require('../../services/notificationService');
 const logger = require('../../utils/logger');
 
 function getCookieOptions() {
@@ -66,6 +67,8 @@ async function register({ firstName, lastName, email, password, role = 'MEMBER' 
   const token = signUpResult.token || '';
 
   logger.info('User registered successfully', { userId: appUser.id, email: appUser.email });
+
+  notificationService.userRegistered(appUser.id, `${firstName} ${lastName}`, email).catch(() => {});
 
   return {
     user: sanitizeUser(appUser),

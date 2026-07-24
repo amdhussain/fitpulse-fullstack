@@ -1,4 +1,5 @@
 const PaymentRepository = require('./repository');
+const notificationService = require('../../services/notificationService');
 const { NotFoundError, BadRequestError, ForbiddenError, ConflictError } = require('../../errors');
 const logger = require('../../utils/logger');
 
@@ -193,6 +194,8 @@ async function processPayment(paymentId) {
   });
 
   logger.info('Payment processed', { paymentId });
+
+  notificationService.paymentCompleted(paymentId, `User ${payment.userId}`, `$${payment.amount}`, 'plan').catch(() => {});
 
   return updated;
 }

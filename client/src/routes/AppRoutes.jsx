@@ -62,6 +62,13 @@ const NotificationCenter = lazy(() => import("../pages/dashboard/NotificationCen
 const FitnessToolsManagement = lazy(() => import("../pages/dashboard/FitnessToolsManagement"));
 const AdminSettings = lazy(() => import("../pages/dashboard/AdminSettings"));
 const AdminProfile = lazy(() => import("../pages/dashboard/AdminProfile"));
+const UserManagement = lazy(() => import("../pages/dashboard/UserManagement"));
+const BookingManagement = lazy(() => import("../pages/dashboard/BookingManagement"));
+const TrainerApproval = lazy(() => import("../pages/dashboard/TrainerApproval"));
+const PaymentManagement = lazy(() => import("../pages/dashboard/PaymentManagement"));
+const NewsletterManagement = lazy(() => import("../pages/dashboard/NewsletterManagement"));
+const SEOSettings = lazy(() => import("../pages/dashboard/SEOSettings"));
+const MyBookings = lazy(() => import("../pages/dashboard/MyBookings"));
 
 const routes = [
   {
@@ -114,6 +121,7 @@ const routes = [
     children: [
       { index: true, element: <DashboardSuspense><Overview /></DashboardSuspense> },
       { path: "profile", element: <DashboardSuspense><ProfileManagement /></DashboardSuspense> },
+      { path: "my-bookings", element: <DashboardSuspense><MyBookings /></DashboardSuspense> },
       { path: "hero", element: <DashboardSuspense><HeroManagement /></DashboardSuspense> },
       { path: "about", element: <DashboardSuspense><AboutManagement /></DashboardSuspense> },
       { path: "services", element: <DashboardSuspense><ServicesManagement /></DashboardSuspense> },
@@ -128,6 +136,12 @@ const routes = [
       { path: "fitness-tools", element: <DashboardSuspense><FitnessToolsManagement /></DashboardSuspense> },
       { path: "admin-profile", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><AdminProfile /></DashboardSuspense></ProtectedRoute> },
       { path: "admin-settings", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><AdminSettings /></DashboardSuspense></ProtectedRoute> },
+      { path: "users", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><UserManagement /></DashboardSuspense></ProtectedRoute> },
+      { path: "bookings", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><BookingManagement /></DashboardSuspense></ProtectedRoute> },
+      { path: "trainer-approval", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><TrainerApproval /></DashboardSuspense></ProtectedRoute> },
+      { path: "payments", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><PaymentManagement /></DashboardSuspense></ProtectedRoute> },
+      { path: "newsletter", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><NewsletterManagement /></DashboardSuspense></ProtectedRoute> },
+      { path: "seo", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><SEOSettings /></DashboardSuspense></ProtectedRoute> },
     ],
   },
 ];

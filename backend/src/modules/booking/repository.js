@@ -91,6 +91,7 @@ const BookingRepository = {
       trainerId: data.trainerId ? new ObjectId(data.trainerId) : null,
       bookingDate: data.bookingDate || null,
       bookingTime: data.bookingTime || null,
+      sessionType: data.sessionType || null,
       status: data.status || 'PENDING',
       attended: data.attended || false,
       notes: data.notes || null,
@@ -271,6 +272,33 @@ const BookingRepository = {
     const doc = await databaseService.client.trainers.findOne({ userId: new ObjectId(userId) });
     if (!doc) return null;
     return { ...doc, id: doc._id.toString(), userId: doc.userId.toString() };
+  },
+
+  async findTrainerById(trainerId) {
+    const pipeline = [
+      { $match: { _id: new ObjectId(trainerId) } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'userArr',
+          pipeline: [{ $project: { _id: 1, firstName: 1, lastName: 1, email: 1 } }],
+        },
+      },
+      { $addFields: { user: { $arrayElemAt: ['$userArr', 0] } } },
+      { $project: { userArr: 0 } },
+    ];
+    const results = await databaseService.client.trainers.aggregate(pipeline).toArray();
+    const doc = results[0];
+    if (!doc) return null;
+    const result = { ...doc, id: doc._id.toString(), userId: doc.userId.toString() };
+    if (result.user) {
+      result.user = { ...result.user, id: result.user._id.toString() };
+      delete result.user._id;
+    }
+    delete result._id;
+    return result;
   },
 
   async findClassIdsByTrainerId(trainerId) {

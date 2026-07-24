@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   FiGrid, FiImage, FiInfo, FiPackage, FiMapPin, FiUser, FiLogOut,
   FiX, FiAward, FiCreditCard, FiMessageSquare, FiCamera, FiMail,
-  FiSettings, FiChevronDown, FiBell, FiActivity,
+  FiSettings, FiChevronDown, FiBell, FiActivity, FiCalendar,
+  FiUserCheck, FiDollarSign, FiSearch, FiUsers, FiFileText,
 } from "react-icons/fi";
 import { useState } from "react";
 import Logo from "../ui/Logo";
@@ -13,6 +14,10 @@ const memberMenuGroups = [
   {
     label: "Overview",
     items: [{ to: "/dashboard", icon: FiGrid, label: "Dashboard", end: true }],
+  },
+  {
+    label: "Bookings",
+    items: [{ to: "/dashboard/my-bookings", icon: FiCalendar, label: "My Bookings" }],
   },
   {
     label: "Content",
@@ -36,15 +41,63 @@ const memberMenuGroups = [
       { to: "/dashboard/contact", icon: FiMail, label: "Contact" },
     ],
   },
-];
-
-const adminMenuGroups = [
-  ...memberMenuGroups,
   {
     label: "Settings",
     items: [
-      { to: "/dashboard/footer", icon: FiMapPin, label: "Footer" },
+      { to: "/dashboard/notifications", icon: FiBell, label: "Notifications" },
+    ],
+  },
+];
+
+const adminMenuGroups = [
+  {
+    label: "Overview",
+    items: [{ to: "/dashboard", icon: FiGrid, label: "Dashboard", end: true }],
+  },
+  {
+    label: "User Management",
+    items: [{ to: "/dashboard/users", icon: FiUsers, label: "Users Management" }],
+  },
+  {
+    label: "Trainer Management",
+    items: [
+      { to: "/dashboard/trainers", icon: FiAward, label: "Trainers Management" },
+      { to: "/dashboard/trainer-approval", icon: FiUserCheck, label: "Trainer Approval" },
+    ],
+  },
+  {
+    label: "Booking Management",
+    items: [{ to: "/dashboard/bookings", icon: FiCalendar, label: "Booking Management" }],
+  },
+  {
+    label: "Payment Management",
+    items: [{ to: "/dashboard/payments", icon: FiDollarSign, label: "Payment Management" }],
+  },
+  {
+    label: "Content Management",
+    items: [
+      { to: "/dashboard/hero", icon: FiImage, label: "Hero Management" },
+      { to: "/dashboard/about", icon: FiInfo, label: "About Management" },
+      { to: "/dashboard/services", icon: FiPackage, label: "Services Management" },
+      { to: "/dashboard/trainers", icon: FiAward, label: "Trainers Management" },
+      { to: "/dashboard/membership", icon: FiCreditCard, label: "Membership Management" },
+      { to: "/dashboard/gallery", icon: FiCamera, label: "Gallery Management" },
+      { to: "/dashboard/testimonials", icon: FiMessageSquare, label: "Testimonials Management" },
+    ],
+  },
+  {
+    label: "Communication",
+    items: [
+      { to: "/dashboard/contact", icon: FiMail, label: "Contact Messages" },
+      { to: "/dashboard/newsletter", icon: FiFileText, label: "Newsletter Management" },
+    ],
+  },
+  {
+    label: "CMS Settings",
+    items: [
       { to: "/dashboard/settings", icon: FiSettings, label: "Website Settings" },
+      { to: "/dashboard/seo", icon: FiSearch, label: "SEO Settings" },
+      { to: "/dashboard/footer", icon: FiMapPin, label: "Footer Management" },
       { to: "/dashboard/notifications", icon: FiBell, label: "Notifications" },
     ],
   },
@@ -142,9 +195,13 @@ function Sidebar({ open, onClose }) {
   const [openGroups, setOpenGroups] = useState(() => {
     const initial = {};
     menuGroups.forEach((group, i) => {
-      initial[i] = group.items.some((item) =>
-        item.end ? location.pathname === item.to : location.pathname.startsWith(item.to)
-      );
+      if (isAdmin) {
+        initial[i] = true;
+      } else {
+        initial[i] = group.items.some((item) =>
+          item.end ? location.pathname === item.to : location.pathname.startsWith(item.to)
+        );
+      }
     });
     if (!Object.values(initial).some(Boolean)) initial[0] = true;
     return initial;

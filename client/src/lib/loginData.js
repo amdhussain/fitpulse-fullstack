@@ -65,8 +65,8 @@ export const getSocialLinks = () => [
 ];
 
 export const getFormPlaceholders = () => ({
-  email: "you@example.com",
-  password: "Enter your password",
+  email: "Email Address",
+  password: "Password",
 });
 
 export const getValidationMessages = () => ({

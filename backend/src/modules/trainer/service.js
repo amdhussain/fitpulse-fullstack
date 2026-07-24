@@ -2,6 +2,7 @@ const { getAuth } = require('../../config/betterAuth');
 const TrainerRepository = require('./repository');
 const UserRepository = require('../user/repository');
 const databaseService = require('../../services/databaseService');
+const notificationService = require('../../services/notificationService');
 const { NotFoundError, ConflictError, BadRequestError } = require('../../errors');
 const logger = require('../../utils/logger');
 
@@ -30,12 +31,15 @@ function formatTrainer(trainer) {
     achievements: parseJsonField(trainer.achievements),
     availableDays: parseJsonField(trainer.availableDays),
     socialLinks: parseJsonField(trainer.socialLinks),
+    availableTimeSlots: parseJsonField(trainer.availableTimeSlots),
+    sessionTypes: parseJsonField(trainer.sessionTypes),
+    membershipCompatibility: parseJsonField(trainer.membershipCompatibility),
   };
 }
 
 // ─── Admin APIs ───────────────────────────────────────────
 
-async function createTrainer({ email, password, firstName, lastName, phone, profileImage, bio, specialization, designation, experience, hourlyRate, skills, programs, certificates, achievements, availableDays, socialLinks }) {
+async function createTrainer({ email, password, firstName, lastName, phone, profileImage, bio, specialization, designation, experience, hourlyRate, skills, programs, certificates, achievements, availableDays, socialLinks, sessionDuration, availableTimeSlots, sessionTypes, membershipCompatibility }) {
   const existingUser = await UserRepository.findByEmail(email.toLowerCase());
 
   if (existingUser) {
@@ -96,6 +100,10 @@ async function createTrainer({ email, password, firstName, lastName, phone, prof
         achievements: serializeJsonField(achievements),
         availableDays: serializeJsonField(availableDays),
         socialLinks: serializeJsonField(socialLinks),
+        sessionDuration: sessionDuration || 60,
+        availableTimeSlots: serializeJsonField(availableTimeSlots),
+        sessionTypes: serializeJsonField(sessionTypes),
+        membershipCompatibility: serializeJsonField(membershipCompatibility),
       },
       session
     );
@@ -104,6 +112,8 @@ async function createTrainer({ email, password, firstName, lastName, phone, prof
   });
 
   logger.info('Trainer created', { userId: result.user.id, trainerId: result.trainer.id });
+
+  notificationService.trainerAdded(result.trainer.id, `${firstName} ${lastName}`, specialization || 'General').catch(() => {});
 
   return {
     ...formatTrainer(result.trainer),
@@ -145,8 +155,8 @@ async function updateTrainer(trainerId, data) {
 
   const updateData = {};
 
-  const jsonFields = ['skills', 'programs', 'certificates', 'achievements', 'availableDays', 'socialLinks'];
-  const plainFields = ['bio', 'specialization', 'designation', 'experience', 'hourlyRate', 'status'];
+  const jsonFields = ['skills', 'programs', 'certificates', 'achievements', 'availableDays', 'socialLinks', 'availableTimeSlots', 'sessionTypes', 'membershipCompatibility'];
+  const plainFields = ['bio', 'specialization', 'designation', 'experience', 'hourlyRate', 'status', 'sessionDuration'];
 
   for (const field of plainFields) {
     if (data[field] !== undefined) updateData[field] = data[field];
@@ -165,6 +175,10 @@ async function updateTrainer(trainerId, data) {
   const updated = await TrainerRepository.update(trainerId, updateData);
 
   logger.info('Trainer updated by admin', { trainerId });
+
+  if (updateData.status === 'ACTIVE') {
+    notificationService.trainerApproved(trainerId, `${trainer.user?.firstName || ''} ${trainer.user?.lastName || ''}`.trim() || 'Trainer').catch(() => {});
+  }
 
   return formatTrainer(updated);
 }
@@ -304,6 +318,14 @@ async function listTrainers({ page, limit, search, specialization, minExperience
   };
 }
 
+async function getPublicTrainerById(trainerId) {
+  const trainer = await TrainerRepository.findPublicById(trainerId);
+  if (!trainer) {
+    throw new NotFoundError('Trainer not found');
+  }
+  return formatTrainer(trainer);
+}
+
 module.exports = {
   createTrainer,
   getAllTrainers,
@@ -316,4 +338,5 @@ module.exports = {
   updateExperience,
   updateSpecializations,
   listTrainers,
+  getPublicTrainerById,
 };

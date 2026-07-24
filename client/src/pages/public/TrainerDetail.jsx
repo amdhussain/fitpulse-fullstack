@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   FiArrowLeft,
@@ -17,7 +17,10 @@ import {
 } from "react-icons/fi";
 import { Container, Button, Skeleton } from "../../components/ui";
 import { slideInLeft, slideInRight } from "../../lib/animations";
-import { getTrainerById } from "../../lib/trainersData";
+import { useAuth } from "../../context/AuthContext";
+import BookingModal from "../../components/BookingModal";
+
+const API_URL = import.meta.env.API_URL;
 
 function TrainerDetailSkeleton() {
   return (
@@ -58,17 +61,29 @@ function TrainerDetailSkeleton() {
 
 function TrainerDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user, isMember } = useAuth();
   const [loading, setLoading] = useState(true);
   const [trainer, setTrainer] = useState(null);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const timer = setTimeout(() => {
-      setTrainer(getTrainerById(id));
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    const fetchTrainer = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/v1/trainer/public/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setTrainer(data.data);
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTrainer();
   }, [id]);
 
   if (loading) return <TrainerDetailSkeleton />;
@@ -254,7 +269,20 @@ function TrainerDetail() {
             </div>
 
             <div className="flex items-center gap-3 pt-2">
-              <Button variant="cyan" size="lg" className="group">
+              <Button
+                variant="cyan"
+                size="lg"
+                className="group"
+                onClick={() => {
+                  if (!user) {
+                    navigate("/login");
+                  } else if (isMember) {
+                    setShowBookingModal(true);
+                  } else {
+                    navigate("/login");
+                  }
+                }}
+              >
                 Book Session
                 <FiArrowLeft className="w-4 h-4 rotate-180 transition-transform duration-300 group-hover:translate-x-1" />
               </Button>
@@ -274,6 +302,12 @@ function TrainerDetail() {
           </motion.div>
         </div>
       </Container>
+
+      <BookingModal
+        isOpen={showBookingModal}
+        onClose={() => setShowBookingModal(false)}
+        trainer={trainer}
+      />
     </section>
   );
 }

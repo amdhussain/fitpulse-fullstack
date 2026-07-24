@@ -1,6 +1,7 @@
 const BookingRepository = require('./repository');
 const ClassRepository = require('../class/repository');
 const databaseService = require('../../services/databaseService');
+const notificationService = require('../../services/notificationService');
 const { NotFoundError, BadRequestError, ForbiddenError, ConflictError } = require('../../errors');
 const logger = require('../../utils/logger');
 
@@ -38,6 +39,32 @@ async function bookClass(userId, { classId, bookingDate, bookingTime, notes }) {
 
   logger.info('Class booked', { userId, classId, bookingId: booking.id });
 
+  const className = cls.name || 'a class';
+  const dateTime = bookingDate && bookingTime ? `${bookingDate} at ${bookingTime}` : 'upcoming';
+  notificationService.bookingCreated(booking.id, `User ${userId}`, className, dateTime).catch(() => {});
+
+  return booking;
+}
+
+async function bookTrainer(userId, { trainerId, bookingDate, bookingTime, sessionType, notes }) {
+  const trainer = await BookingRepository.findTrainerById(trainerId);
+  if (!trainer) throw new NotFoundError('Trainer not found');
+  if (trainer.status !== 'ACTIVE') throw new BadRequestError('Trainer is not available for booking');
+
+  const booking = await BookingRepository.create({
+    userId,
+    trainerId,
+    bookingDate,
+    bookingTime,
+    sessionType: sessionType || null,
+    notes: notes || null,
+  });
+
+  logger.info('Trainer booked', { userId, trainerId, bookingId: booking.id });
+  const trainerName = trainer.user ? `${trainer.user.firstName} ${trainer.user.lastName}` : 'trainer';
+  const dateTime = bookingDate && bookingTime ? `${bookingDate} at ${bookingTime}` : 'upcoming';
+  notificationService.bookingCreated(booking.id, `User ${userId}`, `session with ${trainerName}`, dateTime).catch(() => {});
+
   return booking;
 }
 
@@ -73,6 +100,8 @@ async function cancelBooking(userId, bookingId, cancelReason) {
   });
 
   logger.info('Booking cancelled', { userId, bookingId });
+
+  notificationService.bookingCancelled(bookingId, `User ${userId}`, 'session').catch(() => {});
 
   return updated;
 }
@@ -384,8 +413,47 @@ async function deleteBooking(bookingId) {
   return { message: 'Booking deleted successfully' };
 }
 
+async function updateBooking(bookingId, data) {
+  const booking = await BookingRepository.findByIdBasic(bookingId);
+  if (!booking) throw new NotFoundError('Booking not found');
+
+  const updateData = {};
+  if (data.bookingDate !== undefined) updateData.bookingDate = data.bookingDate;
+  if (data.bookingTime !== undefined) updateData.bookingTime = data.bookingTime;
+  if (data.sessionType !== undefined) updateData.sessionType = data.sessionType;
+  if (data.notes !== undefined) updateData.notes = data.notes;
+  if (data.trainerId !== undefined) updateData.trainerId = data.trainerId;
+  if (data.status !== undefined) updateData.status = data.status;
+
+  if (Object.keys(updateData).length === 0) throw new BadRequestError('No fields to update');
+
+  const updated = await BookingRepository.update(bookingId, updateData);
+  logger.info('Booking updated by admin', { bookingId });
+  return updated;
+}
+
+async function memberUpdateBooking(userId, bookingId, data) {
+  const booking = await BookingRepository.findByIdBasic(bookingId);
+  if (!booking) throw new NotFoundError('Booking not found');
+  if (booking.userId !== userId) throw new ForbiddenError('You can only edit your own bookings');
+  if (booking.status !== 'PENDING') throw new BadRequestError('Can only edit pending bookings');
+
+  const updateData = {};
+  if (data.bookingDate !== undefined) updateData.bookingDate = data.bookingDate;
+  if (data.bookingTime !== undefined) updateData.bookingTime = data.bookingTime;
+  if (data.sessionType !== undefined) updateData.sessionType = data.sessionType;
+  if (data.notes !== undefined) updateData.notes = data.notes;
+
+  if (Object.keys(updateData).length === 0) throw new BadRequestError('No fields to update');
+
+  const updated = await BookingRepository.update(bookingId, updateData);
+  logger.info('Booking updated by member', { userId, bookingId });
+  return updated;
+}
+
 module.exports = {
   bookClass,
+  bookTrainer,
   cancelBooking,
   getMyBookings,
   getBookingDetails,
@@ -396,4 +464,6 @@ module.exports = {
   getAllBookings,
   updateBookingStatus,
   deleteBooking,
+  updateBooking,
+  memberUpdateBooking,
 };
