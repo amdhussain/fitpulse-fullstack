@@ -1,16 +1,44 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { FiArrowRight, FiPlay } from "react-icons/fi";
 import { Container, Button } from "../ui";
 import { zoomFade } from "../../lib/animations";
 import { HeroSkeleton } from "../ui/Skeleton";
 
 const stats = [
-  { value: "500+", label: "Classes" },
-  { value: "50+", label: "Trainers" },
-  { value: "10K+", label: "Members" },
+  { value: 500, suffix: "+", label: "Classes" },
+  { value: 50, suffix: "+", label: "Trainers" },
+  { value: 10, suffix: "K+", label: "Members" },
 ];
+
+function CountUp({ target, suffix = "", duration = 1.5 }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+
+  useEffect(() => {
+    if (!isInView) return;
+    let start = 0;
+    const step = target / (duration * 60);
+    let raf;
+
+    const animate = () => {
+      start += step;
+      if (start >= target) {
+        setCount(target);
+        return;
+      }
+      setCount(Math.floor(start));
+      raf = requestAnimationFrame(animate);
+    };
+
+    raf = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(raf);
+  }, [isInView, target, duration]);
+
+  return <span ref={ref}>{count}{suffix}</span>;
+}
 
 function Hero() {
   const [loading, setLoading] = useState(true);
@@ -33,15 +61,15 @@ function Hero() {
         <div className="absolute top-1/2 left-1/3 w-[300px] h-[300px] bg-blue-400/4 rounded-full blur-[100px]" />
       </div>
 
-      <Container className="relative z-10 py-16 sm:py-20 lg:py-0">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <Container className="relative z-10 py-20 sm:py-24 lg:py-0">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 lg:gap-20 items-center">
           <motion.div
             initial="hidden"
             animate="visible"
             className="max-w-xl mx-auto lg:mx-0 text-center lg:text-left"
           >
             <motion.div variants={zoomFade} custom={0}>
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-semibold backdrop-blur-sm">
+              <span className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-semibold backdrop-blur-sm tracking-wide">
                 <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" aria-hidden="true" />
                 Transform Your Body
               </span>
@@ -50,7 +78,7 @@ function Hero() {
             <motion.h1
               variants={zoomFade}
               custom={1}
-              className="mt-6 text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black text-base-content leading-[1.08] tracking-tight"
+              className="mt-8 text-5xl sm:text-6xl lg:text-7xl xl:text-[5.25rem] font-black text-base-content leading-[1.05] tracking-[-0.03em]"
             >
               Train Smarter.
               <br />
@@ -62,7 +90,7 @@ function Hero() {
             <motion.p
               variants={zoomFade}
               custom={2}
-              className="mt-6 text-base-content/50 text-lg sm:text-xl leading-relaxed max-w-lg mx-auto lg:mx-0"
+              className="mt-7 text-base-content/50 text-lg sm:text-xl leading-[1.7] max-w-lg mx-auto lg:mx-0"
             >
               Book professional fitness classes, discover expert trainers,
               and start your healthy lifestyle today.
@@ -71,7 +99,7 @@ function Hero() {
             <motion.div
               variants={zoomFade}
               custom={3}
-              className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+              className="mt-10 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
               <Link to="/booking">
                 <Button variant="blue" size="lg" className="group">
@@ -90,14 +118,16 @@ function Hero() {
             <motion.div
               variants={zoomFade}
               custom={4}
-              className="mt-12 flex items-center gap-8 justify-center lg:justify-start"
+              className="mt-14 flex items-center gap-10 justify-center lg:justify-start"
             >
               {stats.map((stat, i) => (
-                <div key={stat.label} className="flex items-center gap-3">
-                  {i > 0 && <div className="w-px h-8 bg-blue-500/20" aria-hidden="true" />}
+                <div key={stat.label} className="flex items-center gap-4">
+                  {i > 0 && <div className="w-px h-10 bg-blue-500/20" aria-hidden="true" />}
                   <div>
-                    <p className="text-2xl sm:text-3xl font-bold text-base-content">{stat.value}</p>
-                    <p className="text-sm text-blue-400/60">{stat.label}</p>
+                    <p className="text-3xl sm:text-4xl font-extrabold text-base-content tracking-tight">
+                      <CountUp target={stat.value} suffix={stat.suffix} />
+                    </p>
+                    <p className="text-sm text-blue-400/60 mt-1 font-medium">{stat.label}</p>
                   </div>
                 </div>
               ))}

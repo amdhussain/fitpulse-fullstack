@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function PremiumLoader({ variant = "default" }) {
+  const { isDark } = useTheme();
   const isDashboard = variant === "dashboard";
 
   return (
@@ -11,9 +13,13 @@ export default function PremiumLoader({ variant = "default" }) {
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="min-h-screen flex items-center justify-center relative overflow-hidden"
       style={{
-        background: isDashboard
-          ? "linear-gradient(135deg, #0a0f1e 0%, #0d1321 50%, #0a0f1e 100%)"
-          : "linear-gradient(135deg, #0f0f12 0%, #1a1a22 50%, #0f0f12 100%)",
+        background: isDark
+          ? isDashboard
+            ? "linear-gradient(135deg, #0a0f1e 0%, #0d1321 50%, #0a0f1e 100%)"
+            : "linear-gradient(135deg, #0f0f12 0%, #1a1a22 50%, #0f0f12 100%)"
+          : isDashboard
+            ? "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%)"
+            : "linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%)",
       }}
     >
       <motion.div
@@ -25,9 +31,13 @@ export default function PremiumLoader({ variant = "default" }) {
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         className="absolute w-96 h-96 rounded-full opacity-20 blur-[60px]"
         style={{
-          background: isDashboard
-            ? "radial-gradient(circle, rgba(59,130,246,0.4), transparent 70%)"
-            : "radial-gradient(circle, rgba(6,182,212,0.4), transparent 70%)",
+          background: isDark
+            ? isDashboard
+              ? "radial-gradient(circle, rgba(59,130,246,0.4), transparent 70%)"
+              : "radial-gradient(circle, rgba(6,182,212,0.4), transparent 70%)"
+            : isDashboard
+              ? "radial-gradient(circle, rgba(59,130,246,0.15), transparent 70%)"
+              : "radial-gradient(circle, rgba(6,182,212,0.12), transparent 70%)",
         }}
       />
 
@@ -40,9 +50,13 @@ export default function PremiumLoader({ variant = "default" }) {
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
         className="absolute w-80 h-80 rounded-full opacity-15 blur-[60px]"
         style={{
-          background: isDashboard
-            ? "radial-gradient(circle, rgba(139,92,246,0.35), transparent 70%)"
-            : "radial-gradient(circle, rgba(230,57,70,0.25), transparent 70%)",
+          background: isDark
+            ? isDashboard
+              ? "radial-gradient(circle, rgba(139,92,246,0.35), transparent 70%)"
+              : "radial-gradient(circle, rgba(230,57,70,0.25), transparent 70%)"
+            : isDashboard
+              ? "radial-gradient(circle, rgba(139,92,246,0.12), transparent 70%)"
+              : "radial-gradient(circle, rgba(230,57,70,0.08), transparent 70%)",
         }}
       />
 
@@ -60,7 +74,9 @@ export default function PremiumLoader({ variant = "default" }) {
             }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
             className={`absolute inset-0 rounded-3xl blur-2xl ${
-              isDashboard ? "bg-blue-500/30" : "bg-cyan-500/25"
+              isDark
+                ? isDashboard ? "bg-blue-500/30" : "bg-cyan-500/25"
+                : isDashboard ? "bg-blue-500/15" : "bg-cyan-500/10"
             }`}
           />
 
@@ -68,7 +84,9 @@ export default function PremiumLoader({ variant = "default" }) {
             animate={{ rotate: 360 }}
             transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
             className={`absolute -inset-4 rounded-3xl border border-dashed ${
-              isDashboard ? "border-blue-400/15" : "border-cyan-400/10"
+              isDark
+                ? isDashboard ? "border-blue-400/15" : "border-cyan-400/10"
+                : isDashboard ? "border-blue-400/10" : "border-cyan-400/10"
             }`}
           />
 
@@ -83,9 +101,13 @@ export default function PremiumLoader({ variant = "default" }) {
               ease: "easeInOut",
             }}
             className={`relative w-20 h-20 rounded-2xl flex items-center justify-center ${
-              isDashboard
-                ? "bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30"
-                : "bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/30"
+              isDark
+                ? isDashboard
+                  ? "bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30"
+                  : "bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/30"
+                : isDashboard
+                  ? "bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/20"
+                  : "bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/20"
             }`}
           >
             <motion.span
@@ -118,7 +140,9 @@ export default function PremiumLoader({ variant = "default" }) {
                   delay: i * 0.2,
                 }}
                 className={`w-2 h-2 rounded-full ${
-                  isDashboard ? "bg-blue-400" : "bg-cyan-400"
+                  isDark
+                    ? isDashboard ? "bg-blue-400" : "bg-cyan-400"
+                    : isDashboard ? "bg-blue-500" : "bg-cyan-500"
                 }`}
               />
             ))}
@@ -131,7 +155,9 @@ export default function PremiumLoader({ variant = "default" }) {
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            className="text-sm font-medium text-base-content/60"
+            className={`text-sm font-medium ${
+              isDark ? "text-base-content/60" : "text-gray-500"
+            }`}
           >
             Loading your experience...
           </motion.p>
@@ -144,7 +170,9 @@ export default function PremiumLoader({ variant = "default" }) {
               ease: "easeInOut",
               delay: 0.3,
             }}
-            className="text-xs text-base-content/30"
+            className={`text-xs ${
+              isDark ? "text-base-content/30" : "text-gray-400"
+            }`}
           >
             Preparing your personalized dashboard...
           </motion.p>

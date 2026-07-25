@@ -26,7 +26,7 @@ class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] p-4">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0a0a0f] p-4">
           <div className="max-w-md w-full text-center space-y-6">
             <div className="relative mx-auto w-20 h-20">
               <div className="absolute inset-0 rounded-2xl bg-red-500/10 border border-red-500/20 animate-pulse" />
@@ -36,12 +36,12 @@ class ErrorBoundary extends Component {
             </div>
 
             <div className="space-y-2">
-              <h1 className="text-xl font-bold text-white">Something went wrong</h1>
-              <p className="text-sm text-white/40">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Something went wrong</h1>
+              <p className="text-sm text-gray-500 dark:text-white/40">
                 An unexpected error occurred. Please try again or return to the homepage.
               </p>
               {this.state.error?.message && (
-                <p className="text-xs text-red-400/60 font-mono mt-2 p-3 rounded-lg bg-red-500/5 border border-red-500/10">
+                <p className="text-xs text-red-400 dark:text-red-400/60 font-mono mt-2 p-3 rounded-lg bg-red-50 dark:bg-red-500/5 border border-red-200 dark:border-red-500/10">
                   {this.state.error.message}
                 </p>
               )}
@@ -57,7 +57,7 @@ class ErrorBoundary extends Component {
               </button>
               <button
                 onClick={this.handleGoHome}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/60 text-sm font-medium transition-all duration-200 hover:bg-white/10"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/60 text-sm font-medium transition-all duration-200 hover:bg-gray-100 dark:hover:bg-white/10"
               >
                 <FiHome className="w-4 h-4" />
                 Go Home

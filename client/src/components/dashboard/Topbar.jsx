@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiMenu, FiBell, FiSearch, FiSun, FiMoon, FiX } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 
 const API_URL = import.meta.env.API_URL;
 
@@ -151,10 +152,10 @@ function NotificationPanel({ isOpen, onClose }) {
 function Topbar({ onMenuClick }) {
   const { pathname } = useLocation();
   const { user, isAdmin } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const title = routeTitles[pathname] || "Dashboard";
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const [darkMode, setDarkMode] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -205,8 +206,8 @@ function Topbar({ onMenuClick }) {
           <FiSearch className="w-5 h-5" />
         </button>
 
-        <button onClick={() => setDarkMode((v) => !v)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300" aria-label="Toggle theme">
-          {darkMode ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
+        <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300" aria-label="Toggle theme">
+          {isDark ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
         </button>
 
         <div className="relative">

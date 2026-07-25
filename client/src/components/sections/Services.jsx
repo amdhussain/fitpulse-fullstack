@@ -39,16 +39,16 @@ function ServiceCard({ service, index }) {
 
   return (
     <motion.div variants={fadeUp} custom={index} className="h-full">
-      <div className={`group h-full flex flex-col p-6 sm:p-7 rounded-2xl bg-base-200/60 backdrop-blur-xl border border-base-300/50 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${cardGlows[index] || cardGlows[0]}`}>
-        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 transition-all duration-300 shadow-lg ${iconBgs[index] || iconBgs[0]}`}>
+      <div className={`group h-full flex flex-col p-7 sm:p-8 rounded-3xl bg-base-200/60 backdrop-blur-xl border border-base-300/50 overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl ${cardGlows[index] || cardGlows[0]}`}>
+        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-all duration-300 shadow-lg ${iconBgs[index] || iconBgs[0]}`}>
           <Icon className={`w-6 h-6 transition-colors duration-300 ${iconColors[index] || iconColors[0]}`} />
         </div>
 
-        <h3 className="text-lg font-bold text-base-content mb-2">
+        <h3 className="text-xl font-bold text-base-content mb-3 tracking-tight">
           {service.title}
         </h3>
 
-        <p className="text-sm text-base-content/45 leading-relaxed mb-6 flex-1">
+        <p className="text-sm text-base-content/45 leading-[1.7] mb-7 flex-1">
           {service.description}
         </p>
 
@@ -74,7 +74,7 @@ function Services() {
   if (loading) return <ServicesSkeleton />;
 
   return (
-    <section id="services" className="relative py-20 sm:py-28 overflow-hidden bg-gradient-to-b from-base-100 via-emerald-950/8 to-base-100">
+    <section id="services" className="relative py-24 sm:py-32 lg:py-40 overflow-hidden bg-gradient-to-b from-base-100 via-emerald-950/8 to-base-100">
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
         <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-emerald-500/4 rounded-full blur-[160px]" />
         <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-green-500/3 rounded-full blur-[120px]" />
@@ -88,7 +88,7 @@ function Services() {
           className="text-center"
         >
           <motion.div variants={fadeUp} custom={0}>
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-semibold backdrop-blur-sm">
+            <span className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-semibold backdrop-blur-sm tracking-wide">
               <span className="w-2 h-2 rounded-full bg-emerald-400" aria-hidden="true" />
               Our Services
             </span>
@@ -99,7 +99,7 @@ function Services() {
               title="Explore Our Fitness Classes"
               description="From personal training to group sessions, find the perfect class to match your goals and schedule."
               accentColor="emerald"
-              className="mt-6 mb-0"
+              className="mt-7 mb-0"
             />
           </motion.div>
         </motion.div>
@@ -109,7 +109,7 @@ function Services() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-60px" }}
-          className="mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7"
         >
           {services.map((service, i) => (
             <ServiceCard key={service.id} service={service} index={i} />

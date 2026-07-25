@@ -17,23 +17,19 @@ function SectionTitle({ subtitle, title, description, align = "center", classNam
   const colors = colorMap[accentColor] || colorMap.primary;
 
   return (
-    <div className={`mb-12 ${alignment} ${className}`}>
+    <div className={`mb-14 ${alignment} ${className}`}>
       {subtitle && (
         <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold backdrop-blur-sm mb-4 ${colors.badge}`}>
           <span className={`w-2 h-2 rounded-full ${colors.dot}`} />
           {subtitle}
         </span>
       )}
-      <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-base-content leading-tight tracking-tight">
+      <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-base-content leading-[1.1] tracking-[-0.02em]">
         {title}
       </h2>
       {description && (
-        <p className="mt-4 text-base-content/50 max-w-2xl text-lg leading-relaxed">
-          {align === "center" ? (
-            <span className="block mx-auto">{description}</span>
-          ) : (
-            description
-          )}
+        <p className="mt-6 text-base-content/50 text-base sm:text-lg lg:text-xl leading-[1.8] max-w-[700px] mx-auto">
+          {description}
         </p>
       )}
     </div>
