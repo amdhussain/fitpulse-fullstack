@@ -61,7 +61,7 @@ function Hero() {
         <div className="absolute top-1/2 left-1/3 w-[300px] h-[300px] bg-blue-400/4 rounded-full blur-[100px]" />
       </div>
 
-      <Container className="relative z-10 py-20 sm:py-24 lg:py-0">
+      <Container className="relative z-10 pt-24 sm:pt-28 lg:pt-32 pb-0">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 lg:gap-20 items-center">
           <motion.div
             initial="hidden"
