@@ -3,6 +3,8 @@ const databaseService = require('./services/databaseService');
 const seedAdmin = require('./config/seedAdmin');
 const app = require('./app');
 
+app.set('trust proxy', 1);
+
 const PORT = env.port;
 
 async function startServer() {

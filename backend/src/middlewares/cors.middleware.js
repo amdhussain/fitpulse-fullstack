@@ -1,11 +1,13 @@
 const cors = require('cors');
 const env = require('../config/env');
 
-const ALLOWED_ORIGINS = [env.clientUrl];
+const ALLOWED_ORIGINS = [
+  env.clientUrl,
+  'http://localhost:5173',
+  'https://fitpulse-fullstack-1zmwtnq3x-md-hussain-ahmed-s-projects.vercel.app',
+];
 
-// In development, also allow common local dev origins
 if (env.isDevelopment) {
-  ALLOWED_ORIGINS.push('http://localhost:5173');
   ALLOWED_ORIGINS.push('http://localhost:3000');
   ALLOWED_ORIGINS.push('http://localhost:5000');
 }
