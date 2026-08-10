@@ -76,13 +76,13 @@ export function AuthProvider({ children }) {
   );
 
   const logout = useCallback(async () => {
+    const token = localStorage.getItem("token");
     setUser(null);
     clearAuthStorage();
     navigate("/login", { replace: true });
 
-    try {
-      const token = localStorage.getItem("token");
-      if (token) {
+    if (token) {
+      try {
         await fetch(`${API_URL}/api/v1/auth/logout`, {
           method: "POST",
           headers: {
@@ -90,9 +90,9 @@ export function AuthProvider({ children }) {
             Authorization: `Bearer ${token}`,
           },
         });
+      } catch {
+        // Server-side session cleanup is best-effort
       }
-    } catch {
-      // Server-side session cleanup is best-effort
     }
   }, [navigate]);
 

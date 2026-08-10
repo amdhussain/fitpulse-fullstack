@@ -1,0 +1,144 @@
+[1mdiff --git a/client/src/context/AuthContext.jsx b/client/src/context/AuthContext.jsx[m
+[1mindex d877fbd..c902f0f 100644[m
+[1m--- a/client/src/context/AuthContext.jsx[m
+[1m+++ b/client/src/context/AuthContext.jsx[m
+[36m@@ -1,134 +1,134 @@[m
+ import { createContext, useContext, useState, useCallback, useEffect } from "react";[m
+ import { useNavigate } from "react-router-dom";[m
+ [m
+ const AuthContext = createContext(null);[m
+ [m
+ const API_URL = import.meta.env.API_URL;[m
+ [m
+ function clearAuthStorage() {[m
+   localStorage.removeItem("user");[m
+   localStorage.removeItem("token");[m
+ }[m
+ [m
+ export function AuthProvider({ children }) {[m
+   const [user, setUser] = useState(null);[m
+   const [loading, setLoading] = useState(true);[m
+   const navigate = useNavigate();[m
+ [m
+   useEffect(() => {[m
+     try {[m
+       const stored = localStorage.getItem("user");[m
+       const token = localStorage.getItem("token");[m
+       if (stored && token) {[m
+         setUser(JSON.parse(stored));[m
+       }[m
+     } catch {[m
+       clearAuthStorage();[m
+     } finally {[m
+       setLoading(false);[m
+     }[m
+   }, []);[m
+ [m
+   const login = useCallback([m
+     async (email, password) => {[m
+       const response = await fetch(`${API_URL}/api/v1/auth/login`, {[m
+         method: "POST",[m
+         headers: { "Content-Type": "application/json" },[m
+         body: JSON.stringify({ email, password }),[m
+       });[m
+ [m
+       const result = await response.json();[m
+ [m
+       if (!response.ok) {[m
+         throw new Error(result.message || "Login failed");[m
+       }[m
+ [m
+       const { user: userData, token } = result.data;[m
+       localStorage.setItem("user", JSON.stringify(userData));[m
+       localStorage.setItem("token", token);[m
+       setUser(userData);[m
+       return userData;[m
+     },[m
+     [][m
+   );[m
+ [m
+   const register = useCallback([m
+     async ({ firstName, lastName, email, password, passwordConfirm }) => {[m
+       const response = await fetch(`${API_URL}/api/v1/auth/register`, {[m
+         method: "POST",[m
+         headers: { "Content-Type": "application/json" },[m
+         body: JSON.stringify({ firstName, lastName, email, password, passwordConfirm }),[m
+       });[m
+ [m
+       const result = await response.json();[m
+ [m
+       if (!response.ok) {[m
+         throw new Error(result.message || "Registration failed");[m
+       }[m
+ [m
+       const { user: userData, token } = result.data;[m
+       localStorage.setItem("user", JSON.stringify(userData));[m
+       localStorage.setItem("token", token);[m
+       setUser(userData);[m
+       return userData;[m
+     },[m
+     [][m
+   );[m
+ [m
+   const logout = useCallback(async () => {[m
+[32m+[m[32m    const token = localStorage.getItem("token");[m
+     setUser(null);[m
+     clearAuthStorage();[m
+     navigate("/login", { replace: true });[m
+ [m
+[31m-    try {[m
+[31m-      const token = localStorage.getItem("token");[m
+[31m-      if (token) {[m
+[32m+[m[32m    if (token) {[m
+[32m+[m[32m      try {[m
+         await fetch(`${API_URL}/api/v1/auth/logout`, {[m
+           method: "POST",[m
+           headers: {[m
+             "Content-Type": "application/json",[m
+             Authorization: `Bearer ${token}`,[m
+           },[m
+         });[m
+[32m+[m[32m      } catch {[m
+[32m+[m[32m        // Server-side session cleanup is best-effort[m
+       }[m
+[31m-    } catch {[m
+[31m-      // Server-side session cleanup is best-effort[m
+     }[m
+   }, [navigate]);[m
+ [m
+   const updateUser = useCallback([m
+     (updatedData) => {[m
+       const newUserData = { ...user, ...updatedData };[m
+       localStorage.setItem("user", JSON.stringify(newUserData));[m
+       setUser(newUserData);[m
+     },[m
+     [user][m
+   );[m
+ [m
+   const isAdmin = user?.role?.toUpperCase() === "ADMIN";[m
+   const isMember = user?.role?.toUpperCase() === "MEMBER";[m
+   const isTrainer = user?.role?.toUpperCase() === "TRAINER";[m
+ [m
+   const value = {[m
+     user,[m
+     loading,[m
+     isAuthenticated: !!user,[m
+     isAdmin,[m
+     isMember,[m
+     isTrainer,[m
+     login,[m
+     register,[m
+     logout,[m
+     updateUser,[m
+   };[m
+ [m
+   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;[m
+ }[m
+ [m
+ export function useAuth() {[m
+   const context = useContext(AuthContext);[m
+   if (!context) {[m
+     throw new Error("useAuth must be used within an AuthProvider");[m
+   }[m
+   return context;[m
+ }[m
