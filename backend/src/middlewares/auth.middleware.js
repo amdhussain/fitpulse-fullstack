@@ -54,10 +54,23 @@ const protect = asyncHandler(async (req, res, next) => {
     throw new UnauthorizedError('Invalid or expired session. Please log in again.');
   }
 
-  const doc = await databaseService.client.users.findOne(
-    { _id: databaseService.toObjectId(sessionUser.id || sessionUser._id?.toString()) },
-    { projection: { password: 0 } }
-  );
+  let doc = null;
+  if (sessionUser.email) {
+    doc = await databaseService.client.users.findOne(
+      { email: sessionUser.email.toLowerCase() },
+      { projection: { password: 0 } }
+    );
+  }
+  if (!doc && sessionUser.id) {
+    try {
+      doc = await databaseService.client.users.findOne(
+        { _id: databaseService.toObjectId(sessionUser.id) },
+        { projection: { password: 0 } }
+      );
+    } catch (e) {
+      // Ignore invalid ObjectId fallback
+    }
+  }
   const user = databaseService.formatDoc(doc);
 
   if (!user) {
