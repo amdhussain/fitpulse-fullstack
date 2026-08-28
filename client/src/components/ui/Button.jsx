@@ -62,8 +62,8 @@ function Button({
         active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100
         ${variants[variant]} ${sizes[size]} ${className}`}
       disabled={disabled || loading}
-      onClick={handleClick}
       {...props}
+      onClick={handleClick}
     >
       {loading && (
         <svg className="animate-spin h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none">

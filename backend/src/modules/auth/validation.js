@@ -22,7 +22,23 @@ const login = [
     .withMessage('Password is required'),
 ];
 
+const forgotPassword = [
+  rules.email('email'),
+];
+
+const resetPassword = [
+  body('token')
+    .trim()
+    .notEmpty()
+    .withMessage('Reset token is required'),
+  body('newPassword')
+    .isLength({ min: 8, max: 128 })
+    .withMessage('Password must be between 8 and 128 characters'),
+];
+
 module.exports = {
   register: validateRequest(register),
   login: validateRequest(login),
+  forgotPassword: validateRequest(forgotPassword),
+  resetPassword: validateRequest(resetPassword),
 };

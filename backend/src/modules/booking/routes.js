@@ -10,13 +10,16 @@ function bookingRoutes(router) {
   router.get('/me', protect, authorize('MEMBER'), bookingValidation.getMyBookings, bookingController.getMyBookings);
   router.get('/me/:id', protect, authorize('MEMBER'), bookingValidation.idParam, bookingController.getBookingDetails);
   router.patch('/me/:id', protect, authorize('MEMBER'), bookingValidation.idParam, bookingValidation.memberUpdateBooking, bookingController.memberUpdateBooking);
-  router.patch('/me/:id/cancel', protect, authorize('MEMBER'), bookingValidation.idParam, bookingValidation.cancelBooking, bookingController.cancelBooking);
+  router.patch('/me/:id/cancel', protect, authorize('MEMBER'), bookingValidation.idParam, bookingController.cancelBooking);
+  router.patch('/me/:id/verify-payment', protect, authorize('ADMIN'), bookingValidation.idParam, bookingController.verifyPayment);
+  router.patch('/me/:id/reject-payment', protect, authorize('ADMIN'), bookingValidation.idParam, bookingController.rejectPayment);
+  router.post('/me/:id/submit-payment', protect, authorize('MEMBER'), bookingValidation.idParam, bookingController.submitPayment);
 
   // ─── Trainer Routes ────────────────────────────────────
   router.get('/trainer', protect, authorize('TRAINER'), bookingValidation.getBookingsForMyClasses, bookingController.getBookingsForMyClasses);
   router.patch('/trainer/:id/approve', protect, authorize('TRAINER'), bookingValidation.idParam, bookingController.approveBooking);
   router.patch('/trainer/:id/reject', protect, authorize('TRAINER'), bookingValidation.idParam, bookingController.rejectBooking);
-  router.patch('/trainer/:id/attendance', protect, authorize('TRAINER'), bookingValidation.idParam, bookingValidation.markAttendance, bookingController.markAttendance);
+  router.patch('/trainer/:id/attendance', protect, authorize('TRAINER'), bookingValidation.idParam, bookingController.markAttendance);
 
   // ─── Admin Routes ──────────────────────────────────────
   router.get('/', protect, authorize('ADMIN'), bookingValidation.getAllBookings, bookingController.getAllBookings);

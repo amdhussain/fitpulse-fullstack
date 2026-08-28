@@ -51,11 +51,8 @@ function ServicesManagement() {
   const categories = getServiceCategories();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setServices(getServices());
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    setServices(getServices());
+    setLoading(false);
   }, []);
 
   const openAdd = () => {

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FiEye,
   FiEdit2,
@@ -9,6 +9,9 @@ import {
   FiStar,
   FiFolder,
   FiHardDrive,
+  FiX,
+  FiChevronLeft,
+  FiChevronRight,
 } from "react-icons/fi";
 import { Button, SavedBadge, FileUpload } from "../../components/ui";
 import { staggerContainer, fadeUp } from "../../lib/animations";
@@ -18,6 +21,7 @@ import CmsModal from "../../components/dashboard/CmsModal";
 import CmsBadge from "../../components/dashboard/CmsBadge";
 import ConfirmModal from "../../components/dashboard/ConfirmModal";
 import { getInputClass } from "../../lib/dashboardHelpers";
+import { useAuth } from "../../context/AuthContext";
 import {
   getGalleryImages,
   getGalleryStats,
@@ -70,6 +74,7 @@ function GallerySkeleton() {
 }
 
 function GalleryCard({ image, index, onView, onEdit, onDelete }) {
+  const { isAdmin } = useAuth();
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const heights = ["h-52", "h-64", "h-72", "h-80"];
@@ -82,7 +87,7 @@ function GalleryCard({ image, index, onView, onEdit, onDelete }) {
       className="break-inside-avoid mb-4 group"
     >
       <div className="relative rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg shadow-gray-100 dark:shadow-gray-900 hover:shadow-2xl hover:shadow-gray-200/50 dark:hover:shadow-gray-900/50 transition-all duration-500">
-        <div className={`relative ${heightClass} overflow-hidden`}>
+        <div className={`relative ${heightClass} overflow-hidden cursor-pointer`} onClick={() => onView(image)}>
           {!isLoaded && !hasError && (
             <div className="absolute inset-0 animate-pulse bg-gray-100" />
           )}
@@ -127,26 +132,30 @@ function GalleryCard({ image, index, onView, onEdit, onDelete }) {
 
           <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 scale-75 group-hover:scale-100 z-10">
             <button
-              onClick={() => onView(image)}
+              onClick={(e) => { e.stopPropagation(); onView(image); }}
               className="w-10 h-10 rounded-full bg-sky-500/80 backdrop-blur-sm flex items-center justify-center text-white hover:bg-sky-500 transition-colors shadow-lg"
               aria-label={`View ${image.title}`}
             >
               <FiEye className="w-4 h-4" />
             </button>
-            <button
-              onClick={() => onEdit(image)}
-              className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-600 backdrop-blur-sm flex items-center justify-center text-gray-900 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors shadow-lg border border-gray-200 dark:border-gray-500"
-              aria-label={`Edit ${image.title}`}
-            >
-              <FiEdit2 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => onDelete(image)}
-              className="w-10 h-10 rounded-full bg-red-500/80 backdrop-blur-sm flex items-center justify-center text-white hover:bg-red-600 transition-colors shadow-lg"
-              aria-label={`Delete ${image.title}`}
-            >
-              <FiTrash2 className="w-4 h-4" />
-            </button>
+            {isAdmin && (
+              <>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onEdit(image); }}
+                  className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-600 backdrop-blur-sm flex items-center justify-center text-gray-900 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors shadow-lg border border-gray-200 dark:border-gray-500"
+                  aria-label={`Edit ${image.title}`}
+                >
+                  <FiEdit2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDelete(image); }}
+                  className="w-10 h-10 rounded-full bg-red-500/80 backdrop-blur-sm flex items-center justify-center text-white hover:bg-red-600 transition-colors shadow-lg"
+                  aria-label={`Delete ${image.title}`}
+                >
+                  <FiTrash2 className="w-4 h-4" />
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -155,7 +164,16 @@ function GalleryCard({ image, index, onView, onEdit, onDelete }) {
             {image.title}
           </p>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{image.category}</p>
-          <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1">{image.updatedAt}</p>
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-[11px] text-gray-400 dark:text-gray-500">{image.updatedAt}</p>
+            <button
+              onClick={(e) => { e.stopPropagation(); onView(image); }}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-500/20 transition-colors"
+            >
+              <FiEye className="w-3 h-3" />
+              View
+            </button>
+          </div>
         </div>
       </div>
     </motion.div>
@@ -163,6 +181,7 @@ function GalleryCard({ image, index, onView, onEdit, onDelete }) {
 }
 
 function GalleryManagement() {
+  const { isAdmin } = useAuth();
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -170,6 +189,7 @@ function GalleryManagement() {
   const [form, setForm] = useState(emptyForm);
   const [saved, setSaved] = useState(false);
   const [viewItem, setViewItem] = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(-1);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("All");
@@ -179,11 +199,8 @@ function GalleryManagement() {
   const perPage = 9;
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setImages(getGalleryImages());
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    setImages(getGalleryImages());
+    setLoading(false);
   }, []);
 
   const stats = getGalleryStats(images);
@@ -260,6 +277,46 @@ function GalleryManagement() {
     setSearch(val);
     setPage(1);
   };
+
+  const openLightbox = useCallback((image) => {
+    const idx = filtered.findIndex((img) => img.id === image.id);
+    setViewItem(image);
+    setLightboxIndex(idx >= 0 ? idx : 0);
+  }, [filtered]);
+
+  const closeLightbox = useCallback(() => {
+    setViewItem(null);
+    setLightboxIndex(-1);
+  }, []);
+
+  const prevImage = useCallback(() => {
+    if (filtered.length === 0) return;
+    const newIdx = (lightboxIndex - 1 + filtered.length) % filtered.length;
+    setLightboxIndex(newIdx);
+    setViewItem(filtered[newIdx]);
+  }, [lightboxIndex, filtered]);
+
+  const nextImage = useCallback(() => {
+    if (filtered.length === 0) return;
+    const newIdx = (lightboxIndex + 1) % filtered.length;
+    setLightboxIndex(newIdx);
+    setViewItem(filtered[newIdx]);
+  }, [lightboxIndex, filtered]);
+
+  useEffect(() => {
+    if (!viewItem) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") prevImage();
+      if (e.key === "ArrowRight") nextImage();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [viewItem, closeLightbox, prevImage, nextImage]);
 
   return (
     <motion.div
@@ -349,10 +406,12 @@ function GalleryManagement() {
             ))}
           </div>
         </div>
-        <Button variant="sky" size="sm" onClick={openAdd}>
-          <FiImage className="w-4 h-4" />
-          Add Image
-        </Button>
+        {isAdmin && (
+          <Button variant="sky" size="sm" onClick={openAdd}>
+            <FiImage className="w-4 h-4" />
+            Add Image
+          </Button>
+        )}
       </div>
 
       {loading ? (
@@ -377,7 +436,7 @@ function GalleryManagement() {
               key={img.id}
               image={img}
               index={i}
-              onView={setViewItem}
+              onView={openLightbox}
               onEdit={openEdit}
               onDelete={setDeleteTarget}
             />
@@ -419,17 +478,18 @@ function GalleryManagement() {
         </div>
       )}
 
-      <CmsModal
-        isOpen={showModal}
-        onClose={() => {
-          setShowModal(false);
-          setEditing(null);
-          setForm(emptyForm);
-        }}
-        title={editing ? "Edit Image" : "Add Image"}
-        subtitle="Configure your gallery image details"
-        size="lg"
-      >
+      {isAdmin && (
+        <CmsModal
+          isOpen={showModal}
+          onClose={() => {
+            setShowModal(false);
+            setEditing(null);
+            setForm(emptyForm);
+          }}
+          title={editing ? "Edit Image" : "Add Image"}
+          subtitle="Configure your gallery image details"
+          size="lg"
+        >
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
@@ -571,72 +631,119 @@ function GalleryManagement() {
           </div>
         </form>
       </CmsModal>
+      )}
 
-      <CmsModal
-        isOpen={!!viewItem}
-        onClose={() => setViewItem(null)}
-        title="Image Preview"
-        subtitle={viewItem?.category}
-        size="lg"
-      >
+      <AnimatePresence>
         {viewItem && (
-          <div className="space-y-4">
-            <div className="rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-700/50 border border-sky-100 dark:border-sky-800/50">
-              {viewItem.image && (
-                <div className="h-64 sm:h-80 overflow-hidden">
-                  <img
-                    src={viewItem.image}
-                    alt={viewItem.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              <div className="p-6 space-y-3">
-                <div className="flex items-center gap-2 flex-wrap">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-sm"
+            onClick={closeLightbox}
+          >
+            {/* Close button */}
+            <button
+              onClick={closeLightbox}
+              className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+              aria-label="Close"
+            >
+              <FiX className="w-5 h-5" />
+            </button>
+
+            {/* Counter */}
+            <div className="absolute top-4 left-4 z-50 px-3 py-1.5 rounded-full bg-white/10 text-white text-sm font-medium">
+              {lightboxIndex + 1} / {filtered.length}
+            </div>
+
+            {/* Previous button */}
+            {filtered.length > 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-50 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+                aria-label="Previous image"
+              >
+                <FiChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+            )}
+
+            {/* Next button */}
+            {filtered.length > 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-50 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+                aria-label="Next image"
+              >
+                <FiChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+              </button>
+            )}
+
+            {/* Image container */}
+            <motion.div
+              key={viewItem.id}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="relative max-w-[90vw] max-h-[85vh] flex flex-col items-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={viewItem.image}
+                alt={viewItem.title}
+                className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-2xl"
+              />
+
+              {/* Image info */}
+              <div className="mt-4 text-center px-4 max-w-2xl">
+                <div className="flex items-center justify-center gap-2 flex-wrap mb-2">
                   {viewItem.category && (
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white ${
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold text-white ${
                         categoryColors[viewItem.category] || "bg-sky-500/80"
                       }`}
                     >
                       {viewItem.category}
                     </span>
                   )}
-                  <CmsBadge status={viewItem.status || "active"} />
                   {viewItem.featured && (
-                    <span className="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold flex items-center gap-1">
+                    <span className="px-2 py-0.5 rounded-full bg-amber-500/80 text-white text-[11px] font-bold flex items-center gap-1">
                       <FiStar className="w-2.5 h-2.5 fill-current" />
                       Featured
                     </span>
                   )}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                <h3 className="text-lg sm:text-xl font-bold text-white">
                   {viewItem.title}
                 </h3>
-                <p className="text-sm text-gray-400 dark:text-gray-500">{viewItem.description}</p>
-                <div className="flex items-center gap-4 pt-3 border-t border-gray-100 dark:border-gray-700">
-                  <div>
-                    <p className="text-xs text-gray-400 dark:text-gray-500">Updated</p>
-                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                      {viewItem.updatedAt}
-                    </p>
-                  </div>
-                </div>
+                {viewItem.description && (
+                  <p className="text-sm text-gray-300 mt-1 max-w-lg mx-auto">
+                    {viewItem.description}
+                  </p>
+                )}
+                {viewItem.updatedAt && (
+                  <p className="text-xs text-gray-400 mt-2">
+                    Updated {viewItem.updatedAt}
+                  </p>
+                )}
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
-      </CmsModal>
+      </AnimatePresence>
 
-      <ConfirmModal
-        isOpen={!!deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={() => handleDelete(deleteTarget?.id)}
-        title="Delete Image"
-        message={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
-        confirmText="Delete Image"
-        type="danger"
-      />
+      {isAdmin && (
+        <ConfirmModal
+          isOpen={!!deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          onConfirm={() => handleDelete(deleteTarget?.id)}
+          title="Delete Image"
+          message={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
+          confirmText="Delete Image"
+          type="danger"
+        />
+      )}
     </motion.div>
   );
 }

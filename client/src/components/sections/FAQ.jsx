@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiChevronDown } from "react-icons/fi";
-import { Container, SectionTitle } from "../ui";
+import { Container, SectionTitle, Skeleton } from "../ui";
 import { staggerContainer, fadeUp } from "../../lib/animations";
 
 const faqs = [
@@ -90,8 +90,7 @@ function FAQ() {
   const [openIndex, setOpenIndex] = useState(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(timer);
+    setLoading(false);
   }, []);
 
   if (loading) {
@@ -99,14 +98,14 @@ function FAQ() {
       <section className="relative py-24 sm:py-32 lg:py-40 overflow-hidden bg-gradient-to-b from-base-100 via-indigo-950/5 to-base-100">
         <Container>
           <div className="text-center space-y-3 mb-16">
-            <div className="h-8 w-24 rounded-full bg-base-200/60 mx-auto animate-pulse" />
-            <div className="h-10 w-64 rounded-xl bg-base-200/60 mx-auto animate-pulse" />
-            <div className="h-5 w-80 rounded-lg bg-base-200/60 mx-auto animate-pulse" />
+            <Skeleton variant="shimmer" className="h-8 w-24 rounded-full mx-auto" />
+            <Skeleton variant="shimmer" className="h-10 w-64 mx-auto" />
+            <Skeleton variant="shimmer" className="h-5 w-80 mx-auto" />
           </div>
           <div className="max-w-3xl mx-auto space-y-4">
             {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-              <div key={i} className="p-7 rounded-2xl bg-base-200/40 border border-base-300/30 animate-pulse">
-                <div className="h-5 w-3/4 rounded-lg bg-base-300/50" />
+              <div key={i} className="p-7 rounded-2xl bg-base-200/40 border border-base-300/30">
+                <Skeleton variant="shimmer" className="h-5 w-3/4" />
               </div>
             ))}
           </div>

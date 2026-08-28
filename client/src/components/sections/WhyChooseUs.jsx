@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { FiAward, FiCalendar, FiTarget, FiDollarSign, FiCpu, FiHeadphones } from "react-icons/fi";
-import { Container, SectionTitle } from "../ui";
+import { Container, SectionTitle, Skeleton } from "../ui";
 import { staggerContainer, fadeUp } from "../../lib/animations";
 
 const features = [
@@ -67,8 +67,7 @@ function WhyChooseUs() {
   const isInView = useInView(ref, { once: true, margin: "-80px" });
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(timer);
+    setLoading(false);
   }, []);
 
   if (loading) {
@@ -76,18 +75,18 @@ function WhyChooseUs() {
       <section className="relative py-24 sm:py-32 lg:py-40 overflow-hidden bg-gradient-to-b from-base-100 via-blue-950/5 to-base-100">
         <Container>
           <div className="text-center space-y-3 mb-16">
-            <div className="h-8 w-32 rounded-full bg-base-200/60 mx-auto animate-pulse" />
-            <div className="h-10 w-80 rounded-xl bg-base-200/60 mx-auto animate-pulse" />
-            <div className="h-5 w-96 rounded-lg bg-base-200/60 mx-auto animate-pulse" />
+            <Skeleton variant="shimmer" className="h-8 w-32 rounded-full mx-auto" />
+            <Skeleton variant="shimmer" className="h-10 w-80 mx-auto" />
+            <Skeleton variant="shimmer" className="h-5 w-96 mx-auto" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="p-7 rounded-3xl bg-base-200/40 border border-base-300/30 space-y-4 animate-pulse">
-                <div className="w-14 h-14 rounded-2xl bg-base-300/50" />
-                <div className="h-5 w-40 rounded-lg bg-base-300/50" />
+              <div key={i} className="p-7 rounded-3xl bg-base-200/40 border border-base-300/30 space-y-4">
+                <Skeleton variant="shimmer" className="w-14 h-14 rounded-2xl" />
+                <Skeleton variant="shimmer" className="h-5 w-40" />
                 <div className="space-y-2">
-                  <div className="h-3 w-full rounded bg-base-300/50" />
-                  <div className="h-3 w-3/4 rounded bg-base-300/50" />
+                  <Skeleton variant="shimmer" className="h-3 w-full" />
+                  <Skeleton variant="shimmer" className="h-3 w-3/4" />
                 </div>
               </div>
             ))}

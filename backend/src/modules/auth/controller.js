@@ -52,9 +52,27 @@ const getMe = asyncHandler(async (req, res) => {
   return successResponse(res, result.user, 'Profile retrieved successfully');
 });
 
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  const result = await authService.forgotPassword(email);
+
+  return successResponse(res, result, result.message);
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  const result = await authService.resetPassword(token, newPassword);
+
+  return successResponse(res, result, result.message);
+});
+
 module.exports = {
   register,
   login,
   logout,
   getMe,
+  forgotPassword,
+  resetPassword,
 };

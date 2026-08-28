@@ -14,62 +14,72 @@ import {
   FiSettings,
 } from "react-icons/fi";
 
-export const getDashboardStats = () => [
-  {
-    icon: FiUsers,
-    label: "Total Members",
-    value: "2,847",
-    change: "+12.5%",
-    trend: "up",
-    color: "blue",
-    to: "/dashboard/membership",
-  },
-  {
-    icon: FiAward,
-    label: "Total Trainers",
-    value: "24",
-    change: "+2",
-    trend: "up",
-    color: "emerald",
-    to: "/dashboard/trainers",
-  },
-  {
-    icon: FiCalendar,
-    label: "Total Bookings",
-    value: "1,432",
-    change: "+18.2%",
-    trend: "up",
-    color: "orange",
-    to: "/dashboard",
-  },
-  {
-    icon: FiDollarSign,
-    label: "Monthly Revenue",
-    value: "$48,295",
-    change: "+8.1%",
-    trend: "up",
-    color: "purple",
-    to: "/dashboard/membership",
-  },
-  {
-    icon: FiCreditCard,
-    label: "Active Memberships",
-    value: "1,892",
-    change: "+5.3%",
-    trend: "up",
-    color: "cyan",
-    to: "/dashboard/membership",
-  },
-  {
-    icon: FiClock,
-    label: "Pending Requests",
-    value: "37",
-    change: "-4",
-    trend: "down",
-    color: "rose",
-    to: "/dashboard/contact",
-  },
-];
+export const getDashboardStats = (isAdmin = false) => {
+  const baseStats = [
+    {
+      icon: FiCalendar,
+      label: "Total Bookings",
+      value: "1,432",
+      change: "+18.2%",
+      trend: "up",
+      color: "orange",
+      to: "/dashboard",
+    },
+    {
+      icon: FiCreditCard,
+      label: "Active Memberships",
+      value: "1,892",
+      change: "+5.3%",
+      trend: "up",
+      color: "cyan",
+      to: "/dashboard/membership",
+    },
+  ];
+
+  if (isAdmin) {
+    return [
+      {
+        icon: FiUsers,
+        label: "Total Members",
+        value: "2,847",
+        change: "+12.5%",
+        trend: "up",
+        color: "blue",
+        to: "/dashboard/membership",
+      },
+      {
+        icon: FiAward,
+        label: "Total Trainers",
+        value: "24",
+        change: "+2",
+        trend: "up",
+        color: "emerald",
+        to: "/dashboard/trainers",
+      },
+      ...baseStats,
+      {
+        icon: FiDollarSign,
+        label: "Monthly Revenue",
+        value: "$48,295",
+        change: "+8.1%",
+        trend: "up",
+        color: "purple",
+        to: "/dashboard/membership",
+      },
+      {
+        icon: FiClock,
+        label: "Pending Requests",
+        value: "37",
+        change: "-4",
+        trend: "down",
+        color: "rose",
+        to: "/dashboard/contact",
+      },
+    ];
+  }
+
+  return baseStats;
+};
 
 export const getRecentActivities = () => [
   {

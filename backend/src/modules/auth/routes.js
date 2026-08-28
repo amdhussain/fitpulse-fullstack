@@ -8,6 +8,8 @@ function authRoutes(router) {
   router.post('/login', authValidation.login, authController.login);
   router.post('/logout', protect, authController.logout);
   router.get('/me', protect, authController.getMe);
+  router.post('/forgot-password', authValidation.forgotPassword, authController.forgotPassword);
+  router.post('/reset-password', authValidation.resetPassword, authController.resetPassword);
 }
 
 module.exports = authRoutes;

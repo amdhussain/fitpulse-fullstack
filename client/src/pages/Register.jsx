@@ -262,37 +262,9 @@ function RegisterForm() {
 }
 
 export default function Register() {
-  const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     window.scrollTo(0, 0);
-    const timer = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(timer);
   }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-base-100 to-slate-950">
-        <div className="flex flex-col items-center gap-6">
-          <div className="relative">
-            <div className="absolute inset-0 rounded-2xl bg-emerald-500/20 blur-xl animate-pulse" />
-            <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
-              <span className="text-white font-black text-xl">F</span>
-            </div>
-          </div>
-          <div className="flex gap-1.5">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"
-                style={{ animationDelay: `${i * 0.15}s` }}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <section className="relative min-h-screen flex bg-gradient-to-br from-slate-950 via-base-100 to-slate-950 overflow-hidden">

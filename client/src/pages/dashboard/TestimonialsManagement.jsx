@@ -84,11 +84,8 @@ function TestimonialsManagement() {
   const stats = getTestimonialStats(testimonials);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setTestimonials(getTestimonials());
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    setTestimonials(getTestimonials());
+    setLoading(false);
   }, []);
 
   const openAdd = () => {

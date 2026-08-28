@@ -44,11 +44,8 @@ function HeroManagement() {
   const stats = getHeroStats(sections);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setSections(getHeroSections());
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    setSections(getHeroSections());
+    setLoading(false);
   }, []);
 
   const openAdd = () => {

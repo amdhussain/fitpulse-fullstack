@@ -402,11 +402,7 @@ function LoginForm() {
       if (Object.keys(fieldErrors).length === 0) {
         setIsSubmitting(true);
         try {
-          const userData = await login(email, password);
-          if (userData && userData.role && userData.role.toUpperCase() !== "ADMIN") {
-            setServerError("Access denied. This login is for administrators only.");
-            return;
-          }
+          await login(email, password);
           setShowSuccess(true);
           navigate(from, { replace: true });
         } catch (err) {
@@ -598,6 +594,7 @@ function LoginForm() {
             </label>
             <button
               type="button"
+              onClick={() => navigate("/forgot-password")}
               className="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-200 font-medium"
             >
               Forgot password?
@@ -685,15 +682,9 @@ function LoginForm() {
 }
 
 function Login() {
-  const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     window.scrollTo(0, 0);
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
   }, []);
-
-  if (loading) return <LoginSkeleton />;
 
   return (
     <section className="relative min-h-screen flex bg-gradient-to-br from-slate-950 via-base-100 to-slate-950 overflow-hidden">

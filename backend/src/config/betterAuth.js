@@ -6,6 +6,15 @@ const logger = require('../utils/logger');
 
 let authInstance = null;
 
+const pendingResetTokens = new Map();
+
+function consumeResetToken(email) {
+  const data = pendingResetTokens.get(email);
+  if (!data) return null;
+  pendingResetTokens.delete(email);
+  return data;
+}
+
 function getAuth() {
   if (authInstance) return authInstance;
 
@@ -26,6 +35,10 @@ function getAuth() {
       autoSignIn: true,
       minPasswordLength: 8,
       maxPasswordLength: 128,
+      sendResetPassword: async ({ user, url, token }, request) => {
+        pendingResetTokens.set(user.email, { token, url, timestamp: Date.now() });
+        logger.info('Password reset token generated', { email: user.email });
+      },
     },
 
     session: {
@@ -65,4 +78,4 @@ function getAuth() {
   return authInstance;
 }
 
-module.exports = { getAuth };
+module.exports = { getAuth, consumeResetToken };

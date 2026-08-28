@@ -135,11 +135,8 @@ function ServicesPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const timer = setTimeout(() => {
-      setServices(getServices().filter((s) => s.status === "active"));
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    setServices(getServices().filter((s) => s.status === "active"));
+    setLoading(false);
   }, []);
 
   if (loading) return <ServicesPageSkeleton />;

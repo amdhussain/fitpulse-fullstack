@@ -85,8 +85,7 @@ export default function FooterManagement() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(timer);
+    setLoading(false);
   }, []);
 
   const updateField = (path, value) => {

@@ -54,6 +54,18 @@ const statusBadge = (status) => {
       border: "border-blue-200 dark:border-blue-500/20",
       label: "Completed",
     },
+    PENDING_PAYMENT: {
+      bg: "bg-amber-50 dark:bg-amber-500/10",
+      text: "text-amber-600 dark:text-amber-400",
+      border: "border-amber-200 dark:border-amber-500/20",
+      label: "Payment Pending",
+    },
+    PENDING_VERIFICATION: {
+      bg: "bg-amber-50 dark:bg-amber-500/10",
+      text: "text-amber-600 dark:text-amber-400",
+      border: "border-amber-200 dark:border-amber-500/20",
+      label: "Verification Pending",
+    },
   };
   return map[status] || map.PENDING;
 };
@@ -154,6 +166,8 @@ function MyBookings() {
         >
           <option value="all">All Status</option>
           <option value="PENDING">Pending</option>
+          <option value="PENDING_PAYMENT">Payment Pending</option>
+          <option value="PENDING_VERIFICATION">Verification Pending</option>
           <option value="CONFIRMED">Confirmed</option>
           <option value="CANCELLED">Cancelled</option>
           <option value="COMPLETED">Completed</option>

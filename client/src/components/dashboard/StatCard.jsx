@@ -73,19 +73,19 @@ function StatCard({ icon: Icon, label, value, change, trend, color = "blue", to,
       whileHover={{ y: -4, scale: 1.02 }}
       whileTap={{ scale: 0.97 }}
       onClick={handleClick}
-      className={`relative p-5 rounded-2xl bg-white dark:bg-white/[0.03] border border-gray-200/80 dark:border-white/[0.06] shadow-sm hover:shadow-xl dark:shadow-none transition-all duration-300 group overflow-hidden ${to ? "cursor-pointer" : ""} ${borderHover}`}
+      className={`relative p-6 rounded-2xl bg-white dark:bg-white/[0.03] border border-gray-200/80 dark:border-white/[0.06] shadow-sm hover:shadow-xl dark:shadow-none transition-all duration-300 group overflow-hidden ${to ? "cursor-pointer" : ""} ${borderHover}`}
     >
       <div className={`absolute top-0 left-0 right-0 h-[3px] ${topAccent} opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-t-2xl`} />
       <div className="flex items-start justify-between">
         <motion.div
-          className={`p-2.5 rounded-xl ${bg} shadow-sm group-hover:scale-110 transition-transform duration-300`}
+          className={`p-3 rounded-xl ${bg} shadow-sm group-hover:scale-110 transition-transform duration-300`}
           whileHover={{ rotate: [0, -5, 5, 0] }}
           transition={{ duration: 0.4 }}
         >
-          <Icon className={`w-5 h-5 ${iconColor}`} />
+          <Icon className={`w-5.5 h-5.5 ${iconColor}`} />
         </motion.div>
         {change && (
-          <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${
+          <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full ${
             trend === "up" ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400"
           }`}>
             {trend === "up" ? "↑" : "↓"} {change}
@@ -94,7 +94,7 @@ function StatCard({ icon: Icon, label, value, change, trend, color = "blue", to,
       </div>
       <div className="mt-4">
         <p className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{value}</p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 font-medium">{label}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">{label}</p>
       </div>
       {to && (
         <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-1 group-hover:translate-x-0">

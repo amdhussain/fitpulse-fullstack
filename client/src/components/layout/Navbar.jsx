@@ -20,6 +20,7 @@ const sectionLinks = [
   { to: "/about", label: "About" },
   { to: "/services", label: "Services" },
   { to: "/gallery", label: "Gallery" },
+  { to: "/contact", label: "Contact" },
 ];
 
 const menuItems = [
@@ -174,7 +175,7 @@ function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isAdmin } = useAuth();
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -262,14 +263,8 @@ function Navbar() {
                       <>
                         {link.label}
                         {isActive && (
-                          <motion.span
-                            layoutId="nav-indicator"
-                            className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-5 bg-blue-400 rounded-full"
-                            transition={{
-                              type: "spring",
-                              stiffness: 380,
-                              damping: 30,
-                            }}
+                          <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-5 bg-blue-400 rounded-full"
+                            aria-hidden="true"
                           />
                         )}
                       </>
@@ -282,31 +277,41 @@ function Navbar() {
 
           <div className="flex items-center gap-2 ml-auto shrink-0">
             {isAuthenticated ? (
-              <div ref={menuRef} className="relative">
-                <button
-                  onClick={() => setMenuOpen((prev) => !prev)}
-                  className="flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-base-300/40 transition-colors duration-200"
-                  aria-label="Toggle menu"
-                  aria-expanded={menuOpen}
-                >
-                  <UserAvatar user={user} size="md" />
-                  <motion.div
-                    animate={{ rotate: menuOpen ? 90 : 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {menuOpen ? (
-                      <FiX className="w-5 h-5 text-base-content/60" />
-                    ) : (
-                      <FiMenu className="w-5 h-5 text-base-content/60" />
-                    )}
-                  </motion.div>
-                </button>
-                <AnimatePresence>
-                  {menuOpen && (
-                    <MenuDropdown user={user} onClose={() => setMenuOpen(false)} />
+              <>
+                <NavLink to="/dashboard">
+                  {({ isActive }) => (
+                    <Button size="sm" variant={isActive ? "blue" : "ghost"}>
+                      <FiLayout className="w-4 h-4 mr-1.5" />
+                      Dashboard
+                    </Button>
                   )}
-                </AnimatePresence>
-              </div>
+                </NavLink>
+                <div ref={menuRef} className="relative">
+                  <button
+                    onClick={() => setMenuOpen((prev) => !prev)}
+                    className="flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-base-300/40 transition-colors duration-200"
+                    aria-label="Toggle menu"
+                    aria-expanded={menuOpen}
+                  >
+                    <UserAvatar user={user} size="md" />
+                    <motion.div
+                      animate={{ rotate: menuOpen ? 90 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {menuOpen ? (
+                        <FiX className="w-5 h-5 text-base-content/60" />
+                      ) : (
+                        <FiMenu className="w-5 h-5 text-base-content/60" />
+                      )}
+                    </motion.div>
+                  </button>
+                  <AnimatePresence>
+                    {menuOpen && (
+                      <MenuDropdown user={user} onClose={() => setMenuOpen(false)} />
+                    )}
+                  </AnimatePresence>
+                </div>
+              </>
             ) : (
               <>
                 <NavLink to="/login">
@@ -409,6 +414,26 @@ function Navbar() {
 
                 {isAuthenticated ? (
                   <>
+                    <motion.li
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: (sectionLinks.length + 1) * 0.05 }}
+                    >
+                      <NavLink
+                        to="/dashboard"
+                        onClick={() => setMobileOpen(false)}
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                            isActive
+                              ? "bg-blue-500/10 text-blue-400"
+                              : "text-base-content/60 hover:bg-base-300/50 hover:text-base-content"
+                          }`
+                        }
+                      >
+                        <FiLayout className="w-4 h-4" />
+                        Dashboard
+                      </NavLink>
+                    </motion.li>
                     {menuItems.map((item, i) => {
                       const Icon = item.icon;
                       return (
@@ -417,7 +442,7 @@ function Navbar() {
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{
-                            delay: (sectionLinks.length + 1 + i) * 0.05,
+                            delay: (sectionLinks.length + 2 + i) * 0.05,
                           }}
                         >
                           <NavLink
@@ -442,7 +467,7 @@ function Navbar() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{
                         delay:
-                          (sectionLinks.length + 1 + menuItems.length) * 0.05,
+                          (sectionLinks.length + 2 + menuItems.length) * 0.05,
                       }}
                     >
                       <MobileLogoutButton onClose={() => setMobileOpen(false)} />

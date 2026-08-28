@@ -44,8 +44,7 @@ function Hero() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 800);
-    return () => clearTimeout(timer);
+    setLoading(false);
   }, []);
 
   if (loading) return <HeroSkeleton />;

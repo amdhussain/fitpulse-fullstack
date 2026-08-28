@@ -17,6 +17,7 @@ import {
 import { Button, Skeleton } from "../../components/ui";
 import { staggerContainer, fadeUp } from "../../lib/animations";
 import { PageBanner, StatCard } from "../../components/dashboard";
+import { useAuth } from "../../context/AuthContext";
 
 const API_URL = import.meta.env.API_URL;
 
@@ -182,6 +183,7 @@ function EmptyState({ activeTab }) {
 }
 
 function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
+  const { isAdmin } = useAuth();
   const Icon = typeIcons[notification.type] || FiBell;
   const colors = typeColors[notification.type] || {
     bg: "bg-white/5",
@@ -275,15 +277,17 @@ function NotificationCard({ notification, onMarkAsRead, onDelete, index }) {
                 <FiEye className="w-3.5 h-3.5" />
               </motion.button>
             )}
-            <motion.button
-              whileHover={{ scale: 1.12 }}
-              whileTap={{ scale: 0.88 }}
-              onClick={() => onDelete(notification.id)}
-              className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-gray-400 hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/10 hover:shadow-lg hover:shadow-red-500/10 transition-all duration-200"
-              title="Delete notification"
-            >
-              <FiTrash2 className="w-3.5 h-3.5" />
-            </motion.button>
+            {isAdmin && (
+              <motion.button
+                whileHover={{ scale: 1.12 }}
+                whileTap={{ scale: 0.88 }}
+                onClick={() => onDelete(notification.id)}
+                className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-gray-400 hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/10 hover:shadow-lg hover:shadow-red-500/10 transition-all duration-200"
+                title="Delete notification"
+              >
+                <FiTrash2 className="w-3.5 h-3.5" />
+              </motion.button>
+            )}
           </div>
         </div>
       </div>

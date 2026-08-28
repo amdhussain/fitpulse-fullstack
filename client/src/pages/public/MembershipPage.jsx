@@ -446,14 +446,12 @@ function MembershipPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const timer = setTimeout(() => {
-      setPlans(getMembershipPlans());
-      setComparisonFeatures(getComparisonFeatures());
-      setWhyChoose(getWhyChooseData());
-      setCta(getCtaData());
-      setLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+    setPlans(getMembershipPlans());
+    setComparisonFeatures(getComparisonFeatures());
+    setWhyChoose(getWhyChooseData());
+    const ctaData = getCtaData();
+    if (ctaData) setCta(ctaData);
+    setLoading(false);
   }, []);
 
   if (loading) return <MembershipSkeleton />;

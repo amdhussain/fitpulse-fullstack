@@ -9,6 +9,7 @@ const NotificationRepository = {
       title: data.title,
       message: data.message,
       read: false,
+      userId: data.userId ? new ObjectId(data.userId) : null,
       relatedId: data.relatedId || null,
       metadata: data.metadata || null,
       createdAt: now,
@@ -23,10 +24,11 @@ const NotificationRepository = {
     return databaseService.formatDoc(doc);
   },
 
-  async findMany({ where = {}, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'DESC' }) {
+  async findMany({ where = {}, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'DESC', userId }) {
     const match = {};
     if (where.type) match.type = where.type;
     if (where.read !== undefined) match.read = where.read;
+    if (userId) match.userId = new ObjectId(userId);
 
     const sort = {};
     sort[sortBy] = sortOrder === 'DESC' ? -1 : 1;

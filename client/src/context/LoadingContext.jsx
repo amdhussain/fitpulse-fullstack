@@ -19,7 +19,7 @@ export function LoadingProvider({ children }) {
   const scheduleHide = useCallback(() => {
     clearHideTimer();
     const elapsed = Date.now() - showTime.current;
-    const remaining = Math.max(0, 800 - elapsed);
+    const remaining = Math.max(0, 150 - elapsed);
     hideTimer.current = setTimeout(() => {
       if (pendingRequests.current === 0 && !navigationLoading.current) {
         setLoading(false);

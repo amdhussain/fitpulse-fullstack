@@ -4,7 +4,7 @@ import {
   FiGrid, FiImage, FiInfo, FiPackage, FiMapPin, FiUser, FiLogOut,
   FiX, FiAward, FiCreditCard, FiMessageSquare, FiCamera, FiMail,
   FiSettings, FiChevronDown, FiBell, FiActivity, FiCalendar,
-  FiUserCheck, FiDollarSign, FiSearch, FiUsers, FiFileText,
+  FiUserCheck, FiDollarSign, FiSearch, FiUsers, FiFileText, FiPhone,
 } from "react-icons/fi";
 import { useState } from "react";
 import Logo from "../ui/Logo";
@@ -20,31 +20,14 @@ const memberMenuGroups = [
     items: [{ to: "/dashboard/my-bookings", icon: FiCalendar, label: "My Bookings" }],
   },
   {
-    label: "Content",
-    items: [
-      { to: "/dashboard/hero", icon: FiImage, label: "Hero Section" },
-      { to: "/dashboard/about", icon: FiInfo, label: "About" },
-      { to: "/dashboard/services", icon: FiPackage, label: "Services" },
-      { to: "/dashboard/trainers", icon: FiAward, label: "Trainers" },
-      { to: "/dashboard/membership", icon: FiCreditCard, label: "Membership" },
-    ],
-  },
-  {
     label: "Tools",
     items: [{ to: "/dashboard/fitness-tools", icon: FiActivity, label: "Fitness Tools" }],
   },
   {
     label: "Community",
     items: [
-      { to: "/dashboard/testimonials", icon: FiMessageSquare, label: "Testimonials" },
       { to: "/dashboard/gallery", icon: FiCamera, label: "Gallery" },
-      { to: "/dashboard/contact", icon: FiMail, label: "Contact" },
-    ],
-  },
-  {
-    label: "Settings",
-    items: [
-      { to: "/dashboard/notifications", icon: FiBell, label: "Notifications" },
+      { to: "/dashboard/connect-info", icon: FiPhone, label: "Connect" },
     ],
   },
 ];
@@ -88,6 +71,7 @@ const adminMenuGroups = [
   {
     label: "Communication",
     items: [
+      { to: "/dashboard/connect-info", icon: FiPhone, label: "Connect Info" },
       { to: "/dashboard/contact", icon: FiMail, label: "Contact Messages" },
       { to: "/dashboard/newsletter", icon: FiFileText, label: "Newsletter Management" },
     ],

@@ -93,6 +93,7 @@ const BookingRepository = {
       bookingTime: data.bookingTime || null,
       sessionType: data.sessionType || null,
       status: data.status || 'PENDING',
+      paymentStatus: data.paymentStatus || 'PENDING_PAYMENT',
       attended: data.attended || false,
       notes: data.notes || null,
       cancelReason: data.cancelReason || null,

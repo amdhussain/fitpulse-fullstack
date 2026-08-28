@@ -56,11 +56,8 @@ function MembershipManagement() {
   const stats = getMembershipStats(plans);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setPlans(getMembershipPlans());
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    setPlans(getMembershipPlans());
+    setLoading(false);
   }, []);
 
   const openAdd = () => {
@@ -163,7 +160,7 @@ function MembershipManagement() {
       key: "yearlyPrice",
       label: "Yearly",
       render: (val) => (
-        <span className="text-sm text-amber-600 dark:text-amber-400 text-sm">{val}</span>
+        <span className="text-sm text-amber-600 dark:text-amber-400">{val}</span>
       ),
     },
     {
@@ -443,9 +440,6 @@ function MembershipManagement() {
                       }`}
                       style={{
                         backgroundColor: c,
-                        ringColor: form.color === c ? c : undefined,
-                        borderColor:
-                          form.color === c ? c : "transparent",
                         boxShadow:
                           form.color === c
                             ? `0 0 0 2px #ffffff, 0 0 0 4px ${c}`
@@ -566,7 +560,7 @@ function MembershipManagement() {
         isOpen={!!viewItem}
         onClose={() => setViewItem(null)}
         title="Plan Details"
-        subtitle={viewItem?.duration}
+        subtitle={typeof viewItem?.duration === 'string' ? viewItem.duration : "Monthly"}
         size="lg"
       >
         {viewItem && (

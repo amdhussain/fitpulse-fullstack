@@ -24,6 +24,15 @@ const notificationService = {
     });
   },
 
+  async paymentVerificationRequired(bookingId, userName, email, service, amount, paymentMethod, transactionId) {
+    return this.create({
+      type: 'booking',
+      title: 'New booking payment verification required',
+      message: `New booking payment verification required.\n\nCustomer: ${userName}\nEmail: ${email}\nService: ${service}\nPayment: ${paymentMethod}\nAmount: ${amount}\nTransaction ID: ${transactionId}\nBooking ID: ${bookingId}`,
+      relatedId: bookingId,
+    });
+  },
+
   async bookingCancelled(bookingId, userName, className) {
     return this.create({
       type: 'booking',

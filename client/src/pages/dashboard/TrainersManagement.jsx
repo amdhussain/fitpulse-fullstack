@@ -55,11 +55,8 @@ function TrainersManagement() {
   const specializations = getSpecializations();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setTrainers(getTrainers());
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    setTrainers(getTrainers());
+    setLoading(false);
   }, []);
 
   const openAdd = () => {

@@ -714,15 +714,12 @@ function ContactPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const timer = setTimeout(() => {
-      setContactInfo(getContactInfo());
-      setSocialLinks(getSocialLinks());
-      setWhyContact(getWhyContactData());
-      setCta(getCtaData());
-      setMapUrl(getMapEmbedUrl());
-      setLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+    setContactInfo(getContactInfo());
+    setSocialLinks(getSocialLinks());
+    setWhyContact(getWhyContactData());
+    setCta(getCtaData());
+    setMapUrl(getMapEmbedUrl());
+    setLoading(false);
   }, []);
 
   const handleSubmit = () => {

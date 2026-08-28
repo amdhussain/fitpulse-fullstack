@@ -43,11 +43,8 @@ function AboutManagement() {
   const stats = getAboutStats(sections);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setSections(getAboutSections());
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    setSections(getAboutSections());
+    setLoading(false);
   }, []);
 
   const openAdd = () => {

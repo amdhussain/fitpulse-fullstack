@@ -159,11 +159,8 @@ function ContactManagement() {
   const stats = getStats(messages);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setMessages(getMessages());
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    setMessages(getMessages());
+    setLoading(false);
   }, []);
 
   const handleDelete = (id) => {

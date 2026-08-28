@@ -19,8 +19,11 @@ function NavigationListener() {
       return;
     }
     startNavigation();
-    const timer = setTimeout(() => stopNavigation(), 800);
-    return () => clearTimeout(timer);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        stopNavigation();
+      });
+    });
   }, [pathname, startNavigation, stopNavigation]);
 
   return null;

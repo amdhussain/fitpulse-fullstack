@@ -48,12 +48,9 @@ function MembershipDetail() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const timer = setTimeout(() => {
-      const all = getMembershipPlans();
-      setPlan(all.find((p) => String(p.id) === String(id)));
-      setLoading(false);
-    }, 600);
-    return () => clearTimeout(timer);
+    const all = getMembershipPlans();
+    setPlan(all.find((p) => String(p.id) === String(id)));
+    setLoading(false);
   }, [id]);
 
   if (loading) return <MembershipDetailSkeleton />;

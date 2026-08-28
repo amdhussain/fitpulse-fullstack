@@ -10,6 +10,7 @@ const getNotifications = asyncHandler(async (req, res) => {
     limit: parseInt(limit, 10) || 20,
     type,
     read: read !== undefined ? read === 'true' : undefined,
+    userId: req.user.role !== 'ADMIN' ? req.user.id : undefined,
   });
 
   return paginatedResponse(res, result);

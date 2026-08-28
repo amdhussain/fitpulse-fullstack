@@ -7,7 +7,7 @@ const logger = require('../../utils/logger');
 
 // ─── Member APIs ──────────────────────────────────────────
 
-async function bookClass(userId, { classId, bookingDate, bookingTime, notes }) {
+async function bookClass(userId, { classId, bookingDate, bookingTime, notes, paymentMethod }) {
   const cls = await BookingRepository.findClassById(classId);
 
   if (!cls) {
@@ -28,16 +28,16 @@ async function bookClass(userId, { classId, bookingDate, bookingTime, notes }) {
     throw new ConflictError('You have already booked this class');
   }
 
-  const booking = await databaseService.transaction(async (session) => {
+const booking = await databaseService.transaction(async (session) => {
     const b = await BookingRepository.create(
-      { userId, classId, trainerId: cls.trainerId, bookingDate, bookingTime, notes },
+      { userId, classId, trainerId: cls.trainerId, bookingDate, bookingTime, notes, paymentStatus: 'PENDING_PAYMENT' },
       session
     );
     await ClassRepository.decrementAvailableSeats(classId, 1, session);
     return b;
   });
 
-  logger.info('Class booked', { userId, classId, bookingId: booking.id });
+  logger.info('Class booked', { userId, classId, bookingId: booking.id, paymentStatus: booking.paymentStatus });
 
   const className = cls.name || 'a class';
   const dateTime = bookingDate && bookingTime ? `${bookingDate} at ${bookingTime}` : 'upcoming';
@@ -46,21 +46,22 @@ async function bookClass(userId, { classId, bookingDate, bookingTime, notes }) {
   return booking;
 }
 
-async function bookTrainer(userId, { trainerId, bookingDate, bookingTime, sessionType, notes }) {
+async function bookTrainer(userId, { trainerId, bookingDate, bookingTime, sessionType, notes, paymentMethod }) {
   const trainer = await BookingRepository.findTrainerById(trainerId);
   if (!trainer) throw new NotFoundError('Trainer not found');
   if (trainer.status !== 'ACTIVE') throw new BadRequestError('Trainer is not available for booking');
 
-  const booking = await BookingRepository.create({
+const booking = await BookingRepository.create({
     userId,
     trainerId,
     bookingDate,
     bookingTime,
     sessionType: sessionType || null,
     notes: notes || null,
+    paymentStatus: 'PENDING_PAYMENT',
   });
 
-  logger.info('Trainer booked', { userId, trainerId, bookingId: booking.id });
+  logger.info('Trainer booked', { userId, trainerId, bookingId: booking.id, paymentStatus: booking.paymentStatus });
   const trainerName = trainer.user ? `${trainer.user.firstName} ${trainer.user.lastName}` : 'trainer';
   const dateTime = bookingDate && bookingTime ? `${bookingDate} at ${bookingTime}` : 'upcoming';
   notificationService.bookingCreated(booking.id, `User ${userId}`, `session with ${trainerName}`, dateTime).catch(() => {});
@@ -320,6 +321,37 @@ async function markAttendance(trainerUserId, bookingId, attended) {
   return updated;
 }
 
+// ─── Admin: Update Booking Payment Status ─────────────────────
+
+async function updateBookingPaymentStatus(userId, bookingId, { transactionId, paymentMethod, paymentStatus }) {
+  const booking = await BookingRepository.findByIdBasic(bookingId);
+
+  if (!booking) {
+    throw new NotFoundError('Booking not found');
+  }
+
+  if (booking.userId !== userId) {
+    throw new ForbiddenError('You can only update your own bookings');
+  }
+
+  if (booking.paymentStatus === 'CONFIRMED' || booking.paymentStatus === 'REJECTED') {
+    throw new ConflictError('Booking payment status cannot be updated');
+  }
+
+  const updateFields = {
+    transactionId,
+    paymentMethod,
+    paymentStatus,
+    updatedAt: new Date(),
+  };
+
+  const updated = await BookingRepository.update(bookingId, updateFields);
+
+  logger.info('Booking payment status updated', { bookingId, userId, paymentStatus });
+
+  return updated;
+}
+
 // ─── Admin APIs ───────────────────────────────────────────
 
 async function getAllBookings({ page, limit, search, status, userId, classId, trainerId, sortBy, sortOrder }) {
@@ -461,6 +493,7 @@ module.exports = {
   approveBooking,
   rejectBooking,
   markAttendance,
+  updateBookingPaymentStatus,
   getAllBookings,
   updateBookingStatus,
   deleteBooking,

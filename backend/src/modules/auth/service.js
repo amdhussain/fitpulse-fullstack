@@ -1,9 +1,10 @@
-const { getAuth } = require('../../config/betterAuth');
+const { getAuth, consumeResetToken } = require('../../config/betterAuth');
 const UserRepository = require('./repository');
-const { ConflictError, UnauthorizedError, NotFoundError } = require('../../errors');
+const { ConflictError, UnauthorizedError, NotFoundError, BadRequestError } = require('../../errors');
 const databaseService = require('../../services/databaseService');
 const notificationService = require('../../services/notificationService');
 const logger = require('../../utils/logger');
+const env = require('../../config/env');
 
 function getCookieOptions() {
   return {
@@ -161,6 +162,57 @@ async function signOut(headers) {
   });
 }
 
+async function forgotPassword(email) {
+  const auth = getAuth();
+
+  try {
+    await auth.api.forgetPassword({
+      body: {
+        email,
+        redirectTo: `${env.clientUrl}/reset-password`,
+      },
+    });
+  } catch {
+    // Ignore errors - always return success to prevent email enumeration
+  }
+
+  const resetData = consumeResetToken(email);
+
+  logger.info('Password reset requested', { email });
+
+  return {
+    message: 'If an account with that email exists, a password reset link has been sent.',
+    ...(env.isDevelopment && resetData && {
+      resetToken: resetData.token,
+      resetUrl: resetData.url,
+    }),
+  };
+}
+
+async function resetPassword(token, newPassword) {
+  const auth = getAuth();
+
+  try {
+    const result = await auth.api.resetPassword({
+      body: {
+        newPassword,
+        token,
+      },
+    });
+
+    if (result?.error) {
+      throw new BadRequestError('Invalid or expired reset token');
+    }
+  } catch (err) {
+    if (err instanceof BadRequestError) throw err;
+    throw new BadRequestError('Invalid or expired reset token');
+  }
+
+  logger.info('Password reset completed');
+
+  return { message: 'Password has been reset successfully' };
+}
+
 module.exports = {
   register,
   login,
@@ -168,4 +220,6 @@ module.exports = {
   signOut,
   getCookieOptions,
   sanitizeUser,
+  forgotPassword,
+  resetPassword,
 };

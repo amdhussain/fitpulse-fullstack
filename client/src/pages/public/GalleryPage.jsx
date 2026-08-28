@@ -92,11 +92,8 @@ function GalleryPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const timer = setTimeout(() => {
-      setImages(getGalleryImages().filter((i) => i.status === "active"));
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    setImages(getGalleryImages().filter((i) => i.status === "active"));
+    setLoading(false);
   }, []);
 
   if (loading) return <GalleryPageSkeleton />;

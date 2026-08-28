@@ -46,13 +46,10 @@ function GalleryDetail() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const timer = setTimeout(() => {
-      const imgs = getGalleryImages();
-      setAllImages(imgs);
-      setImage(imgs.find((i) => String(i.id) === String(id)));
-      setLoading(false);
-    }, 600);
-    return () => clearTimeout(timer);
+    const imgs = getGalleryImages();
+    setAllImages(imgs);
+    setImage(imgs.find((i) => String(i.id) === String(id)));
+    setLoading(false);
   }, [id]);
 
   if (loading) return <GalleryDetailSkeleton />;

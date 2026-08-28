@@ -56,12 +56,9 @@ function ServiceDetail() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const timer = setTimeout(() => {
-      const all = getServices();
-      setService(all.find((s) => String(s.id) === String(id)));
-      setLoading(false);
-    }, 600);
-    return () => clearTimeout(timer);
+    const all = getServices();
+    setService(all.find((s) => String(s.id) === String(id)));
+    setLoading(false);
   }, [id]);
 
   if (loading) return <ServiceDetailSkeleton />;

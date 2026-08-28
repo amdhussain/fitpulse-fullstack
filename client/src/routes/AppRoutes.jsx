@@ -8,6 +8,8 @@ import { RouteSuspense, DashboardSuspense } from "./RouteSuspense";
 const Home = lazy(() => import("../pages/Home"));
 const Login = lazy(() => import("../pages/Login"));
 const Register = lazy(() => import("../pages/Register"));
+const ForgotPassword = lazy(() => import("../pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("../pages/ResetPassword"));
 const NotFound = lazy(() => import("../pages/NotFound"));
 
 const AboutPage = lazy(() => import("../pages/public/AboutPage"));
@@ -57,6 +59,7 @@ const MembershipManagement = lazy(() => import("../pages/dashboard/MembershipMan
 const TestimonialsManagement = lazy(() => import("../pages/dashboard/TestimonialsManagement"));
 const GalleryManagement = lazy(() => import("../pages/dashboard/GalleryManagement"));
 const ContactManagement = lazy(() => import("../pages/dashboard/ContactManagement"));
+const ConnectInfo = lazy(() => import("../pages/dashboard/ConnectInfo"));
 const WebsiteSettings = lazy(() => import("../pages/dashboard/WebsiteSettings"));
 const NotificationCenter = lazy(() => import("../pages/dashboard/NotificationCenter"));
 const FitnessToolsManagement = lazy(() => import("../pages/dashboard/FitnessToolsManagement"));
@@ -78,6 +81,8 @@ const routes = [
       { index: true, element: <RouteSuspense><Home /></RouteSuspense> },
       { path: "login", element: <RouteSuspense><Login /></RouteSuspense> },
       { path: "register", element: <RouteSuspense><Register /></RouteSuspense> },
+      { path: "forgot-password", element: <RouteSuspense><ForgotPassword /></RouteSuspense> },
+      { path: "reset-password", element: <RouteSuspense><ResetPassword /></RouteSuspense> },
       { path: "about", element: <RouteSuspense><AboutPage /></RouteSuspense> },
       { path: "services", element: <RouteSuspense><ServicesPage /></RouteSuspense> },
       { path: "services/:id", element: <RouteSuspense><ServiceDetail /></RouteSuspense> },
@@ -122,17 +127,18 @@ const routes = [
       { index: true, element: <DashboardSuspense><Overview /></DashboardSuspense> },
       { path: "profile", element: <DashboardSuspense><ProfileManagement /></DashboardSuspense> },
       { path: "my-bookings", element: <DashboardSuspense><MyBookings /></DashboardSuspense> },
-      { path: "hero", element: <DashboardSuspense><HeroManagement /></DashboardSuspense> },
-      { path: "about", element: <DashboardSuspense><AboutManagement /></DashboardSuspense> },
-      { path: "services", element: <DashboardSuspense><ServicesManagement /></DashboardSuspense> },
-      { path: "trainers", element: <DashboardSuspense><TrainersManagement /></DashboardSuspense> },
-      { path: "membership", element: <DashboardSuspense><MembershipManagement /></DashboardSuspense> },
-      { path: "testimonials", element: <DashboardSuspense><TestimonialsManagement /></DashboardSuspense> },
+      { path: "hero", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><HeroManagement /></DashboardSuspense></ProtectedRoute> },
+      { path: "about", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><AboutManagement /></DashboardSuspense></ProtectedRoute> },
+      { path: "services", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><ServicesManagement /></DashboardSuspense></ProtectedRoute> },
+      { path: "trainers", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><TrainersManagement /></DashboardSuspense></ProtectedRoute> },
+      { path: "membership", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><MembershipManagement /></DashboardSuspense></ProtectedRoute> },
+      { path: "testimonials", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><TestimonialsManagement /></DashboardSuspense></ProtectedRoute> },
       { path: "gallery", element: <DashboardSuspense><GalleryManagement /></DashboardSuspense> },
-      { path: "contact", element: <DashboardSuspense><ContactManagement /></DashboardSuspense> },
-      { path: "footer", element: <DashboardSuspense><FooterManagement /></DashboardSuspense> },
-      { path: "settings", element: <DashboardSuspense><WebsiteSettings /></DashboardSuspense> },
-      { path: "notifications", element: <DashboardSuspense><NotificationCenter /></DashboardSuspense> },
+      { path: "contact", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><ContactManagement /></DashboardSuspense></ProtectedRoute> },
+      { path: "connect-info", element: <DashboardSuspense><ConnectInfo /></DashboardSuspense> },
+      { path: "footer", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><FooterManagement /></DashboardSuspense></ProtectedRoute> },
+      { path: "settings", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><WebsiteSettings /></DashboardSuspense></ProtectedRoute> },
+      { path: "notifications", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><NotificationCenter /></DashboardSuspense></ProtectedRoute> },
       { path: "fitness-tools", element: <DashboardSuspense><FitnessToolsManagement /></DashboardSuspense> },
       { path: "admin-profile", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><AdminProfile /></DashboardSuspense></ProtectedRoute> },
       { path: "admin-settings", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><AdminSettings /></DashboardSuspense></ProtectedRoute> },

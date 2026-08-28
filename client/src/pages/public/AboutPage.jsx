@@ -57,11 +57,8 @@ function AboutPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const timer = setTimeout(() => {
-      setSections(getAboutSections().filter((s) => s.status === "active"));
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
+    setSections(getAboutSections().filter((s) => s.status === "active"));
+    setLoading(false);
   }, []);
 
   if (loading) return <AboutPageSkeleton />;

@@ -253,6 +253,14 @@ async function getDailyRevenue({ startDate, endDate }) {
   return daily;
 }
 
+async function findByBookingId(bookingId) {
+  return PaymentRepository.findByBookingId(bookingId);
+}
+
+async function updatePayment(id, data) {
+  return PaymentRepository.update(id, data);
+}
+
 module.exports = {
   getMyPayments,
   getPaymentDetails,

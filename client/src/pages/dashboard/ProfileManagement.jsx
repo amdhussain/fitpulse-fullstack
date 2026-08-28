@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   FiSave,
@@ -35,6 +35,7 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#^()_+\-=\[\
 function ProfileManagement() {
   const { user, updateUser } = useAuth();
   const [form, setForm] = useState({ firstName: "", lastName: "", phone: "", profileImage: "" });
+  const [originalForm, setOriginalForm] = useState({ firstName: "", lastName: "", phone: "", profileImage: "" });
   const [passwordForm, setPasswordForm] = useState({ current: "", newPass: "", confirm: "" });
   const [saved, setSaved] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -43,6 +44,7 @@ function ProfileManagement() {
   const [profileError, setProfileError] = useState("");
   const [passwordSaved, setPasswordSaved] = useState(false);
   const [passwordError, setPasswordError] = useState("");
+  const fileInputRef = useRef(null);
   const inputClass = getInputClass(accent);
 
   useEffect(() => {
@@ -52,22 +54,26 @@ function ProfileManagement() {
         if (res.ok) {
           const result = await res.json();
           const data = result.data;
-          setForm({
+          const formData = {
             firstName: data.firstName || "",
             lastName: data.lastName || "",
             phone: data.phone || "",
             profileImage: data.profileImage || "",
-          });
+          };
+          setForm(formData);
+          setOriginalForm(formData);
         }
       } catch {
         // Use auth context data as fallback
         if (user) {
-          setForm({
+          const formData = {
             firstName: user.firstName || "",
             lastName: user.lastName || "",
             phone: user.phone || "",
             profileImage: user.profileImage || "",
-          });
+          };
+          setForm(formData);
+          setOriginalForm(formData);
         }
       } finally {
         setLoading(false);
@@ -81,6 +87,35 @@ function ProfileManagement() {
     setProfileError("");
   };
 
+  const handleCancelEdit = () => {
+    setForm({ ...originalForm });
+    setEditing(false);
+    setProfileError("");
+  };
+
+  const handleStartEdit = () => {
+    setOriginalForm({ ...form });
+    setEditing(true);
+  };
+
+  const handleProfileImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleProfileImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setProfileError("Please select an image file");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setForm((prev) => ({ ...prev, profileImage: ev.target.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handlePasswordChange = (e) => {
     setPasswordForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setPasswordError("");
@@ -90,16 +125,21 @@ function ProfileManagement() {
     e.preventDefault();
     setProfileError("");
     try {
+      const payload = { firstName: form.firstName, lastName: form.lastName, phone: form.phone };
+      if (form.profileImage && (form.profileImage.startsWith("http://") || form.profileImage.startsWith("https://"))) {
+        payload.profileImage = form.profileImage;
+      }
       const res = await fetch(`${API_URL}/api/v1/user/me`, {
         method: "PUT",
         headers: getAuthHeaders(),
-        body: JSON.stringify({ firstName: form.firstName, lastName: form.lastName, phone: form.phone, profileImage: form.profileImage }),
+        body: JSON.stringify(payload),
       });
       const result = await res.json();
       if (!res.ok) {
         throw new Error(result.message || "Failed to update profile");
       }
       updateUser(result.data);
+      setOriginalForm({ ...form });
       setEditing(false);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -265,12 +305,13 @@ function ProfileManagement() {
             <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Profile Information</h2>
               <Button
+                type="button"
                 variant="indigo"
                 size="sm"
-                onClick={() => setEditing((prev) => !prev)}
+                onClick={editing ? handleCancelEdit : handleStartEdit}
               >
                 <FiEdit2 className="w-4 h-4" />
-                {editing ? "Cancel" : "Edit"}
+                {editing ? "Cancel" : "Edit Profile"}
               </Button>
             </div>
 
@@ -291,13 +332,23 @@ function ProfileManagement() {
                     )}
                   </div>
                   {editing && (
-                    <button
-                      type="button"
-                      className="absolute -bottom-1 -right-1 p-2 rounded-xl bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition-colors"
-                      aria-label="Change photo"
-                    >
-                      <FiCamera className="w-4 h-4" />
-                    </button>
+                    <>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfileImageChange}
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleProfileImageClick}
+                        className="absolute -bottom-1 -right-1 p-2 rounded-xl bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 hover:bg-indigo-600 transition-colors"
+                        aria-label="Change photo"
+                      >
+                        <FiCamera className="w-4 h-4" />
+                      </button>
+                    </>
                   )}
                 </div>
                 <div className="text-center sm:text-left">
@@ -374,8 +425,13 @@ function ProfileManagement() {
               <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-700">
                 <Button type="submit" variant="indigo" size="md" disabled={!editing}>
                   <FiSave className="w-4 h-4" />
-                  Save Profile
+                  Save Changes
                 </Button>
+                {editing && (
+                  <Button type="button" variant="ghost" size="md" onClick={handleCancelEdit}>
+                    Cancel
+                  </Button>
+                )}
                 <SavedBadge show={saved} />
               </div>
             </form>

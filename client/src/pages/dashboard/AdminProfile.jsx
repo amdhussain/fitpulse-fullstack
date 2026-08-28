@@ -98,10 +98,14 @@ function AdminProfile() {
     e.preventDefault();
     setProfileError("");
     try {
+      const payload = { firstName: form.firstName, lastName: form.lastName };
+      if (form.profileImage && (form.profileImage.startsWith("http://") || form.profileImage.startsWith("https://"))) {
+        payload.profileImage = form.profileImage;
+      }
       const res = await fetch(`${API_URL}/api/v1/user/admin/settings`, {
         method: "PUT",
         headers: getAuthHeaders(),
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const result = await res.json();
       if (!res.ok) {

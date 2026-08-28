@@ -54,8 +54,7 @@ function AdminSettings() {
         profileImage: user.profileImage || "",
       });
     }
-    const timer = setTimeout(() => setLoading(false), 400);
-    return () => clearTimeout(timer);
+    setLoading(false);
   }, [user]);
 
   const handleProfileChange = (e) => {
