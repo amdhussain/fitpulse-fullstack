@@ -54,23 +54,36 @@ export function AuthProvider({ children }) {
 
   const register = useCallback(
     async ({ firstName, lastName, email, password, passwordConfirm }) => {
-      const response = await fetch(`${API_URL}/api/v1/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName, email, password, passwordConfirm }),
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-      const result = await response.json();
+      try {
+        const response = await fetch(`${API_URL}/api/v1/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ firstName, lastName, email, password, passwordConfirm }),
+          signal: controller.signal,
+        });
 
-      if (!response.ok) {
-        throw new Error(result.message || "Registration failed");
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || "Registration failed");
+        }
+
+        const { user: userData, token } = result.data;
+        localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem("token", token);
+        setUser(userData);
+        return userData;
+      } catch (err) {
+        if (err.name === "AbortError") {
+          throw new Error("Request timed out. Please check your connection and try again.");
+        }
+        throw err;
+      } finally {
+        clearTimeout(timeoutId);
       }
-
-      const { user: userData, token } = result.data;
-      localStorage.setItem("user", JSON.stringify(userData));
-      localStorage.setItem("token", token);
-      setUser(userData);
-      return userData;
     },
     []
   );

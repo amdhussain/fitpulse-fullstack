@@ -75,6 +75,9 @@ function RegisterForm() {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
+      setIsSubmitting(true);
+      setServerError("");
+
       const fieldErrors = validate(form);
       setErrors(fieldErrors);
       setTouched({
@@ -85,10 +88,10 @@ function RegisterForm() {
         passwordConfirm: true,
       });
 
-      if (Object.keys(fieldErrors).length > 0) return;
-
-      setIsSubmitting(true);
-      setServerError("");
+      if (Object.keys(fieldErrors).length > 0) {
+        setIsSubmitting(false);
+        return;
+      }
 
       try {
         await register({
@@ -151,15 +154,27 @@ function RegisterForm() {
         </p>
       </motion.div>
 
-      {serverError && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-5 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
-        >
-          {serverError}
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {serverError && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15 }}
+            className="mb-5 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-2"
+          >
+            <span className="flex-1">{serverError}</span>
+            <button
+              type="button"
+              onClick={() => setServerError("")}
+              className="shrink-0 text-red-400/60 hover:text-red-400 transition-colors"
+              aria-label="Dismiss error"
+            >
+              ×
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
         {fields.map((field, idx) => (
@@ -205,9 +220,10 @@ function RegisterForm() {
             <AnimatePresence>
               {errors[field.key] && touched[field.key] && (
                 <motion.p
-                  initial={{ opacity: 0, y: -5, height: 0 }}
-                  animate={{ opacity: 1, y: 0, height: "auto" }}
-                  exit={{ opacity: 0, y: -5, height: 0 }}
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  transition={{ duration: 0.12 }}
                   className="mt-2 text-xs text-red-400 flex items-center gap-1.5"
                   role="alert"
                 >
