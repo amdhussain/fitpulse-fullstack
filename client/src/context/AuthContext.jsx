@@ -16,6 +16,10 @@ export function AuthProvider({ children }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    fetch(`${API_URL}/api/v1/health`, { method: "GET" }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
     try {
       const stored = localStorage.getItem("user");
       const token = localStorage.getItem("token");
@@ -31,23 +35,39 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(
     async (email, password) => {
-      const response = await fetch(`${API_URL}/api/v1/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-      const result = await response.json();
+      try {
+        const response = await fetch(`${API_URL}/api/v1/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+          signal: controller.signal,
+        });
 
-      if (!response.ok) {
-        throw new Error(result.message || "Login failed");
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || "Login failed");
+        }
+
+        const { user: userData, token } = result.data;
+        localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem("token", token);
+        setUser(userData);
+        return userData;
+      } catch (err) {
+        if (err.name === "AbortError") {
+          throw new Error("Request timed out. The server may be starting up. Please try again.");
+        }
+        if (err instanceof TypeError && err.message === "Failed to fetch") {
+          throw new Error("Cannot reach the server. It may be waking up — please try again in a moment.");
+        }
+        throw err;
+      } finally {
+        clearTimeout(timeoutId);
       }
-
-      const { user: userData, token } = result.data;
-      localStorage.setItem("user", JSON.stringify(userData));
-      localStorage.setItem("token", token);
-      setUser(userData);
-      return userData;
     },
     []
   );
@@ -79,6 +99,9 @@ export function AuthProvider({ children }) {
       } catch (err) {
         if (err.name === "AbortError") {
           throw new Error("Request timed out. Please check your connection and try again.");
+        }
+        if (err instanceof TypeError && err.message === "Failed to fetch") {
+          throw new Error("Cannot reach the server. It may be waking up — please try again in a moment.");
         }
         throw err;
       } finally {

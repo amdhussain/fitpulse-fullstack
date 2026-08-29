@@ -4,12 +4,14 @@ import { motion } from "framer-motion";
 import { FiMail, FiArrowRight, FiCheck, FiKey } from "react-icons/fi";
 import { Button, Logo } from "../components/ui";
 import { fadeUp, staggerContainer } from "../lib/animations";
+import { useSlowSubmit } from "../hooks/useSlowSubmit";
 
 const API_URL = import.meta.env.API_URL;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function ForgotPasswordForm() {
   const navigate = useNavigate();
+  const { slowMessage, start: startSlowTimer, stop: stopSlowTimer } = useSlowSubmit();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,13 +32,19 @@ function ForgotPasswordForm() {
     }
 
     setIsSubmitting(true);
+    startSlowTimer();
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
       const response = await fetch(`${API_URL}/api/v1/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       const result = await response.json();
 
       if (!response.ok) {
@@ -46,8 +54,15 @@ function ForgotPasswordForm() {
       setResetInfo(result.data || null);
       setSubmitted(true);
     } catch (err) {
-      setError(err.message || "Something went wrong. Please try again.");
+      if (err.name === "AbortError") {
+        setError("Request timed out. The server may be starting up. Please try again.");
+      } else if (err instanceof TypeError && err.message === "Failed to fetch") {
+        setError("Cannot reach the server. It may be waking up — please try again in a moment.");
+      } else {
+        setError(err.message || "Something went wrong. Please try again.");
+      }
     } finally {
+      stopSlowTimer();
       setIsSubmitting(false);
     }
   };
@@ -208,7 +223,7 @@ function ForgotPasswordForm() {
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Sending reset link...
+                  {slowMessage || "Sending reset link..."}
                 </span>
               ) : (
                 <>

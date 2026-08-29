@@ -13,6 +13,7 @@ import {
 import { Button, Logo } from "../components/ui";
 import { fadeUp, staggerContainer } from "../lib/animations";
 import { useAuth } from "../context/AuthContext";
+import { useSlowSubmit } from "../hooks/useSlowSubmit";
 import {
   loginBranding,
   getWelcomeFeatures,
@@ -366,6 +367,7 @@ function LoginForm() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { slowMessage, start: startSlowTimer, stop: stopSlowTimer } = useSlowSubmit();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -401,18 +403,21 @@ function LoginForm() {
 
       if (Object.keys(fieldErrors).length === 0) {
         setIsSubmitting(true);
+        startSlowTimer();
         try {
           await login(email, password);
+          stopSlowTimer();
           setShowSuccess(true);
           navigate(from, { replace: true });
         } catch (err) {
+          stopSlowTimer();
           setServerError(err.message || "Login failed. Please try again.");
         } finally {
           setIsSubmitting(false);
         }
       }
     },
-    [email, password, validationMessages, login, navigate, from]
+    [email, password, validationMessages, login, navigate, from, startSlowTimer, stopSlowTimer]
   );
 
   const inputBase =
@@ -613,7 +618,7 @@ function LoginForm() {
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Signing in...
+                    {slowMessage || "Signing in..."}
                   </span>
                 ) : (
                   <>

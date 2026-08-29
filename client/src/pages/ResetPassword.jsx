@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { FiLock, FiEye, FiEyeOff, FiArrowRight, FiCheck, FiKey } from "react-icons/fi";
 import { Button, Logo } from "../components/ui";
 import { fadeUp, staggerContainer } from "../lib/animations";
+import { useSlowSubmit } from "../hooks/useSlowSubmit";
 
 const API_URL = import.meta.env.API_URL;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#^()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d@$!%*?&.#^()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/;
@@ -12,6 +13,7 @@ function ResetPasswordForm() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
+  const { slowMessage, start: startSlowTimer, stop: stopSlowTimer } = useSlowSubmit();
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -49,13 +51,19 @@ function ResetPasswordForm() {
     }
 
     setIsSubmitting(true);
+    startSlowTimer();
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
       const response = await fetch(`${API_URL}/api/v1/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, newPassword: password }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       const result = await response.json();
 
       if (!response.ok) {
@@ -64,8 +72,15 @@ function ResetPasswordForm() {
 
       setSuccess(true);
     } catch (err) {
-      setError(err.message || "Something went wrong. Please try again.");
+      if (err.name === "AbortError") {
+        setError("Request timed out. The server may be starting up. Please try again.");
+      } else if (err instanceof TypeError && err.message === "Failed to fetch") {
+        setError("Cannot reach the server. It may be waking up — please try again in a moment.");
+      } else {
+        setError(err.message || "Something went wrong. Please try again.");
+      }
     } finally {
+      stopSlowTimer();
       setIsSubmitting(false);
     }
   };
@@ -248,7 +263,7 @@ function ResetPasswordForm() {
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Resetting password...
+                    {slowMessage || "Resetting password..."}
                   </span>
                 ) : (
                   <>

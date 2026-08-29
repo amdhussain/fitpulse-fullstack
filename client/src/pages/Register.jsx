@@ -12,6 +12,7 @@ import {
 import { Button, Logo } from "../components/ui";
 import { fadeUp, staggerContainer } from "../lib/animations";
 import { useAuth } from "../context/AuthContext";
+import { useSlowSubmit } from "../hooks/useSlowSubmit";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#^()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d@$!%*?&.#^()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/;
@@ -39,6 +40,7 @@ function validate(values) {
 function RegisterForm() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const { slowMessage, start: startSlowTimer, stop: stopSlowTimer } = useSlowSubmit();
 
   const [form, setForm] = useState({
     firstName: "",
@@ -93,6 +95,7 @@ function RegisterForm() {
         return;
       }
 
+      startSlowTimer();
       try {
         await register({
           firstName: form.firstName,
@@ -101,14 +104,16 @@ function RegisterForm() {
           password: form.password,
           passwordConfirm: form.passwordConfirm,
         });
+        stopSlowTimer();
         navigate("/dashboard", { replace: true });
       } catch (err) {
+        stopSlowTimer();
         setServerError(err.message || "Registration failed. Please try again.");
       } finally {
         setIsSubmitting(false);
       }
     },
-    [form, register, navigate]
+    [form, register, navigate, startSlowTimer, stopSlowTimer]
   );
 
   const inputBase =
@@ -247,7 +252,7 @@ function RegisterForm() {
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Creating account...
+                  {slowMessage || "Creating account..."}
                 </span>
               ) : (
                 <>
