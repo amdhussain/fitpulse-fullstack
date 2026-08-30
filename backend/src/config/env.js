@@ -64,6 +64,11 @@ const env = {
     url: requireEnv('BETTER_AUTH_URL'),
   },
 
+  google: {
+    clientId: optionalEnv('GOOGLE_CLIENT_ID'),
+    clientSecret: optionalEnv('GOOGLE_CLIENT_SECRET'),
+  },
+
   cookie: {
     secret: requireEnv('COOKIE_SECRET'),
     maxAge: parseNumber(optionalEnv('COOKIE_MAX_AGE', '86400000'), 86400000),

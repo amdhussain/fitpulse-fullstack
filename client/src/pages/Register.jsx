@@ -9,7 +9,7 @@ import {
   FiArrowRight,
   FiUser,
 } from "react-icons/fi";
-import { Button, Logo } from "../components/ui";
+import { Button, Logo, GoogleLoginButton } from "../components/ui";
 import { fadeUp, staggerContainer } from "../lib/animations";
 import { useAuth } from "../context/AuthContext";
 import { useSlowSubmit } from "../hooks/useSlowSubmit";
@@ -265,9 +265,26 @@ function RegisterForm() {
         </motion.div>
       </form>
 
+      <motion.div variants={fadeUp} custom={8} className="mt-8">
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-white/10" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="px-3 bg-transparent text-white/30">
+              or continue with
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-5">
+          <GoogleLoginButton text="Sign up with Google" />
+        </div>
+      </motion.div>
+
       <motion.p
         variants={fadeUp}
-        custom={8}
+        custom={9}
         className="mt-8 text-center text-sm text-white/30"
       >
         Already have an account?{" "}

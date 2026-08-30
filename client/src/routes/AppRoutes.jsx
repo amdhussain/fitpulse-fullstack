@@ -10,6 +10,7 @@ const Login = lazy(() => import("../pages/Login"));
 const Register = lazy(() => import("../pages/Register"));
 const ForgotPassword = lazy(() => import("../pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("../pages/ResetPassword"));
+const AuthCallback = lazy(() => import("../pages/AuthCallback"));
 const NotFound = lazy(() => import("../pages/NotFound"));
 
 const AboutPage = lazy(() => import("../pages/public/AboutPage"));
@@ -83,6 +84,7 @@ const routes = [
       { path: "register", element: <RouteSuspense><Register /></RouteSuspense> },
       { path: "forgot-password", element: <RouteSuspense><ForgotPassword /></RouteSuspense> },
       { path: "reset-password", element: <RouteSuspense><ResetPassword /></RouteSuspense> },
+      { path: "auth/callback", element: <RouteSuspense><AuthCallback /></RouteSuspense> },
       { path: "about", element: <RouteSuspense><AboutPage /></RouteSuspense> },
       { path: "services", element: <RouteSuspense><ServicesPage /></RouteSuspense> },
       { path: "services/:id", element: <RouteSuspense><ServiceDetail /></RouteSuspense> },

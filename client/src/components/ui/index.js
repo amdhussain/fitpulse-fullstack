@@ -9,4 +9,5 @@ export { default as FileUpload } from "./FileUpload";
 export { default as ErrorBoundary } from "./ErrorBoundary";
 export { default as PageLoader } from "./PageLoader";
 export { default as GlobalLoader } from "./GlobalLoader";
+export { default as GoogleLoginButton } from "./GoogleLoginButton";
 export { ToastProvider, useToast } from "./Toast";

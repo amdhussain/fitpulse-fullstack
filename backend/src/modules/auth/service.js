@@ -1,10 +1,14 @@
 const { getAuth, consumeResetToken } = require('../../config/betterAuth');
+const { google } = require('better-auth/social-providers');
 const UserRepository = require('./repository');
 const { ConflictError, UnauthorizedError, NotFoundError, BadRequestError } = require('../../errors');
 const databaseService = require('../../services/databaseService');
 const notificationService = require('../../services/notificationService');
 const logger = require('../../utils/logger');
 const env = require('../../config/env');
+const crypto = require('crypto');
+
+const googleOAuthState = new Map();
 
 function getCookieOptions() {
   return {
@@ -213,6 +217,190 @@ async function resetPassword(token, newPassword) {
   return { message: 'Password has been reset successfully' };
 }
 
+async function createGoogleAuthUrl(callbackURL) {
+  const state = crypto.randomBytes(32).toString('hex');
+  const codeVerifier = crypto.randomBytes(32).toString('base64url');
+  const codeChallenge = crypto
+    .createHash('sha256')
+    .update(codeVerifier)
+    .digest('base64url');
+
+  googleOAuthState.set(state, {
+    codeVerifier,
+    callbackURL: callbackURL || `${env.clientUrl}/auth/callback`,
+    createdAt: Date.now(),
+  });
+
+  for (const [key, val] of googleOAuthState) {
+    if (Date.now() - val.createdAt > 600000) {
+      googleOAuthState.delete(key);
+    }
+  }
+
+  const redirectURI = `${env.betterAuth.url}/api/v1/auth/google/callback`;
+
+  const params = new URLSearchParams({
+    client_id: env.google.clientId,
+    redirect_uri: redirectURI,
+    response_type: 'code',
+    scope: 'openid email profile',
+    state,
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256',
+    access_type: 'offline',
+    prompt: 'consent',
+  });
+
+  return {
+    url: `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`,
+    state,
+  };
+}
+
+async function handleGoogleCallback(code, state) {
+  const stateData = googleOAuthState.get(state);
+  if (!stateData) {
+    throw new BadRequestError('Invalid or expired OAuth state. Please try again.');
+  }
+  googleOAuthState.delete(state);
+
+  const { codeVerifier, callbackURL } = stateData;
+  const redirectURI = `${env.betterAuth.url}/api/v1/auth/google/callback`;
+
+  const tokens = await google({
+    clientId: env.google.clientId,
+    clientSecret: env.google.clientSecret,
+  }).validateAuthorizationCode({
+    code,
+    codeVerifier,
+    redirectURI,
+  });
+
+  const googleUser = await google({
+    clientId: env.google.clientId,
+    clientSecret: env.google.clientSecret,
+  }).getUserInfo(tokens);
+
+  if (!googleUser || !googleUser.user) {
+    throw new UnauthorizedError('Could not retrieve user information from Google');
+  }
+
+  const { user: gUser } = googleUser;
+  const email = gUser.email;
+  const firstName = gUser.name?.split(' ')[0] || '';
+  const lastName = gUser.name?.split(' ').slice(1).join(' ') || '';
+  const profileImage = gUser.image || null;
+
+  const auth = getAuth();
+
+  let baUser;
+  let isNewUser = false;
+
+  try {
+    const existingUser = await databaseService.db.collection('user').findOne({ email: email.toLowerCase() });
+
+    if (existingUser) {
+      baUser = existingUser;
+      await databaseService.db.collection('user').updateOne(
+        { _id: existingUser._id },
+        { $set: { emailVerified: true, updatedAt: new Date() } }
+      );
+    } else {
+      const insertResult = await databaseService.db.collection('user').insertOne({
+        name: gUser.name || `${firstName} ${lastName}`,
+        email: email.toLowerCase(),
+        emailVerified: true,
+        image: profileImage,
+        firstName,
+        lastName,
+        role: 'MEMBER',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      baUser = {
+        _id: insertResult.insertedId,
+        id: insertResult.insertedId.toString(),
+        name: gUser.name || `${firstName} ${lastName}`,
+        email: email.toLowerCase(),
+        emailVerified: true,
+        image: profileImage,
+        firstName,
+        lastName,
+        role: 'MEMBER',
+      };
+      isNewUser = true;
+    }
+  } catch (err) {
+    logger.error('Failed to find/create Better Auth user for Google login', { error: err.message });
+    throw new UnauthorizedError('Failed to process Google authentication');
+  }
+
+  const userId = (baUser._id || baUser.id).toString();
+
+  let appUser = await UserRepository.findByEmail(email);
+
+  if (!appUser) {
+    appUser = await UserRepository.create({
+      _id: databaseService.toObjectId(userId),
+      firstName,
+      lastName,
+      email: email.toLowerCase(),
+      role: 'MEMBER',
+      phone: null,
+      profileImage,
+      isActive: true,
+      isVerified: true,
+      lastLoginAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    logger.info('Created new app user from Google OAuth', { userId: appUser.id, email: appUser.email });
+    notificationService.userRegistered(appUser.id, `${firstName} ${lastName}`, email).catch(() => {});
+  } else {
+    const updates = {};
+    if (profileImage && !appUser.profileImage) {
+      updates.profileImage = profileImage;
+    }
+    if (!appUser.isVerified) {
+      updates.isVerified = true;
+    }
+    if (Object.keys(updates).length > 0) {
+      updates.updatedAt = new Date();
+      await databaseService.db.collection('users').updateOne(
+        { _id: databaseService.toObjectId(userId) },
+        { $set: updates }
+      );
+      appUser = { ...appUser, ...updates };
+    }
+  }
+
+  if (!appUser.isActive) {
+    throw new UnauthorizedError('Account has been deactivated. Please contact support.');
+  }
+
+  const sessionToken = crypto.randomBytes(32).toString('hex');
+  const sessionExpiresAt = new Date(Date.now() + 60 * 60 * 24 * 7 * 1000);
+
+  await databaseService.db.collection('session').insertOne({
+    token: sessionToken,
+    userId: databaseService.toObjectId(userId),
+    expiresAt: sessionExpiresAt,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  await UserRepository.updateLastLogin(userId);
+
+  logger.info('User logged in via Google OAuth', { userId: appUser.id, email: appUser.email });
+
+  return {
+    user: sanitizeUser(appUser),
+    token: sessionToken,
+    callbackURL,
+  };
+}
+
 module.exports = {
   register,
   login,
@@ -222,4 +410,6 @@ module.exports = {
   sanitizeUser,
   forgotPassword,
   resetPassword,
+  createGoogleAuthUrl,
+  handleGoogleCallback,
 };

@@ -1,5 +1,6 @@
 const { betterAuth } = require('better-auth');
 const { mongodbAdapter } = require('better-auth/adapters/mongodb');
+const { google } = require('better-auth/social-providers');
 const databaseService = require('../services/databaseService');
 const env = require('./env');
 const logger = require('../utils/logger');
@@ -25,6 +26,7 @@ function getAuth() {
   authInstance = betterAuth({
     baseURL: env.betterAuth.url,
     secret: env.betterAuth.secret,
+    basePath: '/api/v1/auth',
 
     database: mongodbAdapter(databaseService.db, {
       client: databaseService.mongoClient,
@@ -38,6 +40,13 @@ function getAuth() {
       sendResetPassword: async ({ user, url, token }, request) => {
         pendingResetTokens.set(user.email, { token, url, timestamp: Date.now() });
         logger.info('Password reset token generated', { email: user.email });
+      },
+    },
+
+    socialProviders: {
+      google: {
+        clientId: env.google.clientId,
+        clientSecret: env.google.clientSecret,
       },
     },
 

@@ -2,6 +2,7 @@ const authService = require('./service');
 const { successResponse, createdResponse } = require('../../helpers/apiResponse');
 const asyncHandler = require('../../middlewares/asyncHandler');
 const { fromNodeHeaders } = require('better-auth/node');
+const env = require('../../config/env');
 
 const register = asyncHandler(async (req, res) => {
   const { firstName, lastName, email, password, role } = req.body;
@@ -68,6 +69,34 @@ const resetPassword = asyncHandler(async (req, res) => {
   return successResponse(res, result, result.message);
 });
 
+const googleAuth = asyncHandler(async (req, res) => {
+  const callbackURL = req.query.callbackURL || `${env.clientUrl}/auth/callback`;
+  const { url } = await authService.createGoogleAuthUrl(callbackURL);
+  res.redirect(url);
+});
+
+const googleCallback = asyncHandler(async (req, res) => {
+  const { code, state, error } = req.query;
+
+  if (error) {
+    const errorMessage = encodeURIComponent(error);
+    return res.redirect(`${env.clientUrl}/auth/callback?error=${errorMessage}`);
+  }
+
+  if (!code || !state) {
+    return res.redirect(`${env.clientUrl}/auth/callback?error=missing_parameters`);
+  }
+
+  try {
+    const result = await authService.handleGoogleCallback(code, state);
+    const userData = encodeURIComponent(JSON.stringify(result.user));
+    return res.redirect(`${env.clientUrl}/auth/callback?token=${result.token}&user=${userData}`);
+  } catch (err) {
+    const errorMessage = encodeURIComponent(err.message || 'Google authentication failed');
+    return res.redirect(`${env.clientUrl}/auth/callback?error=${errorMessage}`);
+  }
+});
+
 module.exports = {
   register,
   login,
@@ -75,4 +104,6 @@ module.exports = {
   getMe,
   forgotPassword,
   resetPassword,
+  googleAuth,
+  googleCallback,
 };

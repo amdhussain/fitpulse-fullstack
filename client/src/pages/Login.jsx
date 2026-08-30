@@ -10,7 +10,7 @@ import {
   FiCheck,
   FiUser,
 } from "react-icons/fi";
-import { Button, Logo } from "../components/ui";
+import { Button, Logo, GoogleLoginButton } from "../components/ui";
 import { fadeUp, staggerContainer } from "../lib/animations";
 import { useAuth } from "../context/AuthContext";
 import { useSlowSubmit } from "../hooks/useSlowSubmit";
@@ -643,22 +643,8 @@ function LoginForm() {
             </div>
           </div>
 
-          <div className="mt-5 flex items-center justify-center gap-3">
-            {getSocialLinks().map((social) => {
-              const Icon = social.icon;
-              return (
-                <motion.a
-                  key={social.id}
-                  href={social.href}
-                  aria-label={social.label}
-                  whileHover={{ scale: 1.08, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all duration-300"
-                >
-                  <Icon className="w-5 h-5" />
-                </motion.a>
-              );
-            })}
+          <div className="mt-5">
+            <GoogleLoginButton />
           </div>
         </motion.div>
 

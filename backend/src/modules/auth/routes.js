@@ -10,6 +10,9 @@ function authRoutes(router) {
   router.get('/me', protect, authController.getMe);
   router.post('/forgot-password', authValidation.forgotPassword, authController.forgotPassword);
   router.post('/reset-password', authValidation.resetPassword, authController.resetPassword);
+
+  router.get('/google', authController.googleAuth);
+  router.get('/google/callback', authController.googleCallback);
 }
 
 module.exports = authRoutes;
