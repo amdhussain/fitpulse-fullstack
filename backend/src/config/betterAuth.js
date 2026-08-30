@@ -28,6 +28,8 @@ function getAuth() {
     secret: env.betterAuth.secret,
     basePath: '/api/v1/auth',
 
+    trustedOrigins: [env.clientUrl],
+
     database: mongodbAdapter(databaseService.db, {
       client: databaseService.mongoClient,
     }),
@@ -84,6 +86,11 @@ function getAuth() {
   });
 
   logger.info('Better Auth initialized');
+  logger.info('Google OAuth configured', {
+    clientId: env.google.clientId ? `${env.google.clientId.substring(0, 12)}...` : 'NOT SET',
+    clientSecret: env.google.clientSecret ? 'SET' : 'NOT SET',
+    redirectURI: `${env.betterAuth.url.replace(/\/+$/, '')}/api/v1/auth/google/callback`,
+  });
   return authInstance;
 }
 

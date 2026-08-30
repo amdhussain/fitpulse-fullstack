@@ -237,7 +237,10 @@ async function createGoogleAuthUrl(callbackURL) {
     }
   }
 
-  const redirectURI = `${env.betterAuth.url}/api/v1/auth/google/callback`;
+  const baseURL = env.betterAuth.url.replace(/\/+$/, '');
+  const redirectURI = `${baseURL}/api/v1/auth/google/callback`;
+
+  logger.info('Google OAuth redirect URI', { redirectURI, baseURL });
 
   const params = new URLSearchParams({
     client_id: env.google.clientId,
@@ -265,7 +268,7 @@ async function handleGoogleCallback(code, state) {
   googleOAuthState.delete(state);
 
   const { codeVerifier, callbackURL } = stateData;
-  const redirectURI = `${env.betterAuth.url}/api/v1/auth/google/callback`;
+  const redirectURI = `${env.betterAuth.url.replace(/\/+$/, '')}/api/v1/auth/google/callback`;
 
   const tokens = await google({
     clientId: env.google.clientId,
