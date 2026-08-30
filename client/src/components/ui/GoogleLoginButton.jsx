@@ -31,48 +31,10 @@ export default function GoogleLoginButton({ text = "Continue with Google", class
 
   const handleGoogleLogin = useCallback(() => {
     setIsLoading(true);
-
-    const width = 600;
-    const height = 700;
-    const left = window.screenX + (window.outerWidth - width) / 2;
-    const top = window.screenY + (window.outerHeight - height) / 2;
-
     const authUrl = `${API_URL}/api/v1/auth/google?callbackURL=${encodeURIComponent(
       window.location.origin + "/auth/callback"
     )}`;
-
-    const popup = window.open(
-      authUrl,
-      "google-auth",
-      `width=${width},height=${height},left=${left},top=${top},popup=yes`
-    );
-
-    if (!popup || popup.closed || typeof popup.closed === "undefined") {
-      setIsLoading(false);
-      window.location.href = authUrl;
-      return;
-    }
-
-    const checkInterval = setInterval(() => {
-      try {
-        if (popup.closed) {
-          clearInterval(checkInterval);
-          setIsLoading(false);
-        }
-      } catch {
-        clearInterval(checkInterval);
-        setIsLoading(false);
-      }
-    }, 500);
-
-    window.addEventListener("message", (event) => {
-      if (event.origin !== window.location.origin) return;
-      if (event.data?.type === "google-auth-success") {
-        clearInterval(checkInterval);
-        popup.close();
-        setIsLoading(false);
-      }
-    });
+    window.location.href = authUrl;
   }, []);
 
   return (
