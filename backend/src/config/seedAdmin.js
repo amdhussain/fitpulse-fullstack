@@ -39,8 +39,11 @@ async function seedAdmin() {
       logger.info(`Role migration complete: ${fixed} total role(s) normalized`);
     }
 
-    // Step 2: Ensure the admin account always has role: 'ADMIN'
+    // Step 2: Check existing records
+    const existingBaUser = await databaseService.db.collection('user').findOne({ email: emailLower });
     const existingAppUser = await usersCollection.findOne({ email: emailLower });
+
+    // Step 3: Ensure the admin account always has role: 'ADMIN'
     if (existingAppUser && existingAppUser.role !== 'ADMIN') {
       await usersCollection.updateOne(
         { email: emailLower },
@@ -49,70 +52,63 @@ async function seedAdmin() {
       logger.info('Admin account role corrected to "ADMIN"');
     }
 
-    // Step 3: Seed admin if it doesn't exist
-    const existingBaUser = await databaseService.db.collection('user').findOne({ email: emailLower });
-
-    if (existingBaUser && existingAppUser) {
-      logger.info('Admin account already exists, skipping seed');
-      return;
+    // Step 4: Delete existing Better Auth user if present, then re-create with correct password
+    if (existingBaUser) {
+      await databaseService.db.collection('user').deleteOne({ email: emailLower });
+      logger.info('Removed existing Better Auth admin user to force password re-hash');
     }
 
     const auth = getAuth();
 
-    let baUserId;
+    const signUpResult = await auth.api.signUpEmail({
+      body: {
+        name: `${ADMIN_FIRST_NAME} ${ADMIN_LAST_NAME}`,
+        email: ADMIN_EMAIL,
+        password: ADMIN_PASSWORD,
+      },
+    });
 
-    if (existingBaUser) {
-      baUserId = existingBaUser._id.toString();
-      logger.info('Admin Better Auth user already exists, skipping Better Auth creation');
-    } else {
-      const signUpResult = await auth.api.signUpEmail({
-        body: {
-          name: `${ADMIN_FIRST_NAME} ${ADMIN_LAST_NAME}`,
-          email: ADMIN_EMAIL,
-          password: ADMIN_PASSWORD,
-        },
-      });
-
-      if (!signUpResult || signUpResult.error) {
-        const message = signUpResult?.error?.message || '';
-        if (message.includes('already') || message.includes('exists')) {
-          const fallbackBaUser = await databaseService.db.collection('user').findOne({ email: emailLower });
-          if (!fallbackBaUser) {
-            logger.error('Admin seed failed: could not find Better Auth user after exists error');
-            return;
-          }
-          baUserId = fallbackBaUser._id.toString();
-          logger.info('Admin Better Auth user found via fallback lookup');
-        } else {
-          throw new Error(signUpResult?.error?.message || 'Admin seed failed');
-        }
-      } else {
-        baUserId = signUpResult.user?.id;
-        if (!baUserId) {
-          throw new Error('Admin seed failed: no user returned from Better Auth');
-        }
-      }
+    if (!signUpResult || signUpResult.error) {
+      throw new Error(signUpResult?.error?.message || 'Admin seed failed during signUpEmail');
     }
 
+    const baUserId = signUpResult.user?.id;
+    if (!baUserId) {
+      throw new Error('Admin seed failed: no user returned from Better Auth');
+    }
+
+    // Step 5: Ensure app profile exists in users collection with correct _id
+    const now = new Date();
+    const appProfileData = {
+      _id: databaseService.toObjectId(baUserId),
+      firstName: ADMIN_FIRST_NAME,
+      lastName: ADMIN_LAST_NAME,
+      email: emailLower,
+      role: 'ADMIN',
+      phone: existingAppUser?.phone || null,
+      profileImage: existingAppUser?.profileImage || null,
+      isActive: true,
+      isVerified: true,
+      lastLoginAt: existingAppUser?.lastLoginAt || null,
+      createdAt: existingAppUser?.createdAt || now,
+      updatedAt: now,
+    };
+
     if (!existingAppUser) {
-      const now = new Date();
-      await usersCollection.insertOne({
-        _id: databaseService.toObjectId(baUserId),
-        firstName: ADMIN_FIRST_NAME,
-        lastName: ADMIN_LAST_NAME,
-        email: emailLower,
-        role: 'ADMIN',
-        phone: null,
-        profileImage: null,
-        isActive: true,
-        isVerified: true,
-        lastLoginAt: null,
-        createdAt: now,
-        updatedAt: now,
-      });
+      await usersCollection.insertOne(appProfileData);
       logger.info('Default admin account seeded successfully', { email: ADMIN_EMAIL });
+    } else if (existingAppUser._id.toString() !== baUserId) {
+      // _id mismatch: delete old profile and re-insert with correct _id
+      await usersCollection.deleteOne({ _id: existingAppUser._id });
+      await usersCollection.insertOne(appProfileData);
+      logger.info('Admin app profile re-linked to new Better Auth user');
     } else {
-      logger.info('Admin app profile already exists, skipping');
+      // _id matches, just ensure role and timestamps are correct
+      await usersCollection.updateOne(
+        { _id: existingAppUser._id },
+        { $set: { role: 'ADMIN', updatedAt: now } }
+      );
+      logger.info('Admin app profile verified, password re-hashed successfully');
     }
   } catch (error) {
     logger.error('Failed to seed admin account', { error: error.message });
