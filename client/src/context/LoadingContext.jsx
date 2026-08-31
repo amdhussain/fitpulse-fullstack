@@ -56,6 +56,19 @@ export function LoadingProvider({ children }) {
     const originalFetch = window.fetch;
 
     window.fetch = async function (...args) {
+      const [resource, config = {}] = args;
+
+      if (typeof resource === "string" && resource.includes("/api/")) {
+        const token = localStorage.getItem("token");
+        if (token) {
+          const headers = new Headers(config.headers || {});
+          if (!headers.has("Authorization")) {
+            headers.set("Authorization", `Bearer ${token}`);
+          }
+          args[1] = { ...config, headers };
+        }
+      }
+
       pendingRequests.current += 1;
       showTime.current = Date.now();
       setLoading(true);

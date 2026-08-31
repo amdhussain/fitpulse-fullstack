@@ -1,28 +1,41 @@
 const bookingService = require('./service');
 const { successResponse, createdResponse, updatedResponse, deletedResponse, paginatedResponse } = require('../../helpers/apiResponse');
 const asyncHandler = require('../../middlewares/asyncHandler');
+const { UnauthorizedError } = require('../../errors');
 
 // ─── Member APIs ──────────────────────────────────────────
 
 const bookClass = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const { classId, bookingDate, bookingTime, notes, paymentMethod } = req.body;
   const booking = await bookingService.bookClass(req.user.id, { classId, bookingDate, bookingTime, notes, paymentMethod });
   return createdResponse(res, booking, 'Class booked successfully');
 });
 
 const bookTrainer = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const { trainerId, bookingDate, bookingTime, sessionType, notes, paymentMethod } = req.body;
   const booking = await bookingService.bookTrainer(req.user.id, { trainerId, bookingDate, bookingTime, sessionType, notes, paymentMethod });
   return createdResponse(res, booking, 'Trainer booked successfully');
 });
 
 const cancelBooking = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const { cancelReason } = req.body;
   const booking = await bookingService.cancelBooking(req.user.id, req.params.id, cancelReason);
   return updatedResponse(res, booking, 'Booking cancelled successfully');
 });
 
 const getMyBookings = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const { page = 1, limit = 10, search, status, sortBy, sortOrder } = req.query;
   const result = await bookingService.getMyBookings(req.user.id, {
     page: parseInt(page, 10) || 1,
@@ -36,11 +49,17 @@ const getMyBookings = asyncHandler(async (req, res) => {
 });
 
 const getBookingDetails = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const booking = await bookingService.getBookingDetails(req.user.id, req.params.id);
   return successResponse(res, booking, 'Booking retrieved successfully');
 });
 
 const memberUpdateBooking = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const { bookingDate, bookingTime, sessionType, notes } = req.body;
   const booking = await bookingService.memberUpdateBooking(req.user.id, req.params.id, { bookingDate, bookingTime, sessionType, notes });
   return updatedResponse(res, booking, 'Booking updated successfully');
@@ -49,6 +68,9 @@ const memberUpdateBooking = asyncHandler(async (req, res) => {
 // ─── Trainer APIs ─────────────────────────────────────────
 
 const getBookingsForMyClasses = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const { page = 1, limit = 10, search, status, classId, sortBy, sortOrder } = req.query;
 
   const result = await bookingService.getBookingsForMyClasses(req.user.id, {
@@ -65,18 +87,27 @@ const getBookingsForMyClasses = asyncHandler(async (req, res) => {
 });
 
 const approveBooking = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const booking = await bookingService.approveBooking(req.user.id, req.params.id);
 
   return updatedResponse(res, booking, 'Booking approved successfully');
 });
 
 const rejectBooking = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const booking = await bookingService.rejectBooking(req.user.id, req.params.id);
 
   return updatedResponse(res, booking, 'Booking rejected successfully');
 });
 
 const markAttendance = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const { attended } = req.body;
 
   const booking = await bookingService.markAttendance(req.user.id, req.params.id, attended);
@@ -85,6 +116,9 @@ const markAttendance = asyncHandler(async (req, res) => {
 });
 
 const verifyPayment = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const bookingId = req.params.id;
   const { status, notes } = req.body;
 
@@ -131,6 +165,9 @@ const rejectPayment = asyncHandler(async (req, res) => {
 });
 
 const submitPayment = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const { transactionId, paymentMethod } = req.body;
   const bookingId = req.params.id;
 
@@ -191,6 +228,9 @@ const submitPayment = asyncHandler(async (req, res) => {
 // ─── Admin APIs ───────────────────────────────────────────
 
 const getAllBookings = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const { page = 1, limit = 10, search, status, userId, classId, trainerId, sortBy, sortOrder } = req.query;
 
   const result = await bookingService.getAllBookings({
@@ -209,18 +249,27 @@ const getAllBookings = asyncHandler(async (req, res) => {
 });
 
 const updateBookingStatus = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const { status } = req.body;
   const booking = await bookingService.updateBookingStatus(req.params.id, status);
   return updatedResponse(res, booking, 'Booking status updated successfully');
 });
 
 const updateBooking = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const { bookingDate, bookingTime, sessionType, notes, trainerId, status } = req.body;
   const booking = await bookingService.updateBooking(req.params.id, { bookingDate, bookingTime, sessionType, notes, trainerId, status });
   return updatedResponse(res, booking, 'Booking updated successfully');
 });
 
 const deleteBooking = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const result = await bookingService.deleteBooking(req.params.id);
   return deletedResponse(res, result.message);
 });

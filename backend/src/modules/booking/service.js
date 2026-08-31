@@ -70,7 +70,13 @@ const booking = await BookingRepository.create({
 }
 
 async function cancelBooking(userId, bookingId, cancelReason) {
-  const booking = await BookingRepository.findByIdBasic(bookingId);
+  let booking;
+  try {
+    booking = await BookingRepository.findByIdBasic(bookingId);
+  } catch (error) {
+    logger.error('Failed to fetch booking for cancellation', { bookingId, error: error.message });
+    throw new BadRequestError('Invalid booking ID');
+  }
 
   if (!booking) {
     throw new NotFoundError('Booking not found');
@@ -123,25 +129,36 @@ async function getMyBookings(userId, { page, limit, search, status, sortBy, sort
     ];
   }
 
-  const { bookings, total } = await BookingRepository.findByUserId(userId, {
-    where,
-    page,
-    limit,
-    offset,
-    sortBy,
-    sortOrder,
-  });
+  try {
+    const { bookings, total } = await BookingRepository.findByUserId(userId, {
+      where,
+      page,
+      limit,
+      offset,
+      sortBy,
+      sortOrder,
+    });
 
-  return {
-    data: bookings,
-    total,
-    page,
-    limit,
-  };
+    return {
+      data: bookings,
+      total,
+      page,
+      limit,
+    };
+  } catch (error) {
+    logger.error('Failed to fetch user bookings', { userId, error: error.message });
+    throw new BadRequestError('Failed to fetch bookings. Please try again.');
+  }
 }
 
 async function getBookingDetails(userId, bookingId) {
-  const booking = await BookingRepository.findById(bookingId);
+  let booking;
+  try {
+    booking = await BookingRepository.findById(bookingId);
+  } catch (error) {
+    logger.error('Failed to fetch booking details', { bookingId, error: error.message });
+    throw new BadRequestError('Invalid booking ID');
+  }
 
   if (!booking) {
     throw new NotFoundError('Booking not found');

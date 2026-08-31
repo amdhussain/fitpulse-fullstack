@@ -90,10 +90,16 @@ function BookingManagement() {
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState("");
 
-  const fetchBookings = useCallback(async () => {
+  const fetchBookings = useCallback(async (statusFilter) => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/v1/booking/`, { headers: authHeaders() });
+      const params = new URLSearchParams();
+      if (statusFilter && statusFilter !== "all") {
+        params.set("status", statusFilter);
+      }
+      const qs = params.toString();
+      const url = `${API_URL}/api/v1/booking/${qs ? `?${qs}` : ""}`;
+      const res = await fetch(url, { headers: authHeaders() });
       if (res.ok) {
         const data = await res.json();
         const list = data.data?.bookings || data.data || [];
@@ -113,8 +119,8 @@ function BookingManagement() {
   }, []);
 
   useEffect(() => {
-    fetchBookings();
-  }, [fetchBookings]);
+    fetchBookings(filterStatus);
+  }, [fetchBookings, filterStatus]);
 
   const handleStatusUpdate = async () => {
     if (!actionModal.bookingId || !actionModal.action) return;
@@ -127,7 +133,7 @@ function BookingManagement() {
       });
       if (res.ok) {
         setActionModal({ open: false, bookingId: null, action: null, title: "", message: "" });
-        fetchBookings();
+        fetchBookings(filterStatus);
       }
     } catch {
       // silently fail
@@ -176,7 +182,7 @@ function BookingManagement() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Update failed.");
       setEditModal({ open: false, booking: null });
-      fetchBookings();
+      fetchBookings(filterStatus);
     } catch (err) {
       setEditError(err.message || "Something went wrong.");
     } finally {
@@ -315,7 +321,7 @@ function BookingManagement() {
           <option value="COMPLETED">Completed</option>
         </select>
         <button
-          onClick={fetchBookings}
+          onClick={() => fetchBookings(filterStatus)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10 transition-all"
         >
           <FiRefreshCw className="w-4 h-4" /> Refresh

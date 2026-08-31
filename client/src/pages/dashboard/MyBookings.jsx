@@ -80,10 +80,16 @@ function MyBookings() {
   const [cancelling, setCancelling] = useState(false);
   const [editModal, setEditModal] = useState({ open: false, booking: null });
 
-  const fetchBookings = useCallback(async () => {
+  const fetchBookings = useCallback(async (statusFilter) => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/v1/booking/me`, { headers: authHeaders() });
+      const params = new URLSearchParams();
+      if (statusFilter && statusFilter !== "all") {
+        params.set("status", statusFilter);
+      }
+      const qs = params.toString();
+      const url = `${API_URL}/api/v1/booking/me${qs ? `?${qs}` : ""}`;
+      const res = await fetch(url, { headers: authHeaders() });
       if (res.ok) {
         const data = await res.json();
         const list = data.data?.bookings || data.data || [];
@@ -103,8 +109,8 @@ function MyBookings() {
   }, []);
 
   useEffect(() => {
-    fetchBookings();
-  }, [fetchBookings]);
+    fetchBookings(filterStatus);
+  }, [fetchBookings, filterStatus]);
 
   const handleCancel = async () => {
     if (!cancelModal.bookingId) return;
@@ -117,7 +123,7 @@ function MyBookings() {
       });
       if (res.ok) {
         setCancelModal({ open: false, bookingId: null });
-        fetchBookings();
+        fetchBookings(filterStatus);
       }
     } catch {
       // silently fail
@@ -173,7 +179,7 @@ function MyBookings() {
           <option value="COMPLETED">Completed</option>
         </select>
         <button
-          onClick={fetchBookings}
+          onClick={() => fetchBookings(filterStatus)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10 transition-all"
         >
           <FiRefreshCw className="w-4 h-4" /> Refresh
@@ -279,10 +285,10 @@ function MyBookings() {
         isOpen={editModal.open}
         onClose={() => {
           setEditModal({ open: false, booking: null });
-          fetchBookings();
+          fetchBookings(filterStatus);
         }}
         editingBooking={editModal.booking}
-        onBookingUpdated={fetchBookings}
+        onBookingUpdated={() => fetchBookings(filterStatus)}
       />
     </motion.div>
   );

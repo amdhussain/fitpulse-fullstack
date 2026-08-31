@@ -1,7 +1,20 @@
 const { ObjectId } = require('mongodb');
 const databaseService = require('../../services/databaseService');
+const logger = require('../../utils/logger');
 
 const USER_FIELDS = { _id: 1, firstName: 1, lastName: 1, email: 1, phone: 1, profileImage: 1 };
+
+function toSafeObjectId(id) {
+  if (!id) return null;
+  if (id instanceof ObjectId) return id;
+  if (typeof id === 'string') {
+    const trimmed = id.trim();
+    if (/^[0-9a-fA-F]{24}$/.test(trimmed)) {
+      return new ObjectId(trimmed);
+    }
+  }
+  return null;
+}
 
 function bookingLookupPipeline() {
   return [
@@ -37,21 +50,28 @@ function bookingLookupPipeline() {
 function formatBooking(doc) {
   if (!doc) return null;
   const { _id, user, class: cls, trainer, ...rest } = doc;
-  const formatted = { ...rest, id: _id.toString() };
-  if (user) {
+  const formatted = { ...rest, id: _id ? _id.toString() : null };
+  if (user && user._id) {
     formatted.user = { ...user, id: user._id.toString() };
     delete formatted.user._id;
+  } else if (user) {
+    formatted.user = { ...user };
   }
-  if (cls) {
+  if (cls && cls._id) {
     formatted.class = { ...cls, id: cls._id.toString() };
     delete formatted.class._id;
+  } else if (cls) {
+    formatted.class = { ...cls };
   }
-  if (trainer) {
+  if (trainer && trainer._id) {
     formatted.trainer = { ...trainer, id: trainer._id.toString() };
-    if (formatted.trainer.user) {
+    delete formatted.trainer._id;
+    if (formatted.trainer.user && formatted.trainer.user._id) {
       formatted.trainer.user = { ...formatted.trainer.user, id: formatted.trainer.user._id.toString() };
       delete formatted.trainer.user._id;
     }
+  } else if (trainer) {
+    formatted.trainer = { ...trainer };
   }
   return formatted;
 }
@@ -63,8 +83,12 @@ function formatBookings(docs) {
 
 const BookingRepository = {
   async findById(id) {
+    const safeId = toSafeObjectId(id);
+    if (!safeId) {
+      throw new Error('Invalid booking ID format');
+    }
     const pipeline = [
-      { $match: { _id: new ObjectId(id) } },
+      { $match: { _id: safeId } },
       ...bookingLookupPipeline(),
     ];
     const results = await databaseService.client.bookings.aggregate(pipeline).toArray();
@@ -72,7 +96,11 @@ const BookingRepository = {
   },
 
   async findByIdBasic(id) {
-    const doc = await databaseService.client.bookings.findOne({ _id: new ObjectId(id) });
+    const safeId = toSafeObjectId(id);
+    if (!safeId) {
+      throw new Error('Invalid booking ID format');
+    }
+    const doc = await databaseService.client.bookings.findOne({ _id: safeId });
     if (!doc) return null;
     const result = { ...doc, id: doc._id.toString(), userId: doc.userId.toString() };
     if (doc.classId) result.classId = doc.classId.toString();
@@ -85,10 +113,10 @@ const BookingRepository = {
   async create(data, session) {
     const now = new Date();
     const insertData = {
-      userId: new ObjectId(data.userId),
-      classId: data.classId ? new ObjectId(data.classId) : null,
-      serviceId: data.serviceId ? new ObjectId(data.serviceId) : null,
-      trainerId: data.trainerId ? new ObjectId(data.trainerId) : null,
+      userId: toSafeObjectId(data.userId),
+      classId: data.classId ? toSafeObjectId(data.classId) : null,
+      serviceId: data.serviceId ? toSafeObjectId(data.serviceId) : null,
+      trainerId: data.trainerId ? toSafeObjectId(data.trainerId) : null,
       bookingDate: data.bookingDate || null,
       bookingTime: data.bookingTime || null,
       sessionType: data.sessionType || null,
@@ -106,14 +134,18 @@ const BookingRepository = {
   },
 
   async update(id, data, session) {
+    const safeId = toSafeObjectId(id);
+    if (!safeId) {
+      throw new Error('Invalid booking ID format');
+    }
     const updateFields = { ...data, updatedAt: new Date() };
-    if (data.userId) updateFields.userId = new ObjectId(data.userId);
-    if (data.classId) updateFields.classId = new ObjectId(data.classId);
-    if (data.trainerId) updateFields.trainerId = new ObjectId(data.trainerId);
-    if (data.serviceId) updateFields.serviceId = new ObjectId(data.serviceId);
+    if (data.userId) updateFields.userId = toSafeObjectId(data.userId);
+    if (data.classId) updateFields.classId = toSafeObjectId(data.classId);
+    if (data.trainerId) updateFields.trainerId = toSafeObjectId(data.trainerId);
+    if (data.serviceId) updateFields.serviceId = toSafeObjectId(data.serviceId);
     const options = session ? { session } : {};
     await databaseService.client.bookings.updateOne(
-      { _id: new ObjectId(id) },
+      { _id: safeId },
       { $set: updateFields },
       options
     );
@@ -121,21 +153,36 @@ const BookingRepository = {
   },
 
   async delete(id, session) {
+    const safeId = toSafeObjectId(id);
+    if (!safeId) {
+      throw new Error('Invalid booking ID format');
+    }
     const options = session ? { session } : {};
-    await databaseService.client.bookings.deleteOne({ _id: new ObjectId(id) }, options);
+    await databaseService.client.bookings.deleteOne({ _id: safeId }, options);
   },
 
   async findDuplicate(userId, classId) {
+    const safeUserId = toSafeObjectId(userId);
+    const safeClassId = toSafeObjectId(classId);
+    if (!safeUserId || !safeClassId) {
+      return null;
+    }
     const doc = await databaseService.client.bookings.findOne({
-      userId: new ObjectId(userId),
-      classId: new ObjectId(classId),
+      userId: safeUserId,
+      classId: safeClassId,
       status: { $ne: 'CANCELLED' },
     });
     return databaseService.formatDoc(doc);
   },
 
   async findByUserId(userId, { where, page, limit, offset, sortBy, sortOrder }) {
-    const match = { userId: new ObjectId(userId) };
+    const safeUserId = toSafeObjectId(userId);
+    if (!safeUserId) {
+      logger.error('Invalid userId passed to findByUserId', { userId });
+      throw new Error('Invalid user ID format');
+    }
+
+    const match = { userId: safeUserId };
     if (where.status) match.status = where.status;
 
     const pipeline = [{ $match: match }, ...bookingLookupPipeline()];
@@ -143,11 +190,11 @@ const BookingRepository = {
     if (where.$or) {
       const orConditions = [];
       for (const cond of where.$or) {
-        if (cond.class && cond.class.name && cond.class.name.$regex) {
-          orConditions.push({ 'class.name': { $regex: cond.class.name.$regex, $options: 'i' } });
-        }
         if (cond.notes && cond.notes.$regex) {
           orConditions.push({ notes: { $regex: cond.notes.$regex, $options: 'i' } });
+        }
+        if (cond.class && cond.class.name && cond.class.name.$regex) {
+          orConditions.push({ 'class.name': { $regex: cond.class.name.$regex, $options: 'i' } });
         }
       }
       if (orConditions.length > 0) pipeline.push({ $match: { $or: orConditions } });
@@ -170,7 +217,11 @@ const BookingRepository = {
   },
 
   async findByClassIds(classIds, { where, page, limit, offset, sortBy, sortOrder }) {
-    const match = { classId: { $in: classIds.map((id) => new ObjectId(id)) } };
+    const safeClassIds = classIds.map((id) => toSafeObjectId(id)).filter(Boolean);
+    if (safeClassIds.length === 0) {
+      return { bookings: [], total: 0 };
+    }
+    const match = { classId: { $in: safeClassIds } };
     if (where.status) match.status = where.status;
 
     const pipeline = [{ $match: match }, ...bookingLookupPipeline()];
@@ -213,9 +264,18 @@ const BookingRepository = {
   async findMany({ where, page, limit, offset, sortBy, sortOrder }) {
     const match = {};
     if (where.status) match.status = where.status;
-    if (where.userId) match.userId = new ObjectId(where.userId);
-    if (where.classId) match.classId = new ObjectId(where.classId);
-    if (where.trainerId) match.trainerId = new ObjectId(where.trainerId);
+    if (where.userId) {
+      const safeUserId = toSafeObjectId(where.userId);
+      if (safeUserId) match.userId = safeUserId;
+    }
+    if (where.classId) {
+      const safeClassId = toSafeObjectId(where.classId);
+      if (safeClassId) match.classId = safeClassId;
+    }
+    if (where.trainerId) {
+      const safeTrainerId = toSafeObjectId(where.trainerId);
+      if (safeTrainerId) match.trainerId = safeTrainerId;
+    }
 
     const pipeline = [{ $match: match }, ...bookingLookupPipeline()];
 
@@ -258,8 +318,10 @@ const BookingRepository = {
   },
 
   async findClassById(id) {
+    const safeId = toSafeObjectId(id);
+    if (!safeId) return null;
     const doc = await databaseService.client.classes.findOne(
-      { _id: new ObjectId(id) },
+      { _id: safeId },
       { projection: { _id: 1, trainerId: 1, name: 1, capacity: 1, availableSeats: 1, status: 1 } }
     );
     if (!doc) return null;
@@ -270,14 +332,18 @@ const BookingRepository = {
   },
 
   async findTrainerByUserId(userId) {
-    const doc = await databaseService.client.trainers.findOne({ userId: new ObjectId(userId) });
+    const safeUserId = toSafeObjectId(userId);
+    if (!safeUserId) return null;
+    const doc = await databaseService.client.trainers.findOne({ userId: safeUserId });
     if (!doc) return null;
     return { ...doc, id: doc._id.toString(), userId: doc.userId.toString() };
   },
 
   async findTrainerById(trainerId) {
+    const safeId = toSafeObjectId(trainerId);
+    if (!safeId) return null;
     const pipeline = [
-      { $match: { _id: new ObjectId(trainerId) } },
+      { $match: { _id: safeId } },
       {
         $lookup: {
           from: 'users',
@@ -303,8 +369,10 @@ const BookingRepository = {
   },
 
   async findClassIdsByTrainerId(trainerId) {
+    const safeId = toSafeObjectId(trainerId);
+    if (!safeId) return [];
     const docs = await databaseService.client.classes
-      .find({ trainerId: new ObjectId(trainerId) }, { projection: { _id: 1 } })
+      .find({ trainerId: safeId }, { projection: { _id: 1 } })
       .toArray();
     return docs.map((d) => d._id.toString());
   },

@@ -109,7 +109,7 @@ const getMyBookings = validateQuery([
   rules.limit(),
   rules.sort(['createdAt', 'bookingDate', 'status']),
   rules.queryText('search'),
-  rules.queryEnum('status', ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']),
+  rules.queryEnum('status', ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED', 'PENDING_PAYMENT', 'PENDING_VERIFICATION']),
 ]);
 
 const getBookingsForMyClasses = validateQuery([
@@ -117,7 +117,7 @@ const getBookingsForMyClasses = validateQuery([
   rules.limit(),
   rules.sort(['createdAt', 'bookingDate', 'status']),
   rules.queryText('search'),
-  rules.queryEnum('status', ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']),
+  rules.queryEnum('status', ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED', 'PENDING_PAYMENT', 'PENDING_VERIFICATION']),
   rules.queryText('classId'),
 ]);
 
@@ -126,7 +126,7 @@ const getAllBookings = validateQuery([
   rules.limit(),
   rules.sort(['createdAt', 'bookingDate', 'status', 'userId']),
   rules.queryText('search'),
-  rules.queryEnum('status', ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']),
+  rules.queryEnum('status', ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED', 'PENDING_PAYMENT', 'PENDING_VERIFICATION']),
   rules.queryText('userId'),
   rules.queryText('classId'),
   rules.queryText('trainerId'),
