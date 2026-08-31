@@ -59,19 +59,17 @@ const passwordConfirmation = (passwordField = 'password', confirmField = 'passwo
 
 // ─── Names & Text ─────────────────────────────────────────
 
-const name = (field = 'name', { min = 2, max = 100 } = {}) =>
+const name = (field = 'name', { min = 1, max = 100 } = {}) =>
   body(field)
     .trim()
     .notEmpty().withMessage(msg.required(field))
-    .isLength({ min, max }).withMessage(msg.between(field, min, max))
-    .matches(/^[a-zA-ZÀ-ÿ\u00C0-\u024F\s'-]+$/).withMessage(msg.alpha(field));
+    .isLength({ min, max }).withMessage(msg.between(field, min, max));
 
-const optionalName = (field = 'name', { min = 2, max = 100 } = {}) =>
+const optionalName = (field = 'name', { min = 1, max = 100 } = {}) =>
   body(field)
-    .optional()
+    .optional({ values: 'falsy' })
     .trim()
-    .isLength({ min, max }).withMessage(msg.between(field, min, max))
-    .matches(/^[a-zA-ZÀ-ÿ\u00C0-\u024F\s'-]+$/).withMessage(msg.alpha(field));
+    .isLength({ min, max }).withMessage(msg.between(field, min, max));
 
 const text = (field, { min = 1, max = 5000 } = {}) =>
   body(field)
@@ -91,13 +89,13 @@ const phone = (field = 'phone') =>
   body(field)
     .trim()
     .notEmpty().withMessage(msg.required(field))
-    .isMobilePhone('any', { strictMode: false }).withMessage(msg.phone);
+    .isLength({ max: 50 }).withMessage(msg.tooLong(field, 50));
 
 const optionalPhone = (field = 'phone') =>
   body(field)
-    .optional()
+    .optional({ values: 'falsy' })
     .trim()
-    .isMobilePhone('any', { strictMode: false }).withMessage(msg.phone);
+    .isLength({ max: 50 }).withMessage(msg.tooLong(field, 50));
 
 const url = (field) =>
   body(field)
@@ -107,7 +105,7 @@ const url = (field) =>
 
 const optionalUrl = (field) =>
   body(field)
-    .optional()
+    .optional({ values: 'falsy' })
     .trim()
     .isURL({ protocols: ['http', 'https'], require_protocol: true }).withMessage(msg.url);
 

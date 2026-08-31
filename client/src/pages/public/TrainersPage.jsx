@@ -14,6 +14,7 @@ import {
 import { Container, Button, SectionTitle, Skeleton } from "../../components/ui";
 import { zoomFade, staggerContainer } from "../../lib/animations";
 import { useAuth } from "../../context/AuthContext";
+import { isValidImageUrl } from "../../lib/imageUtils";
 import BookingModal from "../../components/BookingModal";
 
 const API_URL = import.meta.env.API_URL;
@@ -85,18 +86,26 @@ function TrainerCard({ trainer, index, onBookNow }) {
     >
       <div className="relative rounded-2xl overflow-hidden bg-base-200/60 backdrop-blur-xl border border-base-300/50 shadow-lg shadow-black/10 hover:shadow-2xl hover:shadow-cyan-500/10 transition-all duration-500 hover:-translate-y-2">
         <div className="relative h-72 overflow-hidden">
-          {!imageLoaded && (
-            <Skeleton variant="shimmer" className="absolute inset-0 h-full w-full rounded-none" />
+          {isValidImageUrl(trainer.image || trainer.profileImage) ? (
+            <>
+              {!imageLoaded && (
+                <Skeleton variant="shimmer" className="absolute inset-0 h-full w-full rounded-none" />
+              )}
+              <img
+                src={trainer.image || trainer.profileImage}
+                alt={`${trainer.name} - ${trainer.specialization}`}
+                loading="lazy"
+                onLoad={() => setImageLoaded(true)}
+                className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
+                width="600"
+                height="750"
+              />
+            </>
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center text-white text-4xl font-bold">
+              {trainer.name?.charAt(0)?.toUpperCase() || "T"}
+            </div>
           )}
-          <img
-            src={trainer.image || trainer.profileImage}
-            alt={`${trainer.name} - ${trainer.specialization}`}
-            loading="lazy"
-            onLoad={() => setImageLoaded(true)}
-            className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
-            width="600"
-            height="750"
-          />
           <div className="absolute inset-0 bg-gradient-to-t from-base-100/90 via-base-100/20 to-transparent" />
 
           <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">

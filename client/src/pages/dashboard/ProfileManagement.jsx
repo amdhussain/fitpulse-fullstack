@@ -18,6 +18,7 @@ import { staggerContainer } from "../../lib/animations";
 import { PageBanner, StatCard, CmsModal } from "../../components/dashboard";
 import { getInputClass } from "../../lib/dashboardHelpers";
 import { useAuth } from "../../context/AuthContext";
+import { isValidImageUrl } from "../../lib/imageUtils";
 
 const accent = "indigo";
 const API_URL = import.meta.env.API_URL;
@@ -125,10 +126,19 @@ function ProfileManagement() {
     e.preventDefault();
     setProfileError("");
     try {
-      const payload = { firstName: form.firstName, lastName: form.lastName, phone: form.phone };
+      const payload = {};
+      if (form.firstName.trim()) payload.firstName = form.firstName.trim();
+      if (form.lastName.trim()) payload.lastName = form.lastName.trim();
+      if (form.phone.trim()) payload.phone = form.phone.trim();
       if (form.profileImage && (form.profileImage.startsWith("http://") || form.profileImage.startsWith("https://"))) {
-        payload.profileImage = form.profileImage;
+        payload.profileImage = form.profileImage.trim();
       }
+
+      if (Object.keys(payload).length === 0) {
+        setEditing(false);
+        return;
+      }
+
       const res = await fetch(`${API_URL}/api/v1/user/me`, {
         method: "PUT",
         headers: getAuthHeaders(),
@@ -136,7 +146,8 @@ function ProfileManagement() {
       });
       const result = await res.json();
       if (!res.ok) {
-        throw new Error(result.message || "Failed to update profile");
+        const fieldErrors = result.errors?.map((e) => e.message).join(". ");
+        throw new Error(fieldErrors || result.message || "Failed to update profile");
       }
       updateUser(result.data);
       setOriginalForm({ ...form });
@@ -319,7 +330,7 @@ function ProfileManagement() {
               <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-gray-100 dark:border-gray-700">
                 <div className="relative shrink-0">
                   <div className="w-28 h-28 rounded-2xl overflow-hidden border-2 border-indigo-200 dark:border-indigo-700">
-                    {form.profileImage ? (
+                    {isValidImageUrl(form.profileImage) ? (
                       <img
                         src={form.profileImage}
                         alt={fullName}

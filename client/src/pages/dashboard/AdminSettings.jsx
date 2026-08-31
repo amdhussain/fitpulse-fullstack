@@ -8,6 +8,7 @@ import { staggerContainer } from "../../lib/animations";
 import { PageBanner, CmsModal } from "../../components/dashboard";
 import { getInputClass } from "../../lib/dashboardHelpers";
 import { useAuth } from "../../context/AuthContext";
+import { isValidImageUrl } from "../../lib/imageUtils";
 
 const accent = "indigo";
 const API_URL = import.meta.env.API_URL;
@@ -215,7 +216,7 @@ function AdminSettings() {
               <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-gray-100 dark:border-gray-700">
                 <div className="relative shrink-0">
                   <div className="w-28 h-28 rounded-2xl overflow-hidden border-2 border-indigo-200 dark:border-indigo-700">
-                    {profileForm.profileImage ? (
+                    {isValidImageUrl(profileForm.profileImage) ? (
                       <img src={profileForm.profileImage} alt="Admin" className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold">

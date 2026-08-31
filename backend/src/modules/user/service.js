@@ -27,10 +27,10 @@ async function updateMyProfile(userId, { firstName, lastName, phone, profileImag
   }
 
   const updateData = {};
-  if (firstName !== undefined) updateData.firstName = firstName;
-  if (lastName !== undefined) updateData.lastName = lastName;
-  if (phone !== undefined) updateData.phone = phone;
-  if (profileImage !== undefined) updateData.profileImage = profileImage;
+  if (firstName !== undefined && firstName !== '') updateData.firstName = firstName;
+  if (lastName !== undefined && lastName !== '') updateData.lastName = lastName;
+  if (phone !== undefined && phone !== '') updateData.phone = phone;
+  if (profileImage !== undefined && profileImage !== '') updateData.profileImage = profileImage;
 
   if (Object.keys(updateData).length === 0) {
     throw new BadRequestError('No fields to update');

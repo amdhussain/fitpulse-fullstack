@@ -14,6 +14,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Button, Logo } from "../ui";
 import { useAuth } from "../../context/AuthContext";
+import { isValidImageUrl } from "../../lib/imageUtils";
 
 const sectionLinks = [
   { to: "/", label: "Home" },
@@ -62,7 +63,7 @@ function UserAvatar({ user, size = "md" }) {
     ? user.name.charAt(0).toUpperCase()
     : "U";
 
-  if (user?.profileImage) {
+  if (isValidImageUrl(user?.profileImage)) {
     return (
       <img
         src={user.profileImage}
@@ -162,7 +163,7 @@ function MobileLogoutButton({ onClose }) {
   return (
     <button
       onClick={handleLogout}
-      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium w-full text-left text-red-400 hover:bg-red-500/10 transition-all duration-200"
+      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium w-full text-left text-red-400 bg-red-500/5 hover:bg-red-500/15 border border-red-500/10 transition-all duration-200"
     >
       <FiLogOut className="w-4 h-4" />
       Logout
@@ -278,14 +279,6 @@ function Navbar() {
           <div className="flex items-center gap-2 ml-auto shrink-0">
             {isAuthenticated ? (
               <>
-                <NavLink to="/dashboard">
-                  {({ isActive }) => (
-                    <Button size="sm" variant={isActive ? "blue" : "ghost"}>
-                      <FiLayout className="w-4 h-4 mr-1.5" />
-                      Dashboard
-                    </Button>
-                  )}
-                </NavLink>
                 <div ref={menuRef} className="relative">
                   <button
                     onClick={() => setMenuOpen((prev) => !prev)}
@@ -346,19 +339,29 @@ function Navbar() {
 
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="lg:hidden overflow-hidden bg-base-200/98 backdrop-blur-xl border-t border-base-300/50"
-          >
-            <div className="px-4 sm:px-6 lg:px-8 py-4">
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+              onClick={() => setMobileOpen(false)}
+              aria-hidden="true"
+            />
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="lg:hidden relative overflow-hidden bg-base-200/98 backdrop-blur-xl border-t border-base-300/50 max-h-[calc(100vh-4rem)] flex flex-col z-50"
+            >
+            <div className="flex-1 overflow-y-auto min-h-0 px-4 sm:px-6 lg:px-8 py-4">
               {isAuthenticated && user && (
-                <div className="flex items-center gap-3 px-4 py-3 mb-3 rounded-xl bg-base-300/30">
+                <div className="flex items-center gap-3 px-4 py-3 mb-4 rounded-xl bg-base-300/30">
                   <UserAvatar user={user} size="lg" />
-                  <div>
-                    <p className="text-sm font-semibold text-base-content">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-base-content truncate">
                       {user.firstName} {user.lastName}
                     </p>
                     {user.email && (
@@ -370,152 +373,125 @@ function Navbar() {
                 </div>
               )}
 
-              <ul className="flex flex-col gap-1" role="list">
-                {sectionLinks.map((link, i) => (
-                  <motion.li
-                    key={link.to}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                  >
-                    <NavLink
-                      to={link.to}
-                      end={link.to === "/"}
-                      onClick={() => setMobileOpen(false)}
-                      className={({ isActive }) =>
-                        `block px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                          isActive
-                            ? "bg-blue-500/10 text-blue-400"
-                            : "text-base-content/60 hover:bg-base-300/50 hover:text-base-content"
-                        }`
-                      }
-                    >
-                      {link.label}
-                    </NavLink>
-                  </motion.li>
-                ))}
-                <motion.li
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: sectionLinks.length * 0.05 }}
-                >
-                  <NavLink
-                    to="/fitness-tools"
-                    onClick={() => setMobileOpen(false)}
-                    className={`block px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                      location.pathname.startsWith("/fitness-tools")
-                        ? "bg-cyan-500/10 text-cyan-400"
-                        : "text-base-content/60 hover:bg-base-300/50 hover:text-base-content"
-                    }`}
-                  >
-                    Fitness Tools
-                  </NavLink>
-                </motion.li>
-
-                {isAuthenticated ? (
-                  <>
+              <div className="mb-4">
+                <p className="px-4 mb-1.5 text-[11px] font-semibold tracking-widest text-base-content/40 uppercase">
+                  Navigation
+                </p>
+                <ul className="flex flex-col gap-0.5" role="list">
+                  {sectionLinks.map((link, i) => (
                     <motion.li
-                      initial={{ opacity: 0, x: -20 }}
+                      key={link.to}
+                      initial={{ opacity: 0, x: -16 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: (sectionLinks.length + 1) * 0.05 }}
+                      transition={{ delay: i * 0.04 }}
                     >
                       <NavLink
-                        to="/dashboard"
+                        to={link.to}
+                        end={link.to === "/"}
                         onClick={() => setMobileOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          `block px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                             isActive
                               ? "bg-blue-500/10 text-blue-400"
                               : "text-base-content/60 hover:bg-base-300/50 hover:text-base-content"
                           }`
                         }
                       >
-                        <FiLayout className="w-4 h-4" />
-                        Dashboard
+                        {link.label}
                       </NavLink>
                     </motion.li>
+                  ))}
+                  <motion.li
+                    initial={{ opacity: 0, x: -16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: sectionLinks.length * 0.04 }}
+                  >
+                    <NavLink
+                      to="/fitness-tools"
+                      onClick={() => setMobileOpen(false)}
+                      className={({ isActive }) =>
+                        `block px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          location.pathname.startsWith("/fitness-tools")
+                            ? "bg-cyan-500/10 text-cyan-400"
+                            : "text-base-content/60 hover:bg-base-300/50 hover:text-base-content"
+                        }`
+                      }
+                    >
+                      Fitness Tools
+                    </NavLink>
+                  </motion.li>
+                </ul>
+              </div>
+
+              {isAuthenticated && (
+                <div className="mb-2">
+                  <p className="px-4 mb-1.5 text-[11px] font-semibold tracking-widest text-base-content/40 uppercase">
+                    Manage Account
+                  </p>
+                  <ul className="flex flex-col gap-0.5" role="list">
                     {menuItems.map((item, i) => {
                       const Icon = item.icon;
                       return (
                         <motion.li
                           key={item.label}
-                          initial={{ opacity: 0, x: -20 }}
+                          initial={{ opacity: 0, x: -16 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{
-                            delay: (sectionLinks.length + 2 + i) * 0.05,
+                            delay: (sectionLinks.length + 1 + i) * 0.04,
                           }}
                         >
                           <NavLink
                             to={item.to}
                             onClick={() => setMobileOpen(false)}
                             className={({ isActive }) =>
-                              `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                              `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                                 isActive
                                   ? "bg-blue-500/10 text-blue-400"
                                   : "text-base-content/60 hover:bg-base-300/50 hover:text-base-content"
                               }`
                             }
                           >
-                            <Icon className="w-4 h-4" />
+                            <Icon className="w-4 h-4 shrink-0" />
                             {item.label}
                           </NavLink>
                         </motion.li>
                       );
                     })}
-                    <motion.li
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{
-                        delay:
-                          (sectionLinks.length + 2 + menuItems.length) * 0.05,
-                      }}
-                    >
-                      <MobileLogoutButton onClose={() => setMobileOpen(false)} />
-                    </motion.li>
-                  </>
-                ) : (
-                  <>
-                    <motion.li
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{
-                        delay: (sectionLinks.length + 1) * 0.05,
-                      }}
-                    >
-                      <NavLink
-                        to="/login"
-                        onClick={() => setMobileOpen(false)}
-                        className={({ isActive }) =>
-                          `block px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                            isActive
-                              ? "bg-blue-500/10 text-blue-400"
-                              : "text-base-content/60 hover:bg-base-300/50 hover:text-base-content"
-                          }`
-                        }
-                      >
-                        Login
-                      </NavLink>
-                    </motion.li>
-                    <motion.li
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{
-                        delay: (sectionLinks.length + 2) * 0.05,
-                      }}
-                    >
-                      <NavLink
-                        to="/register"
-                        onClick={() => setMobileOpen(false)}
-                        className="block px-4 py-3 rounded-xl text-sm font-medium text-base-content/60 hover:bg-base-300/50 hover:text-base-content transition-all duration-200"
-                      >
-                        Register
-                      </NavLink>
-                    </motion.li>
-                  </>
-                )}
-              </ul>
+                  </ul>
+                </div>
+              )}
             </div>
-          </motion.div>
+
+            <div className="shrink-0 border-t border-base-300/50 px-4 sm:px-6 lg:px-8 py-3">
+              {isAuthenticated ? (
+                <MobileLogoutButton onClose={() => setMobileOpen(false)} />
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <NavLink
+                    to="/login"
+                    onClick={() => setMobileOpen(false)}
+                    className={({ isActive }) =>
+                      `block px-4 py-2.5 rounded-xl text-sm font-medium text-center transition-all duration-200 ${
+                        isActive
+                          ? "bg-blue-500/15 text-blue-400"
+                          : "text-blue-400 bg-blue-500/10 hover:bg-blue-500/20"
+                      }`
+                    }
+                  >
+                    Login
+                  </NavLink>
+                  <NavLink
+                    to="/register"
+                    onClick={() => setMobileOpen(false)}
+                    className="block px-4 py-2.5 rounded-xl text-sm font-medium text-center text-base-content/60 hover:bg-base-300/50 hover:text-base-content transition-all duration-200"
+                  >
+                    Register
+                  </NavLink>
+                </div>
+              )}
+            </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </header>

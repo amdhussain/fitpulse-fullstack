@@ -46,9 +46,9 @@ export default function GoogleLoginButton({ text = "Continue with Google", class
       whileTap={{ scale: 0.98 }}
       className={`
         w-full flex items-center justify-center gap-3 px-4 py-3.5
-        rounded-xl bg-white border border-gray-200
-        text-sm font-medium text-gray-700
-        hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900
+        rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600
+        text-sm font-medium text-gray-700 dark:text-gray-200
+        hover:bg-gray-50 dark:hover:bg-gray-750 hover:border-gray-300 dark:hover:border-gray-500 hover:text-gray-900 dark:hover:text-white
         transition-all duration-300
         disabled:opacity-50 disabled:cursor-not-allowed
         shadow-sm hover:shadow-md

@@ -2,12 +2,12 @@ import { motion } from "framer-motion";
 import { fadeUp } from "../../lib/animations";
 
 const colorConfig = {
-  blue: { bar: "from-blue-500 to-blue-400", border: "border-gray-200", hoverBorder: "hover:border-blue-200", dot: "bg-blue-500", label: "text-blue-600", fill: "#3b82f6" },
-  emerald: { bar: "from-emerald-500 to-emerald-400", border: "border-gray-200", hoverBorder: "hover:border-emerald-200", dot: "bg-emerald-500", label: "text-emerald-600", fill: "#10b981" },
-  purple: { bar: "from-purple-500 to-purple-400", border: "border-gray-200", hoverBorder: "hover:border-purple-200", dot: "bg-purple-500", label: "text-purple-600", fill: "#a855f7" },
-  cyan: { bar: "from-cyan-500 to-cyan-400", border: "border-gray-200", hoverBorder: "hover:border-cyan-200", dot: "bg-cyan-500", label: "text-cyan-600", fill: "#06b6d4" },
-  amber: { bar: "from-amber-500 to-amber-400", border: "border-gray-200", hoverBorder: "hover:border-amber-200", dot: "bg-amber-500", label: "text-amber-600", fill: "#f59e0b" },
-  rose: { bar: "from-rose-500 to-rose-400", border: "border-gray-200", hoverBorder: "hover:border-rose-200", dot: "bg-rose-500", label: "text-rose-600", fill: "#f43f5e" },
+  blue: { bar: "from-blue-500 to-blue-400", border: "border-gray-200 dark:border-gray-700", hoverBorder: "hover:border-blue-200 dark:hover:border-blue-800", dot: "bg-blue-500", label: "text-blue-600 dark:text-blue-400", fill: "#3b82f6" },
+  emerald: { bar: "from-emerald-500 to-emerald-400", border: "border-gray-200 dark:border-gray-700", hoverBorder: "hover:border-emerald-200 dark:hover:border-emerald-800", dot: "bg-emerald-500", label: "text-emerald-600 dark:text-emerald-400", fill: "#10b981" },
+  purple: { bar: "from-purple-500 to-purple-400", border: "border-gray-200 dark:border-gray-700", hoverBorder: "hover:border-purple-200 dark:hover:border-purple-800", dot: "bg-purple-500", label: "text-purple-600 dark:text-purple-400", fill: "#a855f7" },
+  cyan: { bar: "from-cyan-500 to-cyan-400", border: "border-gray-200 dark:border-gray-700", hoverBorder: "hover:border-cyan-200 dark:hover:border-cyan-800", dot: "bg-cyan-500", label: "text-cyan-600 dark:text-cyan-400", fill: "#06b6d4" },
+  amber: { bar: "from-amber-500 to-amber-400", border: "border-gray-200 dark:border-gray-700", hoverBorder: "hover:border-amber-200 dark:hover:border-amber-800", dot: "bg-amber-500", label: "text-amber-600 dark:text-amber-400", fill: "#f59e0b" },
+  rose: { bar: "from-rose-500 to-rose-400", border: "border-gray-200 dark:border-gray-700", hoverBorder: "hover:border-rose-200 dark:hover:border-rose-800", dot: "bg-rose-500", label: "text-rose-600 dark:text-rose-400", fill: "#f43f5e" },
 };
 
 function BarChart({ data, maxValue, color = "blue" }) {
@@ -80,16 +80,16 @@ function DonutChart({ segments }) {
           })}
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-lg font-bold text-gray-900">{total}</span>
-          <span className="text-[9px] text-gray-400">Total</span>
+          <span className="text-lg font-bold text-gray-900 dark:text-white">{total}</span>
+          <span className="text-[9px] text-gray-400 dark:text-gray-500">Total</span>
         </div>
       </div>
       <div className="space-y-2.5">
         {segments.map((segment, i) => (
           <div key={i} className="flex items-center gap-2.5">
             <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: segment.color }} />
-            <span className="text-xs text-gray-500">{segment.label}</span>
-            <span className="text-xs font-semibold text-gray-700 ml-auto">{segment.value}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{segment.label}</span>
+            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 ml-auto">{segment.value}</span>
           </div>
         ))}
       </div>
@@ -105,12 +105,12 @@ function ChartCard({ title, subtitle, color = "blue", type = "bar", data, childr
       variants={fadeUp}
       initial="hidden"
       animate="visible"
-      className={`rounded-2xl bg-white border ${cfg.border} ${cfg.hoverBorder} transition-all duration-300 overflow-hidden shadow-sm ${className}`}
+      className={`rounded-2xl bg-white dark:bg-gray-800 border ${cfg.border} ${cfg.hoverBorder} transition-all duration-300 overflow-hidden shadow-sm ${className}`}
     >
-      <div className="px-5 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div className="px-5 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-          {subtitle && <p className="text-[11px] text-gray-400 mt-0.5">{subtitle}</p>}
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{title}</h3>
+          {subtitle && <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">{subtitle}</p>}
         </div>
         <div className={`w-2 h-2 rounded-full ${cfg.dot}`} />
       </div>

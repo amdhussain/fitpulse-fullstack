@@ -25,6 +25,7 @@ import StatCard from "../../components/dashboard/StatCard";
 import DataTable from "../../components/dashboard/DataTable";
 import ConfirmModal from "../../components/dashboard/ConfirmModal";
 import { useAuth } from "../../context/AuthContext";
+import { isValidImageUrl } from "../../lib/imageUtils";
 
 const API_URL = import.meta.env.API_URL;
 
@@ -241,7 +242,7 @@ function UserDetailModal({ isOpen, user, onClose, loading }) {
             <div className="p-6">
               <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-100 dark:border-white/5">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-blue-500/25 shrink-0">
-                  {user.profileImage ? (
+                  {isValidImageUrl(user.profileImage) ? (
                     <img
                       src={user.profileImage}
                       alt={`${user.firstName} ${user.lastName}`}
@@ -489,7 +490,7 @@ function UserManagement() {
       label: "Profile",
       render: (_, item) => (
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm shadow-blue-500/20">
-          {item.profileImage ? (
+          {isValidImageUrl(item.profileImage) ? (
             <img
               src={item.profileImage}
               alt={item.name}

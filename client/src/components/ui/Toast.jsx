@@ -5,11 +5,11 @@ import { FiCheckCircle, FiAlertCircle, FiAlertTriangle, FiInfo, FiX } from "reac
 const ToastContext = createContext(null);
 
 const toastConfig = {
-  success: { icon: FiCheckCircle, bg: "bg-emerald-50 border-emerald-200", text: "text-emerald-800", iconColor: "text-emerald-500", bar: "bg-emerald-500" },
-  error: { icon: FiAlertCircle, bg: "bg-red-50 border-red-200", text: "text-red-800", iconColor: "text-red-500", bar: "bg-red-500" },
-  warning: { icon: FiAlertTriangle, bg: "bg-amber-50 border-amber-200", text: "text-amber-800", iconColor: "text-amber-500", bar: "bg-amber-500" },
-  info: { icon: FiInfo, bg: "bg-blue-50 border-blue-200", text: "text-blue-800", iconColor: "text-blue-500", bar: "bg-blue-500" },
-  loading: { icon: null, bg: "bg-gray-50 border-gray-200", text: "text-gray-800", iconColor: "text-gray-500", bar: "bg-gray-400" },
+  success: { icon: FiCheckCircle, bg: "bg-emerald-50 dark:bg-emerald-950 border-emerald-200 dark:border-emerald-800", text: "text-emerald-800 dark:text-emerald-200", iconColor: "text-emerald-500", bar: "bg-emerald-500" },
+  error: { icon: FiAlertCircle, bg: "bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800", text: "text-red-800 dark:text-red-200", iconColor: "text-red-500", bar: "bg-red-500" },
+  warning: { icon: FiAlertTriangle, bg: "bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800", text: "text-amber-800 dark:text-amber-200", iconColor: "text-amber-500", bar: "bg-amber-500" },
+  info: { icon: FiInfo, bg: "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800", text: "text-blue-800 dark:text-blue-200", iconColor: "text-blue-500", bar: "bg-blue-500" },
+  loading: { icon: null, bg: "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700", text: "text-gray-800 dark:text-gray-200", iconColor: "text-gray-500", bar: "bg-gray-400" },
 };
 
 let toastId = 0;
@@ -59,7 +59,7 @@ export function ToastProvider({ children }) {
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 exit={{ opacity: 0, x: 50, scale: 0.95 }}
                 transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-                className={`pointer-events-auto w-80 rounded-xl border ${config.bg} shadow-lg shadow-gray-200/50 overflow-hidden`}
+                className={`pointer-events-auto w-80 rounded-xl border ${config.bg} shadow-lg shadow-gray-200/50 dark:shadow-black/30 overflow-hidden`}
               >
                 <div className={`h-0.5 ${config.bar} w-full`} />
                 <div className="flex items-start gap-3 p-4">
