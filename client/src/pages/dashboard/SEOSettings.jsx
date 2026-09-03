@@ -13,7 +13,7 @@ import {
 } from "react-icons/fi";
 import { staggerContainer } from "../../lib/animations";
 import PageBanner from "../../components/dashboard/PageBanner";
-import { getInputClass } from "../../lib/dashboardHelpers";
+import { getInputClass, getSelectClass } from "../../lib/dashboardHelpers";
 import { useAuth } from "../../context/AuthContext";
 
 const API_URL = import.meta.env.API_URL;
@@ -195,16 +195,18 @@ function SEOSettings() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Robots Directive</label>
+                <div className="select-wrapper">
                 <select
                   value={settings.robots}
                   onChange={(e) => handleChange("robots", e.target.value)}
-                  className={getInputClass("violet")}
+                  className={getSelectClass("violet")}
                 >
                   <option value="index, follow">Index, Follow (Default)</option>
                   <option value="noindex, follow">No Index, Follow</option>
                   <option value="index, nofollow">Index, No Follow</option>
                   <option value="noindex, nofollow">No Index, No Follow</option>
                 </select>
+                </div>
               </div>
             </div>
           </div>

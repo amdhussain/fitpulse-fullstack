@@ -45,19 +45,19 @@ const features = [
 
 const colorMap = {
   blue: {
-    iconBg: "bg-blue-500/10 group-hover:bg-blue-500 group-hover:shadow-blue-500/25",
-    iconColor: "text-blue-400 group-hover:text-white",
-    glow: "hover:shadow-blue-500/10 hover:border-blue-500/20",
+    iconBg: "bg-blue-100 group-hover:bg-blue-500 group-hover:shadow-blue-500/25",
+    iconColor: "text-blue-600 group-hover:text-white",
+    glow: "hover:shadow-blue-500/10 hover:border-blue-300",
   },
   indigo: {
-    iconBg: "bg-indigo-500/10 group-hover:bg-indigo-500 group-hover:shadow-indigo-500/25",
-    iconColor: "text-indigo-400 group-hover:text-white",
-    glow: "hover:shadow-indigo-500/10 hover:border-indigo-500/20",
+    iconBg: "bg-indigo-100 group-hover:bg-indigo-500 group-hover:shadow-indigo-500/25",
+    iconColor: "text-indigo-600 group-hover:text-white",
+    glow: "hover:shadow-indigo-500/10 hover:border-indigo-300",
   },
   violet: {
-    iconBg: "bg-violet-500/10 group-hover:bg-violet-500 group-hover:shadow-violet-500/25",
-    iconColor: "text-violet-400 group-hover:text-white",
-    glow: "hover:shadow-violet-500/10 hover:border-violet-500/20",
+    iconBg: "bg-violet-100 group-hover:bg-violet-500 group-hover:shadow-violet-500/25",
+    iconColor: "text-violet-600 group-hover:text-white",
+    glow: "hover:shadow-violet-500/10 hover:border-violet-300",
   },
 };
 
@@ -72,7 +72,7 @@ function WhyChooseUs() {
 
   if (loading) {
     return (
-      <section className="relative py-24 sm:py-32 lg:py-40 overflow-hidden bg-gradient-to-b from-base-100 via-blue-950/5 to-base-100">
+      <section className="relative py-24 sm:py-32 lg:py-40 overflow-hidden bg-gradient-to-b from-white via-blue-50/30 to-white">
         <Container>
           <div className="text-center space-y-3 mb-16">
             <Skeleton variant="shimmer" className="h-8 w-32 rounded-full mx-auto" />
@@ -97,10 +97,10 @@ function WhyChooseUs() {
   }
 
   return (
-    <section ref={ref} className="relative py-24 sm:py-32 lg:py-40 overflow-hidden bg-gradient-to-b from-base-100 via-blue-950/5 to-base-100">
+    <section ref={ref} className="relative py-24 sm:py-32 lg:py-40 overflow-hidden bg-gradient-to-b from-base-100 via-blue-950/5 to-base-100 dark:from-slate-900 dark:via-blue-950/10 dark:to-slate-900">
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <div className="absolute top-1/2 -right-40 w-[600px] h-[600px] bg-blue-500/4 rounded-full blur-[160px]" />
-        <div className="absolute bottom-0 -left-40 w-[400px] h-[400px] bg-indigo-500/3 rounded-full blur-[120px]" />
+        <div className="absolute top-1/2 -right-40 w-[600px] h-[600px] bg-blue-200/30 dark:bg-blue-500/5 rounded-full blur-[160px]" />
+        <div className="absolute bottom-0 -left-40 w-[400px] h-[400px] bg-indigo-200/20 dark:bg-indigo-500/5 rounded-full blur-[120px]" />
       </div>
 
       <Container className="relative z-10">
@@ -111,8 +111,8 @@ function WhyChooseUs() {
           className="text-center"
         >
           <motion.div variants={fadeUp} custom={0}>
-            <span className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-semibold backdrop-blur-sm tracking-wide">
-              <span className="w-2 h-2 rounded-full bg-blue-400" aria-hidden="true" />
+            <span className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 text-sm font-semibold tracking-wide">
+              <span className="w-2 h-2 rounded-full bg-blue-500" aria-hidden="true" />
               Why Choose Us
             </span>
           </motion.div>
@@ -148,7 +148,7 @@ function WhyChooseUs() {
                     {feature.title}
                   </h3>
 
-                  <p className="text-sm text-base-content/45 leading-[1.7] flex-1">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 leading-[1.7] flex-1">
                     {feature.description}
                   </p>
                 </div>

@@ -20,7 +20,7 @@ import StatCard from "../../components/dashboard/StatCard";
 import CmsModal from "../../components/dashboard/CmsModal";
 import CmsBadge from "../../components/dashboard/CmsBadge";
 import ConfirmModal from "../../components/dashboard/ConfirmModal";
-import { getInputClass } from "../../lib/dashboardHelpers";
+import { getInputClass, getSelectClass } from "../../lib/dashboardHelpers";
 import { useAuth } from "../../context/AuthContext";
 import {
   getGalleryImages,
@@ -523,12 +523,13 @@ function GalleryManagement() {
                 <label className="block text-sm font-medium text-gray-500 mb-1.5">
                   Category
                 </label>
+                <div className="select-wrapper">
                 <select
                   value={form.category}
                   onChange={(e) =>
                     setForm((p) => ({ ...p, category: e.target.value }))
                   }
-                  className={inputClass}
+                  className={getSelectClass("sky")}
                 >
                   <option value="">Select category</option>
                   {categories.map((c) => (
@@ -537,6 +538,7 @@ function GalleryManagement() {
                     </option>
                   ))}
                 </select>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-500 mb-1.5">

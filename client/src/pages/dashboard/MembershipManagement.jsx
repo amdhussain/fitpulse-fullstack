@@ -17,7 +17,7 @@ import DataTable from "../../components/dashboard/DataTable";
 import ConfirmModal from "../../components/dashboard/ConfirmModal";
 import CmsModal from "../../components/dashboard/CmsModal";
 import CmsBadge from "../../components/dashboard/CmsBadge";
-import { getInputClass } from "../../lib/dashboardHelpers";
+import { getInputClass, getSelectClass } from "../../lib/dashboardHelpers";
 import {
   getMembershipPlans,
   getMembershipStats,
@@ -371,16 +371,18 @@ function MembershipManagement() {
                 <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Duration
                 </label>
+                <div className="select-wrapper">
                 <select
                   value={form.duration}
                   onChange={(e) =>
                     setForm((p) => ({ ...p, duration: e.target.value }))
                   }
-                  className={inputClass}
+                  className={getSelectClass("yellow")}
                 >
                   <option value="Monthly">Monthly</option>
                   <option value="Yearly">Yearly</option>
                 </select>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
@@ -480,7 +482,7 @@ function MembershipManagement() {
                           Monthly
                         </p>
                         <p className="text-xl font-bold text-yellow-600 dark:text-yellow-400">
-                          {form.monthlyPrice}
+                          ${form.monthlyPrice}
                         </p>
                       </div>
                     )}
@@ -490,7 +492,7 @@ function MembershipManagement() {
                           Yearly
                         </p>
                         <p className="text-lg font-semibold text-amber-600 dark:text-amber-400">
-                          {form.yearlyPrice}
+                          ${form.yearlyPrice}
                         </p>
                       </div>
                     )}
@@ -587,13 +589,13 @@ function MembershipManagement() {
                   <div>
                     <p className="text-xs text-gray-400 dark:text-gray-500">Monthly</p>
                     <p className="text-lg font-bold text-yellow-600 dark:text-yellow-400">
-                      {viewItem.monthlyPrice}
+                      ${viewItem.monthlyPrice}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-400 dark:text-gray-500">Yearly</p>
                     <p className="text-lg font-semibold text-amber-600 dark:text-amber-400">
-                      {viewItem.yearlyPrice}
+                      ${viewItem.yearlyPrice}
                     </p>
                   </div>
                   <div>

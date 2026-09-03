@@ -70,9 +70,12 @@ const UserManagement = lazy(() => import("../pages/dashboard/UserManagement"));
 const BookingManagement = lazy(() => import("../pages/dashboard/BookingManagement"));
 const TrainerApproval = lazy(() => import("../pages/dashboard/TrainerApproval"));
 const PaymentManagement = lazy(() => import("../pages/dashboard/PaymentManagement"));
+const MemberPayments = lazy(() => import("../pages/dashboard/MemberPayments"));
+const PaymentMethodsManagement = lazy(() => import("../pages/dashboard/PaymentMethodsManagement"));
 const NewsletterManagement = lazy(() => import("../pages/dashboard/NewsletterManagement"));
 const SEOSettings = lazy(() => import("../pages/dashboard/SEOSettings"));
 const MyBookings = lazy(() => import("../pages/dashboard/MyBookings"));
+const ClassManagement = lazy(() => import("../pages/dashboard/ClassManagement"));
 
 const routes = [
   {
@@ -94,7 +97,7 @@ const routes = [
       { path: "membership/:id", element: <RouteSuspense><MembershipDetail /></RouteSuspense> },
       { path: "gallery", element: <RouteSuspense><GalleryPage /></RouteSuspense> },
       { path: "gallery/:id", element: <RouteSuspense><GalleryDetail /></RouteSuspense> },
-      { path: "booking", element: <RouteSuspense><BookingPage /></RouteSuspense> },
+      { path: "booking", element: <ProtectedRoute><RouteSuspense><BookingPage /></RouteSuspense></ProtectedRoute> },
       { path: "contact", element: <RouteSuspense><ContactPage /></RouteSuspense> },
       { path: "fitness-tools", element: <RouteSuspense><FitnessToolsHub /></RouteSuspense> },
       { path: "fitness-tools/bmi", element: <RouteSuspense><BMIPage /></RouteSuspense> },
@@ -129,6 +132,7 @@ const routes = [
       { index: true, element: <DashboardSuspense><Overview /></DashboardSuspense> },
       { path: "profile", element: <DashboardSuspense><ProfileManagement /></DashboardSuspense> },
       { path: "my-bookings", element: <DashboardSuspense><MyBookings /></DashboardSuspense> },
+      { path: "my-payments", element: <DashboardSuspense><MemberPayments /></DashboardSuspense> },
       { path: "hero", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><HeroManagement /></DashboardSuspense></ProtectedRoute> },
       { path: "about", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><AboutManagement /></DashboardSuspense></ProtectedRoute> },
       { path: "services", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><ServicesManagement /></DashboardSuspense></ProtectedRoute> },
@@ -148,8 +152,10 @@ const routes = [
       { path: "bookings", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><BookingManagement /></DashboardSuspense></ProtectedRoute> },
       { path: "trainer-approval", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><TrainerApproval /></DashboardSuspense></ProtectedRoute> },
       { path: "payments", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><PaymentManagement /></DashboardSuspense></ProtectedRoute> },
+      { path: "payment-methods", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><PaymentMethodsManagement /></DashboardSuspense></ProtectedRoute> },
       { path: "newsletter", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><NewsletterManagement /></DashboardSuspense></ProtectedRoute> },
       { path: "seo", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><SEOSettings /></DashboardSuspense></ProtectedRoute> },
+      { path: "classes", element: <ProtectedRoute roles={["ADMIN"]}><DashboardSuspense><ClassManagement /></DashboardSuspense></ProtectedRoute> },
     ],
   },
 ];

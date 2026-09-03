@@ -106,7 +106,7 @@ function MembershipDetail() {
               <h1 className="text-3xl sm:text-4xl font-bold text-base-content">{plan.name}</h1>
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-black text-base-content" style={{ color: plan.color }}>
-                  {plan.monthlyPrice}
+                  ${plan.monthlyPrice}
                 </span>
                 <span className="text-base-content/40">/month</span>
               </div>
@@ -157,7 +157,7 @@ function MembershipDetail() {
                 <h2 className="text-xl font-bold text-base-content">{plan.name}</h2>
                 <div className="flex items-baseline justify-center gap-1">
                   <span className="text-5xl font-black" style={{ color: plan.color }}>
-                    {plan.monthlyPrice}
+                    ${plan.monthlyPrice}
                   </span>
                   <span className="text-base-content/40">/mo</span>
                 </div>

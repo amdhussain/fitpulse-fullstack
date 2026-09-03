@@ -199,7 +199,7 @@ function PlanCard({ plan, index }) {
               </div>
               <div className="text-right">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-amber-400">{plan.monthlyPrice}</span>
+                  <span className="text-3xl font-black text-amber-400">${plan.monthlyPrice}</span>
                   <span className="text-sm text-base-content/40">/mo</span>
                 </div>
                 <p className="text-xs text-base-content/40">{plan.yearlyPrice}/year</p>

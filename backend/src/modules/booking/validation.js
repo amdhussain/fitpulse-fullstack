@@ -17,6 +17,11 @@ const bookClass = validateRequest([
     .notEmpty().withMessage('Booking time is required')
     .matches(/^([01]\d|2[0-3]):[0-5]\d$/).withMessage('Booking time must be in HH:MM format'),
   rules.optionalText('notes', { max: 1000 }),
+  body('paymentOption')
+    .optional()
+    .trim()
+    .isIn(['FULL', 'HALF'])
+    .withMessage('Payment option must be FULL or HALF'),
 ]);
 
 // ─── Member: Book Trainer ─────────────────────────────────
@@ -35,6 +40,11 @@ const bookTrainer = validateRequest([
     .matches(/^([01]\d|2[0-3]):[0-5]\d$/).withMessage('Booking time must be in HH:MM format'),
   rules.optionalText('sessionType', { max: 100 }),
   rules.optionalText('notes', { max: 1000 }),
+  body('paymentOption')
+    .optional()
+    .trim()
+    .isIn(['FULL', 'HALF'])
+    .withMessage('Payment option must be FULL or HALF'),
 ]);
 
 // ─── Member: Update Booking ───────────────────────────────
@@ -132,6 +142,14 @@ const getAllBookings = validateQuery([
   rules.queryText('trainerId'),
 ]);
 
+const mockPayment = validateRequest([
+  body('paymentOption')
+    .optional()
+    .trim()
+    .isIn(['FULL', 'HALF'])
+    .withMessage('Payment option must be FULL or HALF'),
+]);
+
 const idParam = validateParams({ id: 'string' });
 
 module.exports = {
@@ -145,5 +163,6 @@ module.exports = {
   getMyBookings,
   getBookingsForMyClasses,
   getAllBookings,
+  mockPayment,
   idParam,
 };

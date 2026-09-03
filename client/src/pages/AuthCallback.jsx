@@ -26,7 +26,7 @@ export default function AuthCallback() {
         localStorage.setItem("token", token);
         setUser(user);
         setStatus("Success! Redirecting...");
-        setTimeout(() => navigate("/dashboard", { replace: true }), 500);
+        setTimeout(() => navigate("/", { replace: true }), 500);
       } catch {
         setStatus("Failed to process authentication data.");
         setTimeout(() => navigate("/login", { replace: true }), 3000);
@@ -43,7 +43,7 @@ export default function AuthCallback() {
             localStorage.setItem("user", JSON.stringify(result.data));
             setUser(result.data);
             setStatus("Success! Redirecting...");
-            setTimeout(() => navigate("/dashboard", { replace: true }), 500);
+            setTimeout(() => navigate("/", { replace: true }), 500);
           } else {
             throw new Error("Invalid session");
           }

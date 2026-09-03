@@ -240,7 +240,7 @@ async function deleteUser(userId) {
   return { message: 'User deleted successfully' };
 }
 
-async function updateAdminProfile(userId, { firstName, lastName, profileImage }) {
+async function updateAdminProfile(userId, { firstName, lastName, phone, profileImage }) {
   const user = await UserRepository.findById(userId);
 
   if (!user) {
@@ -254,6 +254,7 @@ async function updateAdminProfile(userId, { firstName, lastName, profileImage })
   const updateData = {};
   if (firstName !== undefined) updateData.firstName = firstName;
   if (lastName !== undefined) updateData.lastName = lastName;
+  if (phone !== undefined) updateData.phone = phone;
   if (profileImage !== undefined) updateData.profileImage = profileImage;
 
   if (Object.keys(updateData).length === 0) {

@@ -18,7 +18,7 @@ import DataTable from "../../components/dashboard/DataTable";
 import CmsModal from "../../components/dashboard/CmsModal";
 import CmsBadge from "../../components/dashboard/CmsBadge";
 import ConfirmModal from "../../components/dashboard/ConfirmModal";
-import { getInputClass } from "../../lib/dashboardHelpers";
+import { getInputClass, getSelectClass } from "../../lib/dashboardHelpers";
 import {
   getTrainers,
   getTrainerStats,
@@ -360,6 +360,7 @@ function TrainersManagement() {
                   <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Specialization
                   </label>
+                  <div className="select-wrapper">
                   <select
                     value={form.specialization}
                     onChange={(e) =>
@@ -368,7 +369,7 @@ function TrainersManagement() {
                         specialization: e.target.value,
                       }))
                     }
-                    className={inputClass}
+                    className={getSelectClass("cyan")}
                   >
                     <option value="">Select specialization</option>
                     {specializations.map((s) => (
@@ -377,17 +378,19 @@ function TrainersManagement() {
                       </option>
                     ))}
                   </select>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Experience
                   </label>
+                  <div className="select-wrapper">
                   <select
                     value={form.experience}
                     onChange={(e) =>
                       setForm((p) => ({ ...p, experience: e.target.value }))
                     }
-                    className={inputClass}
+                    className={getSelectClass("cyan")}
                   >
                     <option value="">Select experience</option>
                     <option value="1-2 years">1-2 years</option>
@@ -395,6 +398,7 @@ function TrainersManagement() {
                     <option value="5-10 years">5-10 years</option>
                     <option value="10+ years">10+ years</option>
                   </select>
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">

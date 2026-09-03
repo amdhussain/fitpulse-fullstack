@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   FiSave,
   FiUser,
@@ -35,10 +36,11 @@ function getAuthHeaders() {
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#^()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d@$!%*?&.#^()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/;
 
 function AdminProfile() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, logout } = useAuth();
+  const navigate = useNavigate();
   const inputClass = getInputClass(accent);
 
-  const [form, setForm] = useState({ firstName: "", lastName: "", profileImage: "" });
+  const [form, setForm] = useState({ firstName: "", lastName: "", phone: "", profileImage: "" });
   const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "", confirm: "" });
 
   const [profileSaved, setProfileSaved] = useState(false);
@@ -55,18 +57,25 @@ function AdminProfile() {
     async function fetchProfile() {
       try {
         const res = await fetch(`${API_URL}/api/v1/user/me`, { headers: getAuthHeaders() });
+        if (res.status === 401) {
+          await logout();
+          navigate("/login", { replace: true });
+          return;
+        }
         if (res.ok) {
           const result = await res.json();
           const data = result.data;
           setForm({
             firstName: data.firstName || "",
             lastName: data.lastName || "",
+            phone: data.phone || "",
             profileImage: data.profileImage || "",
           });
         } else if (user) {
           setForm({
             firstName: user.firstName || "",
             lastName: user.lastName || "",
+            phone: user.phone || "",
             profileImage: user.profileImage || "",
           });
         }
@@ -75,6 +84,7 @@ function AdminProfile() {
           setForm({
             firstName: user.firstName || "",
             lastName: user.lastName || "",
+            phone: user.phone || "",
             profileImage: user.profileImage || "",
           });
         }
@@ -99,7 +109,7 @@ function AdminProfile() {
     e.preventDefault();
     setProfileError("");
     try {
-      const payload = { firstName: form.firstName, lastName: form.lastName };
+      const payload = { firstName: form.firstName, lastName: form.lastName, phone: form.phone };
       if (form.profileImage && (form.profileImage.startsWith("http://") || form.profileImage.startsWith("https://"))) {
         payload.profileImage = form.profileImage;
       }
@@ -108,6 +118,11 @@ function AdminProfile() {
         headers: getAuthHeaders(),
         body: JSON.stringify(payload),
       });
+      if (res.status === 401) {
+        await logout();
+        navigate("/login", { replace: true });
+        return;
+      }
       const result = await res.json();
       if (!res.ok) {
         throw new Error(result.message || "Failed to update profile");
@@ -141,6 +156,11 @@ function AdminProfile() {
           newPassword: passwordForm.newPassword,
         }),
       });
+      if (res.status === 401) {
+        await logout();
+        navigate("/login", { replace: true });
+        return;
+      }
       const result = await res.json();
       if (!res.ok) {
         throw new Error(result.message || "Failed to change password");
@@ -334,10 +354,12 @@ function AdminProfile() {
                   </label>
                   <input
                     type="text"
-                    value={user?.phone || ""}
-                    readOnly
+                    name="phone"
+                    value={form.phone}
+                    onChange={handleProfileChange}
+                    readOnly={!editing}
                     placeholder="Not set"
-                    className={`${inputClass} cursor-not-allowed opacity-70`}
+                    className={`${inputClass} ${!editing ? "cursor-not-allowed opacity-70" : ""}`}
                   />
                 </div>
               </div>

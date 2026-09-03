@@ -110,35 +110,35 @@ async function getPaymentById(paymentId) {
   return payment;
 }
 
-async function createPayment({ bookingId, userId, amount, currency, paymentMethod, notes }) {
-  const booking = await PaymentRepository.findBookingById(bookingId);
-
-  if (!booking) {
-    throw new NotFoundError('Booking not found');
+async function createPayment({ bookingId, userId, amount, currency, paymentMethod, notes, transactionId, month }) {
+  if (bookingId) {
+    const existingPayment = await PaymentRepository.findByBookingId(bookingId);
+    if (existingPayment) {
+      return PaymentRepository.update(existingPayment.id, {
+        paymentMethod: paymentMethod || existingPayment.paymentMethod,
+        transactionId: transactionId || existingPayment.transactionId,
+        notes: notes || existingPayment.notes,
+        amount: amount || existingPayment.amount,
+        currency: currency || existingPayment.currency,
+        month: month || existingPayment.month,
+        status: 'PENDING',
+      });
+    }
   }
 
-  if (booking.userId !== userId) {
-    throw new ForbiddenError('Booking does not belong to this user');
-  }
-
-  const existingPayment = await PaymentRepository.findByBookingId(bookingId);
-
-  if (existingPayment && existingPayment.status !== 'FAILED') {
-    throw new ConflictError('A payment already exists for this booking');
-  }
-
-  const transactionId = await PaymentRepository.generateTransactionId();
+  const transactionIdGen = transactionId || await PaymentRepository.generateTransactionId();
   const invoiceNumber = await PaymentRepository.generateInvoiceNumber();
 
   const payment = await PaymentRepository.create({
-    bookingId,
+    bookingId: bookingId || null,
     userId,
-    amount: parseFloat(amount),
-    currency: currency || 'USD',
+    amount: parseFloat(amount) || 0,
+    currency: currency || 'BDT',
     status: 'PENDING',
     paymentMethod: paymentMethod || null,
-    transactionId,
+    transactionId: transactionIdGen,
     invoiceNumber,
+    month: month || null,
     notes: notes || null,
   });
 
@@ -159,9 +159,9 @@ async function updatePaymentStatus(paymentId, status) {
   }
 
   const validTransitions = {
-    PENDING: ['PAID', 'FAILED'],
+    PENDING: ['PAID', 'FAILED', 'PENDING'],
     PAID: ['REFUNDED'],
-    FAILED: ['PENDING'],
+    FAILED: ['PENDING', 'FAILED'],
     REFUNDED: [],
   };
 
@@ -195,7 +195,7 @@ async function processPayment(paymentId) {
 
   logger.info('Payment processed', { paymentId });
 
-  notificationService.paymentCompleted(paymentId, `User ${payment.userId}`, `$${payment.amount}`, 'plan').catch(() => {});
+  notificationService.paymentCompleted(paymentId, `User ${payment.userId}`, `$${payment.amount}`, 'plan', payment.userId).catch(() => {});
 
   return updated;
 }
@@ -227,15 +227,67 @@ async function deletePayment(paymentId) {
     throw new NotFoundError('Payment not found');
   }
 
-  if (payment.status === 'PAID') {
-    throw new BadRequestError('Cannot delete a paid payment. Refund it first.');
-  }
-
   await PaymentRepository.delete(paymentId);
 
   logger.info('Payment deleted', { paymentId });
 
   return { message: 'Payment deleted successfully' };
+}
+
+async function updatePaymentDetails(paymentId, data) {
+  const payment = await PaymentRepository.findByIdBasic(paymentId);
+
+  if (!payment) {
+    throw new NotFoundError('Payment not found');
+  }
+
+  const updateFields = {};
+  if (data.amount !== undefined) updateFields.amount = parseFloat(data.amount);
+  if (data.status !== undefined) updateFields.status = data.status;
+  if (data.currency !== undefined) updateFields.currency = data.currency;
+  if (data.paymentMethod !== undefined) updateFields.paymentMethod = data.paymentMethod;
+  if (data.notes !== undefined) updateFields.notes = data.notes;
+  if (data.transactionId !== undefined) updateFields.transactionId = data.transactionId;
+  if (data.month !== undefined) updateFields.month = data.month;
+  if (data.bookingId !== undefined) updateFields.bookingId = data.bookingId || null;
+
+  const updated = await PaymentRepository.update(paymentId, updateFields);
+
+  logger.info('Payment updated', { paymentId, fields: Object.keys(updateFields) });
+
+  return updated;
+}
+
+async function getReceipt(paymentId) {
+  const receipt = await PaymentRepository.getReceiptData(paymentId);
+
+  if (!receipt) {
+    throw new NotFoundError('Payment not found');
+  }
+
+  return {
+    receiptNumber: receipt.invoiceNumber || receipt.id,
+    transactionId: receipt.transactionId,
+    date: receipt.createdAt,
+    status: receipt.status,
+    amount: receipt.amount,
+    currency: receipt.currency,
+    paymentMethod: receipt.paymentMethod,
+    month: receipt.month,
+    notes: receipt.notes,
+    member: receipt.user ? {
+      name: `${receipt.user.firstName || ''} ${receipt.user.lastName || ''}`.trim(),
+      email: receipt.user.email,
+      phone: receipt.user.phone,
+    } : null,
+    booking: receipt.booking ? {
+      id: receipt.booking.id,
+      date: receipt.booking.bookingDate,
+      time: receipt.booking.bookingTime,
+      status: receipt.booking.status,
+    } : null,
+    className: receipt.class ? receipt.class.name : null,
+  };
 }
 
 async function getRevenueStats({ startDate, endDate }) {
@@ -268,10 +320,14 @@ module.exports = {
   getPaymentById,
   createPayment,
   updatePaymentStatus,
+  updatePaymentDetails,
   processPayment,
   refundPayment,
   deletePayment,
+  getReceipt,
   getRevenueStats,
   getRevenueByMethod,
   getDailyRevenue,
+  findByBookingId,
+  updatePayment,
 };

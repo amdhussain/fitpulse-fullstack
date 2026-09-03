@@ -18,7 +18,7 @@ import DataTable from "../../components/dashboard/DataTable";
 import CmsModal from "../../components/dashboard/CmsModal";
 import CmsBadge from "../../components/dashboard/CmsBadge";
 import ConfirmModal from "../../components/dashboard/ConfirmModal";
-import { getInputClass } from "../../lib/dashboardHelpers";
+import { getInputClass, getSelectClass } from "../../lib/dashboardHelpers";
 import {
   getServices,
   getServiceStats,
@@ -319,12 +319,13 @@ function ServicesManagement() {
                   <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                     Category
                   </label>
+                  <div className="select-wrapper">
                   <select
                     value={form.category}
                     onChange={(e) =>
                       setForm((p) => ({ ...p, category: e.target.value }))
                     }
-                    className={inputClass}
+                    className={getSelectClass("emerald")}
                   >
                     <option value="">Select category</option>
                     {categories.map((c) => (
@@ -333,6 +334,7 @@ function ServicesManagement() {
                       </option>
                     ))}
                   </select>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">

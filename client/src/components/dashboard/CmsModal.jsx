@@ -17,7 +17,7 @@ function CmsModal({ isOpen, onClose, title, subtitle, children, size = "md" }) {
             className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-12 sm:pt-20 overflow-y-auto"
             role="dialog" aria-modal="true" aria-label={title}
           >
-            <div className={`w-full ${sizes[size]} rounded-2xl bg-white dark:bg-[#0f1219] border border-gray-200/60 dark:border-white/[0.08] shadow-2xl shadow-gray-300/50 dark:shadow-black/60 overflow-hidden`} onClick={(e) => e.stopPropagation()}>
+            <div className={`w-full ${sizes[size]} rounded-2xl bg-white dark:bg-[#1a2235] border border-gray-200/60 dark:border-white/[0.08] shadow-2xl shadow-gray-300/50 dark:shadow-black/60 overflow-hidden`} onClick={(e) => e.stopPropagation()}>
               <div className="relative px-6 py-5 border-b border-gray-100 dark:border-white/5 flex items-center justify-between overflow-hidden">
                 <div className="absolute inset-x-0 bottom-0 h-[2px] bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 opacity-60" />
                 <div>

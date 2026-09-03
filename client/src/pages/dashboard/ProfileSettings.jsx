@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import {
-  FiSave, FiUser, FiMail, FiLock, FiShield,
+  FiSave, FiUser, FiMail, FiLock, FiShield, FiPhone,
   FiEye, FiEyeOff, FiCheck, FiAlertCircle,
 } from "react-icons/fi";
 import { Button, SavedBadge } from "../../components/ui";
@@ -104,14 +104,15 @@ function parseError(result) {
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function ProfileSettings() {
-  const { user, updateUser, isAdmin } = useAuth();
+  const { user, updateUser, isAdmin, logout } = useAuth();
+  const navigate = useNavigate();
   const inputClass = getInputClass(accent);
 
   if (!isAdmin) {
     return <Navigate to="/dashboard/profile" replace />;
   }
 
-  const [profile, setProfile] = useState({ firstName: "", lastName: "" });
+  const [profile, setProfile] = useState({ firstName: "", lastName: "", phone: "" });
   const [emailForm, setEmailForm] = useState({ newEmail: "", password: "" });
   const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "", confirm: "" });
 
@@ -132,14 +133,19 @@ function ProfileSettings() {
     async function fetchProfile() {
       try {
         const res = await fetch(`${API_URL}/api/v1/user/me`, { headers: getAuthHeaders() });
+        if (res.status === 401) {
+          await logout();
+          navigate("/login", { replace: true });
+          return;
+        }
         if (res.ok) {
           const result = await res.json();
           const d = result.data;
-          setProfile({ firstName: d.firstName || "", lastName: d.lastName || "" });
+          setProfile({ firstName: d.firstName || "", lastName: d.lastName || "", phone: d.phone || "" });
         }
       } catch {
         if (user) {
-          setProfile({ firstName: user.firstName || "", lastName: user.lastName || "" });
+          setProfile({ firstName: user.firstName || "", lastName: user.lastName || "", phone: user.phone || "" });
         }
       } finally {
         setLoading(false);
@@ -171,6 +177,7 @@ function ProfileSettings() {
       const payload = {};
       if (profile.firstName.trim()) payload.firstName = profile.firstName.trim();
       if (profile.lastName.trim()) payload.lastName = profile.lastName.trim();
+      if (profile.phone.trim()) payload.phone = profile.phone.trim();
 
       if (Object.keys(payload).length === 0) {
         setProfileError("No fields to update");
@@ -183,6 +190,11 @@ function ProfileSettings() {
         headers: getAuthHeaders(),
         body: JSON.stringify(payload),
       });
+      if (res.status === 401) {
+        await logout();
+        navigate("/login", { replace: true });
+        return;
+      }
       const result = await res.json();
       if (!res.ok) throw new Error(parseError(result));
       updateUser(result.data);
@@ -217,6 +229,11 @@ function ProfileSettings() {
         headers: getAuthHeaders(),
         body: JSON.stringify({ newEmail: emailForm.newEmail.trim(), password: emailForm.password }),
       });
+      if (res.status === 401) {
+        await logout();
+        navigate("/login", { replace: true });
+        return;
+      }
       const result = await res.json();
       if (!res.ok) throw new Error(parseError(result));
       updateUser(result.data);
@@ -252,6 +269,11 @@ function ProfileSettings() {
         headers: getAuthHeaders(),
         body: JSON.stringify({ currentPassword: passwordForm.currentPassword, newPassword: passwordForm.newPassword }),
       });
+      if (res.status === 401) {
+        await logout();
+        navigate("/login", { replace: true });
+        return;
+      }
       const result = await res.json();
       if (!res.ok) throw new Error(parseError(result));
       setPasswordForm({ currentPassword: "", newPassword: "", confirm: "" });
@@ -338,6 +360,13 @@ function ProfileSettings() {
                 Last Name
               </label>
               <input type="text" name="lastName" value={profile.lastName} onChange={handleProfileChange} className={inputClass} required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+                <FiPhone className="w-3.5 h-3.5 inline mr-1.5" />
+                Phone
+              </label>
+              <input type="text" name="phone" value={profile.phone} onChange={handleProfileChange} placeholder="Not set" className={inputClass} />
             </div>
           </div>
 

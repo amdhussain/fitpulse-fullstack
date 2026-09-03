@@ -11,25 +11,14 @@ import {
   FiCheckCircle,
   FiXCircle,
   FiEdit2,
+  FiTrash2,
 } from "react-icons/fi";
 import { staggerContainer } from "../../lib/animations";
 import PageBanner from "../../components/dashboard/PageBanner";
 import StatCard from "../../components/dashboard/StatCard";
 import DataTable from "../../components/dashboard/DataTable";
 import ConfirmModal from "../../components/dashboard/ConfirmModal";
-
-const API_URL = import.meta.env.API_URL;
-
-function getAuthToken() {
-  return localStorage.getItem("token");
-}
-
-function authHeaders() {
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${getAuthToken()}`,
-  };
-}
+import { apiClient } from "../../lib/api";
 
 const statusBadge = (status) => {
   const map = {
@@ -38,6 +27,12 @@ const statusBadge = (status) => {
       text: "text-amber-600 dark:text-amber-400",
       border: "border-amber-200 dark:border-amber-500/20",
       label: "Pending",
+    },
+    PENDING_VERIFICATION: {
+      bg: "bg-violet-50 dark:bg-violet-500/10",
+      text: "text-violet-600 dark:text-violet-400",
+      border: "border-violet-200 dark:border-violet-500/20",
+      label: "OTP Pending",
     },
     CONFIRMED: {
       bg: "bg-emerald-50 dark:bg-emerald-500/10",
@@ -98,8 +93,8 @@ function BookingManagement() {
         params.set("status", statusFilter);
       }
       const qs = params.toString();
-      const url = `${API_URL}/api/v1/booking/${qs ? `?${qs}` : ""}`;
-      const res = await fetch(url, { headers: authHeaders() });
+      const url = `/api/v1/booking/${qs ? `?${qs}` : ""}`;
+      const res = await apiClient.get(url);
       if (res.ok) {
         const data = await res.json();
         const list = data.data?.bookings || data.data || [];
@@ -126,11 +121,23 @@ function BookingManagement() {
     if (!actionModal.bookingId || !actionModal.action) return;
     setActing(true);
     try {
-      const res = await fetch(`${API_URL}/api/v1/booking/${actionModal.bookingId}/status`, {
-        method: "PATCH",
-        headers: authHeaders(),
-        body: JSON.stringify({ status: actionModal.action }),
-      });
+      const res = await apiClient.patch(`/api/v1/booking/${actionModal.bookingId}/status`, { status: actionModal.action });
+      if (res.ok) {
+        setActionModal({ open: false, bookingId: null, action: null, title: "", message: "" });
+        fetchBookings(filterStatus);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setActing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!actionModal.bookingId) return;
+    setActing(true);
+    try {
+      const res = await apiClient.delete(`/api/v1/booking/${actionModal.bookingId}`);
       if (res.ok) {
         setActionModal({ open: false, bookingId: null, action: null, title: "", message: "" });
         fetchBookings(filterStatus);
@@ -168,16 +175,12 @@ function BookingManagement() {
     setSavingEdit(true);
     setEditError("");
     try {
-      const res = await fetch(`${API_URL}/api/v1/booking/${editModal.booking.id || editModal.booking._id}`, {
-        method: "PUT",
-        headers: authHeaders(),
-        body: JSON.stringify({
-          bookingDate: editForm.bookingDate ? new Date(editForm.bookingDate).toISOString() : undefined,
-          bookingTime: editForm.bookingTime || undefined,
-          sessionType: editForm.sessionType || undefined,
-          notes: editForm.notes || undefined,
-          status: editForm.status || undefined,
-        }),
+      const res = await apiClient.put(`/api/v1/booking/${editModal.booking.id || editModal.booking._id}`, {
+        bookingDate: editForm.bookingDate ? new Date(editForm.bookingDate).toISOString() : undefined,
+        bookingTime: editForm.bookingTime || undefined,
+        sessionType: editForm.sessionType || undefined,
+        notes: editForm.notes || undefined,
+        status: editForm.status || undefined,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Update failed.");
@@ -248,6 +251,13 @@ function BookingManagement() {
           >
             <FiEdit2 className="w-3.5 h-3.5" />
           </button>
+          <button
+            onClick={() => openActionModal(row.id || row._id, "DELETE", "Delete Booking", "Are you sure you want to permanently delete this booking? This action cannot be undone.")}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all"
+            title="Delete"
+          >
+            <FiTrash2 className="w-3.5 h-3.5" />
+          </button>
           {row.status === "PENDING" && (
             <>
               <button
@@ -309,17 +319,20 @@ function BookingManagement() {
             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all"
           />
         </div>
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm text-gray-900 dark:text-gray-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all"
-        >
-          <option value="all">All Status</option>
-          <option value="PENDING">Pending</option>
-          <option value="CONFIRMED">Confirmed</option>
-          <option value="CANCELLED">Cancelled</option>
-          <option value="COMPLETED">Completed</option>
-        </select>
+        <div className="select-wrapper">
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="!pr-10 px-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm text-gray-900 dark:text-gray-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all"
+          >
+            <option value="all">All Status</option>
+            <option value="PENDING">Pending</option>
+            <option value="PENDING_VERIFICATION">OTP Pending</option>
+            <option value="CONFIRMED">Confirmed</option>
+            <option value="CANCELLED">Cancelled</option>
+            <option value="COMPLETED">Completed</option>
+          </select>
+        </div>
         <button
           onClick={() => fetchBookings(filterStatus)}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10 transition-all"
@@ -336,11 +349,11 @@ function BookingManagement() {
       <ConfirmModal
         isOpen={actionModal.open}
         onClose={() => setActionModal({ open: false, bookingId: null, action: null, title: "", message: "" })}
-        onConfirm={handleStatusUpdate}
+        onConfirm={actionModal.action === "DELETE" ? handleDelete : handleStatusUpdate}
         title={actionModal.title}
         message={actionModal.message}
-        confirmText={actionModal.action === "CONFIRMED" ? "Confirm" : actionModal.action === "COMPLETED" ? "Complete" : "Cancel"}
-        type={actionModal.action === "CANCELLED" ? "danger" : actionModal.action === "CONFIRMED" ? "success" : "info"}
+        confirmText={actionModal.action === "DELETE" ? "Delete" : actionModal.action === "CONFIRMED" ? "Confirm" : actionModal.action === "COMPLETED" ? "Complete" : "Cancel"}
+        type={actionModal.action === "DELETE" || actionModal.action === "CANCELLED" ? "danger" : actionModal.action === "CONFIRMED" ? "success" : "info"}
         loading={acting}
       />
 
@@ -364,7 +377,7 @@ function BookingManagement() {
             aria-modal="true"
             aria-label="Edit Booking"
           >
-            <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#0f1219] border border-gray-200/60 dark:border-white/[0.08] shadow-2xl shadow-gray-300/50 dark:shadow-black/60 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#1a2235] border border-gray-200/60 dark:border-white/[0.08] shadow-2xl shadow-gray-300/50 dark:shadow-black/60 overflow-hidden" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/5">
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white">Edit Booking</h3>
@@ -424,17 +437,19 @@ function BookingManagement() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Status</label>
-                  <select
-                    name="status"
-                    value={editForm.status}
-                    onChange={handleEditChange}
-                    className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm text-gray-900 dark:text-gray-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all"
-                  >
-                    <option value="PENDING">Pending</option>
-                    <option value="CONFIRMED">Confirmed</option>
-                    <option value="CANCELLED">Cancelled</option>
-                    <option value="COMPLETED">Completed</option>
-                  </select>
+                   <div className="select-wrapper">
+                    <select
+                      name="status"
+                      value={editForm.status}
+                      onChange={handleEditChange}
+                      className="!pr-10 w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-sm text-gray-900 dark:text-gray-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all"
+                    >
+                      <option value="PENDING">Pending</option>
+                      <option value="CONFIRMED">Confirmed</option>
+                      <option value="CANCELLED">Cancelled</option>
+                      <option value="COMPLETED">Completed</option>
+                    </select>
+                  </div>
                 </div>
 
                 {editError && (

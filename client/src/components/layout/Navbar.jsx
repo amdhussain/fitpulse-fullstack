@@ -98,9 +98,9 @@ function MenuDropdown({ user, onClose }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -8, scale: 0.95 }}
       transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-      className="absolute top-full right-0 mt-3 w-64 py-2 rounded-2xl bg-base-200/90 backdrop-blur-2xl border border-base-300/30 shadow-2xl shadow-black/30 z-50"
+      className="absolute top-full right-0 mt-3 w-64 py-2 rounded-2xl bg-white/95 dark:bg-slate-800/95 backdrop-blur-2xl border border-gray-200 dark:border-white/10 shadow-2xl shadow-gray-300/40 dark:shadow-black/40 z-50"
     >
-      <div className="px-4 py-3 border-b border-base-300/30">
+      <div className="px-4 py-3 border-b border-gray-100 dark:border-white/10">
         <div className="flex items-center gap-3">
           <UserAvatar user={user} size="md" />
           <div className="min-w-0">
@@ -108,7 +108,7 @@ function MenuDropdown({ user, onClose }) {
               {user?.firstName} {user?.lastName}
             </p>
             {user?.email && (
-              <p className="text-xs text-base-content/40 truncate">
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {user.email}
               </p>
             )}
@@ -127,8 +127,8 @@ function MenuDropdown({ user, onClose }) {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-2.5 text-sm transition-all duration-150 ${
                   isActive
-                    ? "bg-blue-500/10 text-blue-400"
-                    : "text-base-content/60 hover:bg-base-300/50 hover:text-base-content"
+                    ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"
                 }`
               }
             >
@@ -139,10 +139,10 @@ function MenuDropdown({ user, onClose }) {
         })}
       </div>
 
-      <div className="border-t border-base-300/30 pt-1.5">
+      <div className="border-t border-gray-100 dark:border-white/10 pt-1.5">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-2.5 text-sm w-full text-left text-red-400 hover:bg-red-500/10 transition-all duration-150"
+          className="flex items-center gap-3 px-4 py-2.5 text-sm w-full text-left text-red-600 hover:bg-red-50 transition-all duration-150"
         >
           <FiLogOut className="w-4 h-4 shrink-0" />
           Logout
@@ -163,7 +163,7 @@ function MobileLogoutButton({ onClose }) {
   return (
     <button
       onClick={handleLogout}
-      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium w-full text-left text-red-400 bg-red-500/5 hover:bg-red-500/15 border border-red-500/10 transition-all duration-200"
+      className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium w-full text-left text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 border border-red-200 dark:border-red-500/20 transition-all duration-200"
     >
       <FiLogOut className="w-4 h-4" />
       Logout
@@ -234,7 +234,7 @@ function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,box-shadow,border-color] duration-300 ${
         scrolled
-          ? "bg-base-100/80 backdrop-blur-xl shadow-lg shadow-black/10 border-b border-base-300/30"
+          ? "bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-lg shadow-gray-200/40 dark:shadow-black/40 border-b border-gray-200/60 dark:border-white/10"
           : "bg-transparent"
       }`}
     >
@@ -255,8 +255,8 @@ function Navbar() {
                     className={({ isActive }) =>
                       `relative px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 whitespace-nowrap ${
                         isActive
-                          ? "text-blue-400"
-                          : "text-base-content/60 hover:text-base-content hover:bg-base-300/40"
+                          ? "text-blue-600 dark:text-blue-400"
+                          : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/10"
                       }`
                     }
                   >
@@ -264,7 +264,7 @@ function Navbar() {
                       <>
                         {link.label}
                         {isActive && (
-                          <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-5 bg-blue-400 rounded-full"
+                          <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-5 bg-blue-600 rounded-full"
                             aria-hidden="true"
                           />
                         )}
@@ -292,9 +292,9 @@ function Navbar() {
                       transition={{ duration: 0.2 }}
                     >
                       {menuOpen ? (
-                        <FiX className="w-5 h-5 text-base-content/60" />
+                        <FiX className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                       ) : (
-                        <FiMenu className="w-5 h-5 text-base-content/60" />
+                        <FiMenu className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                       )}
                     </motion.div>
                   </button>
@@ -327,7 +327,7 @@ function Navbar() {
         <div className="lg:hidden flex items-center justify-between h-full">
           <Logo size="sm" showText={false} />
           <button
-            className="p-2 rounded-lg hover:bg-base-300/50 transition-colors text-base-content/70"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors text-gray-600 dark:text-gray-300"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileOpen}
@@ -354,18 +354,18 @@ function Navbar() {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="lg:hidden relative overflow-hidden bg-base-200/98 backdrop-blur-xl border-t border-base-300/50 max-h-[calc(100vh-4rem)] flex flex-col z-50"
+              className="lg:hidden relative overflow-hidden bg-white/98 dark:bg-slate-900/98 backdrop-blur-xl border-t border-gray-200 dark:border-white/10 max-h-[calc(100vh-4rem)] flex flex-col z-50"
             >
             <div className="flex-1 overflow-y-auto min-h-0 px-4 sm:px-6 lg:px-8 py-4">
               {isAuthenticated && user && (
-                <div className="flex items-center gap-3 px-4 py-3 mb-4 rounded-xl bg-base-300/30">
+                <div className="flex items-center gap-3 px-4 py-3 mb-4 rounded-xl bg-gray-50 dark:bg-white/5">
                   <UserAvatar user={user} size="lg" />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-base-content truncate">
                       {user.firstName} {user.lastName}
                     </p>
                     {user.email && (
-                      <p className="text-xs text-base-content/40 truncate max-w-[200px]">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[200px]">
                         {user.email}
                       </p>
                     )}
@@ -374,7 +374,7 @@ function Navbar() {
               )}
 
               <div className="mb-4">
-                <p className="px-4 mb-1.5 text-[11px] font-semibold tracking-widest text-base-content/40 uppercase">
+                <p className="px-4 mb-1.5 text-[11px] font-semibold tracking-widest text-gray-400 uppercase">
                   Navigation
                 </p>
                 <ul className="flex flex-col gap-0.5" role="list">
@@ -392,8 +392,8 @@ function Navbar() {
                         className={({ isActive }) =>
                           `block px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                             isActive
-                              ? "bg-blue-500/10 text-blue-400"
-                              : "text-base-content/60 hover:bg-base-300/50 hover:text-base-content"
+                              ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                              : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"
                           }`
                         }
                       >
@@ -412,8 +412,8 @@ function Navbar() {
                       className={({ isActive }) =>
                         `block px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                           location.pathname.startsWith("/fitness-tools")
-                            ? "bg-cyan-500/10 text-cyan-400"
-                            : "text-base-content/60 hover:bg-base-300/50 hover:text-base-content"
+                            ? "bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400"
+                            : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"
                         }`
                       }
                     >
@@ -425,7 +425,7 @@ function Navbar() {
 
               {isAuthenticated && (
                 <div className="mb-2">
-                  <p className="px-4 mb-1.5 text-[11px] font-semibold tracking-widest text-base-content/40 uppercase">
+                <p className="px-4 mb-1.5 text-[11px] font-semibold tracking-widest text-gray-400 dark:text-gray-500 uppercase">
                     Manage Account
                   </p>
                   <ul className="flex flex-col gap-0.5" role="list">
@@ -446,8 +446,8 @@ function Navbar() {
                             className={({ isActive }) =>
                               `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                                 isActive
-                                  ? "bg-blue-500/10 text-blue-400"
-                                  : "text-base-content/60 hover:bg-base-300/50 hover:text-base-content"
+                                  ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"
                               }`
                             }
                           >
@@ -462,7 +462,7 @@ function Navbar() {
               )}
             </div>
 
-            <div className="shrink-0 border-t border-base-300/50 px-4 sm:px-6 lg:px-8 py-3">
+            <div className="shrink-0 border-t border-gray-200 dark:border-white/10 px-4 sm:px-6 lg:px-8 py-3">
               {isAuthenticated ? (
                 <MobileLogoutButton onClose={() => setMobileOpen(false)} />
               ) : (
@@ -473,8 +473,8 @@ function Navbar() {
                     className={({ isActive }) =>
                       `block px-4 py-2.5 rounded-xl text-sm font-medium text-center transition-all duration-200 ${
                         isActive
-                          ? "bg-blue-500/15 text-blue-400"
-                          : "text-blue-400 bg-blue-500/10 hover:bg-blue-500/20"
+                          ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                          : "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20"
                       }`
                     }
                   >
@@ -483,7 +483,7 @@ function Navbar() {
                   <NavLink
                     to="/register"
                     onClick={() => setMobileOpen(false)}
-                    className="block px-4 py-2.5 rounded-xl text-sm font-medium text-center text-base-content/60 hover:bg-base-300/50 hover:text-base-content transition-all duration-200"
+                    className="block px-4 py-2.5 rounded-xl text-sm font-medium text-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white transition-all duration-200"
                   >
                     Register
                   </NavLink>

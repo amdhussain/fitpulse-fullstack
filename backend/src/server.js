@@ -1,6 +1,7 @@
 const env = require('./config/env');
 const databaseService = require('./services/databaseService');
 const seedAdmin = require('./config/seedAdmin');
+const seedClasses = require('./config/seedClasses');
 const app = require('./app');
 
 app.set('trust proxy', 1);
@@ -10,6 +11,7 @@ const PORT = env.port;
 async function startServer() {
   await databaseService.connect();
   await seedAdmin();
+  await seedClasses();
 
   const server = app.listen(PORT, () => {
     console.log('');

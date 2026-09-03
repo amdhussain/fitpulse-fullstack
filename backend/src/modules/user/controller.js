@@ -90,9 +90,9 @@ const deleteUser = asyncHandler(async (req, res) => {
 });
 
 const updateAdminProfile = asyncHandler(async (req, res) => {
-  const { firstName, lastName, profileImage } = req.body;
+  const { firstName, lastName, phone, profileImage } = req.body;
 
-  const user = await userService.updateAdminProfile(req.user.id, { firstName, lastName, profileImage });
+  const user = await userService.updateAdminProfile(req.user.id, { firstName, lastName, phone, profileImage });
 
   return updatedResponse(res, user, 'Admin profile updated successfully');
 });

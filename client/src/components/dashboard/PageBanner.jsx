@@ -61,9 +61,9 @@ function PageBanner({ pageKey, icon: Icon, subtitle, breadcrumbs }) {
           <nav className="flex items-center gap-1.5 mb-3 text-[11px]" aria-label="Breadcrumb">
             {crumbs.map((crumb, i) => (
               <span key={i} className="flex items-center gap-1.5">
-                {i > 0 && <FiChevronRight className="w-3 h-3 text-gray-400 dark:text-gray-500" />}
+                {i > 0 && <FiChevronRight className="w-3 h-3 text-gray-400 dark:text-gray-400" />}
                 {crumb.to ? (
-                  <Link to={crumb.to} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 font-medium transition-colors">
+                  <Link to={crumb.to} className="text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-100 font-medium transition-colors">
                     {crumb.label}
                   </Link>
                 ) : (
@@ -82,7 +82,7 @@ function PageBanner({ pageKey, icon: Icon, subtitle, breadcrumbs }) {
               {theme.name}
             </h1>
             {subtitle && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{subtitle}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-300 mt-0.5">{subtitle}</p>
             )}
           </div>
         </div>

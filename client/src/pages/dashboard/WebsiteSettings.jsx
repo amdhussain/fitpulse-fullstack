@@ -15,6 +15,7 @@ import {
 import { Button, SavedBadge, FileUpload, Skeleton } from "../../components/ui";
 import { staggerContainer, fadeUp } from "../../lib/animations";
 import PageBanner from "../../components/dashboard/PageBanner";
+import { getSelectClass } from "../../lib/dashboardHelpers";
 
 const API_URL = import.meta.env.API_URL;
 
@@ -404,11 +405,12 @@ function WebsiteSettings() {
             <label className="block text-sm font-medium text-gray-400 mb-1.5">
               Font Family
             </label>
+            <div className="select-wrapper">
             <select
               name="fontFamily"
               value={form.fontFamily}
               onChange={handleChange}
-              className={inputClass}
+              className={getSelectClass("indigo")}
             >
               {fonts.map((font) => (
                 <option key={font} value={font}>
@@ -416,6 +418,7 @@ function WebsiteSettings() {
                 </option>
               ))}
             </select>
+            </div>
           </div>
 
           {hasColors && (

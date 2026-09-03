@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @plugin "daisyui" {
-  themes: dark --default, light;
+  themes: light --default, dark;
 }
 
 @theme {
@@ -10,18 +10,39 @@
   --color-secondary: #1d3557;
   --color-secondary-content: #ffffff;
   --color-accent: #f4a261;
-  --color-base-100: #0f0f12;
-  --color-base-200: #1a1a22;
-  --color-base-300: #2a2a35;
-  --color-base-content: #e0e0e6;
-  --color-neutral: #232330;
+  --color-base-100: #ffffff;
+  --color-base-200: #f8fafc;
+  --color-base-300: #e2e8f0;
+  --color-base-content: #1e293b;
+  --color-neutral: #f1f5f9;
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-error: #ef4444;
 }
 
+[data-theme="dark"] {
+  --color-base-100: #0f1219;
+  --color-base-200: #161c28;
+  --color-base-300: #1e2738;
+  --color-base-content: #e8ecf4;
+  --color-neutral: #1a2235;
+  --color-primary: #6366f1;
+  --color-primary-content: #ffffff;
+  --color-secondary: #818cf8;
+  --color-secondary-content: #ffffff;
+  --color-accent: #f59e0b;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+}
+
 html {
   scroll-behavior: smooth;
+  transition: background-color 0.3s ease;
+}
+
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body {
@@ -30,6 +51,7 @@ body {
   color: var(--color-base-content);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #root {
@@ -86,8 +108,9 @@ body {
 }
 
 .dark .skeleton-shimmer {
-  background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%);
+  background: linear-gradient(90deg, #1a2235 25%, #243044 50%, #1a2235 75%);
   background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
 }
 
 @keyframes toast-enter {
@@ -113,4 +136,74 @@ body {
   50% { transform: scaleX(0.7); transform-origin: left; }
   90% { transform: scaleX(0.95); transform-origin: left; }
   100% { transform: scaleX(1); transform-origin: left; }
+}
+
+/* Custom select arrow and dark mode option styling */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.select-wrapper {
+  position: relative;
+}
+
+.select-wrapper select {
+  width: 100%;
+  padding-right: 2.5rem;
+  background-repeat: no-repeat;
+}
+
+.select-wrapper::after {
+  content: "";
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #9ca3af;
+  pointer-events: none;
+  transition: border-color 0.2s;
+}
+
+.select-wrapper:focus-within::after {
+  border-top-color: #3b82f6;
+}
+
+.dark .select-wrapper::after {
+  border-top-color: #6b7280;
+}
+
+.dark .select-wrapper:focus-within::after {
+  border-top-color: #818cf8;
+}
+
+select option,
+select optgroup {
+  background-color: #ffffff;
+  color: #111827;
+}
+
+.dark select option,
+.dark select optgroup {
+  background-color: #1a2235;
+  color: #e8ecf4;
+}
+
+select option:hover,
+select option:active,
+select option:checked {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.dark select option:hover,
+.dark select option:active,
+.dark select option:checked {
+  background-color: #243044;
+  color: #ffffff;
 }

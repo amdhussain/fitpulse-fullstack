@@ -158,9 +158,10 @@ function AboutPage() {
                       <img
                         src={section.image}
                         alt={section.title}
-                        className="relative rounded-3xl overflow-hidden border border-purple-500/15 shadow-2xl shadow-black/20 w-full h-[350px] sm:h-[420px] object-cover"
+                        className="relative rounded-3xl overflow-hidden border border-purple-500/15 shadow-2xl shadow-black/20 w-full h-[350px] sm:h-[420px] object-cover brightness-[0.8] contrast-[1.05]"
                         loading="lazy"
                       />
+                      <div className="absolute inset-0 rounded-3xl bg-gradient-to-t from-black/40 via-black/10 to-transparent pointer-events-none" aria-hidden="true" />
                     </div>
                   </div>
                 )}
@@ -196,9 +197,10 @@ function AboutPage() {
                       <img
                         src={section.image}
                         alt={section.title}
-                        className="relative rounded-3xl overflow-hidden border border-purple-500/15 shadow-2xl shadow-black/20 w-full h-[350px] sm:h-[420px] object-cover"
+                        className="relative rounded-3xl overflow-hidden border border-purple-500/15 shadow-2xl shadow-black/20 w-full h-[350px] sm:h-[420px] object-cover brightness-[0.8] contrast-[1.05]"
                         loading="lazy"
                       />
+                      <div className="absolute inset-0 rounded-3xl bg-gradient-to-t from-black/40 via-black/10 to-transparent pointer-events-none" aria-hidden="true" />
                     </div>
                   </div>
                 )}

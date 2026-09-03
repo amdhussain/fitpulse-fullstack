@@ -58,7 +58,7 @@ function ConfirmModal({ isOpen, onClose, onConfirm, title, message, confirmText 
             aria-modal="true"
             aria-label={title}
           >
-            <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#0f1219] border border-gray-200/60 dark:border-white/[0.08] shadow-2xl shadow-gray-300/50 dark:shadow-black/60 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#1a2235] border border-gray-200/60 dark:border-white/[0.08] shadow-2xl shadow-gray-300/50 dark:shadow-black/60 overflow-hidden" onClick={(e) => e.stopPropagation()}>
               <div className="p-6 text-center">
                 <motion.div
                   initial={{ scale: 0 }}

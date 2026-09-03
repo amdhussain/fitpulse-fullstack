@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   FiSave,
   FiUser,
@@ -34,7 +35,8 @@ function getAuthHeaders() {
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#^()_+\-=\[\]{};':"\\|,.<>\/?])[A-Za-z\d@$!%*?&.#^()_+\-=\[\]{};':"\\|,.<>\/?]{8,}$/;
 
 function ProfileManagement() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, logout } = useAuth();
+  const navigate = useNavigate();
   const [form, setForm] = useState({ firstName: "", lastName: "", phone: "", profileImage: "" });
   const [originalForm, setOriginalForm] = useState({ firstName: "", lastName: "", phone: "", profileImage: "" });
   const [passwordForm, setPasswordForm] = useState({ current: "", newPass: "", confirm: "" });
@@ -52,6 +54,11 @@ function ProfileManagement() {
     async function fetchProfile() {
       try {
         const res = await fetch(`${API_URL}/api/v1/user/me`, { headers: getAuthHeaders() });
+        if (res.status === 401) {
+          await logout();
+          navigate("/login", { replace: true });
+          return;
+        }
         if (res.ok) {
           const result = await res.json();
           const data = result.data;
@@ -144,6 +151,11 @@ function ProfileManagement() {
         headers: getAuthHeaders(),
         body: JSON.stringify(payload),
       });
+      if (res.status === 401) {
+        await logout();
+        navigate("/login", { replace: true });
+        return;
+      }
       const result = await res.json();
       if (!res.ok) {
         const fieldErrors = result.errors?.map((e) => e.message).join(". ");
@@ -176,6 +188,11 @@ function ProfileManagement() {
         headers: getAuthHeaders(),
         body: JSON.stringify({ currentPassword: passwordForm.current, newPassword: passwordForm.newPass }),
       });
+      if (res.status === 401) {
+        await logout();
+        navigate("/login", { replace: true });
+        return;
+      }
       const result = await res.json();
       if (!res.ok) {
         throw new Error(result.message || "Failed to change password");

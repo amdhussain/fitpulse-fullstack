@@ -18,7 +18,7 @@ async function bookingCreated(bookingId, userName, className, dateTime) {
     message: `Your booking for ${className} on ${dateTime} has been confirmed.`,
     relatedId: bookingId,
     metadata: { bookedBy: userName },
-    userId: new ObjectId(bookingId),
+    userId: null,
   });
   logger.info('Booking notification created', { id: notification.id });
   return notification;
@@ -31,7 +31,7 @@ async function bookingCancelled(bookingId, userName, sessionType) {
     message: `Your ${sessionType} booking has been cancelled.`,
     relatedId: bookingId,
     metadata: { cancelledBy: userName },
-    userId: new ObjectId(bookingId),
+    userId: null,
   });
   logger.info('Booking cancellation notification created', { id: notification.id });
   return notification;
@@ -44,7 +44,7 @@ async function paymentCompleted(paymentId, userName, amount, plan) {
     message: `Your payment of $${amount} for ${plan} has been completed.`,
     relatedId: paymentId,
     metadata: { amount: parseFloat(amount), plan },
-    userId: new ObjectId(paymentId),
+    userId: null,
   });
   logger.info('Payment completion notification created', { id: notification.id });
   return notification;
@@ -70,7 +70,7 @@ async function trainerAdded(trainerId, trainerName, specialization) {
     message: `Trainer ${trainerName} has been added with specialization: ${specialization}.`,
     relatedId: trainerId,
     metadata: { specialization },
-    userId: new ObjectId(trainerId),
+    userId: null,
   });
   logger.info('Trainer added notification created', { id: notification.id });
   return notification;
@@ -83,7 +83,7 @@ async function trainerApproved(trainerId, trainerName) {
     message: `Trainer ${trainerName} has been approved.`,
     relatedId: trainerId,
     metadata: { trainerName },
-    userId: new ObjectId(trainerId),
+    userId: null,
   });
   logger.info('Trainer approved notification created', { id: notification.id });
   return notification;
@@ -110,8 +110,8 @@ async function markAsRead(id) {
   return NotificationRepository.markAsRead(id);
 }
 
-async function markAllAsRead() {
-  await NotificationRepository.markAllAsRead();
+async function markAllAsRead(userId) {
+  await NotificationRepository.markAllAsRead(userId);
   return { message: 'All notifications marked as read' };
 }
 

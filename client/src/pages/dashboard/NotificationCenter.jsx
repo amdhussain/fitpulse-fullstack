@@ -18,19 +18,7 @@ import { Button, Skeleton } from "../../components/ui";
 import { staggerContainer, fadeUp } from "../../lib/animations";
 import { PageBanner, StatCard } from "../../components/dashboard";
 import { useAuth } from "../../context/AuthContext";
-
-const API_URL = import.meta.env.API_URL;
-
-function getAuthToken() {
-  return localStorage.getItem("token");
-}
-
-function authHeaders() {
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${getAuthToken()}`,
-  };
-}
+import { apiClient } from "../../lib/api";
 
 const typeIcons = {
   booking: FiCalendar,
@@ -369,9 +357,7 @@ export default function NotificationCenter() {
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/api/v1/notification?limit=50`, {
-        headers: authHeaders(),
-      });
+      const res = await apiClient.get("/api/v1/notification?limit=50");
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.data || []);
@@ -399,10 +385,7 @@ export default function NotificationCenter() {
 
   const markAsRead = useCallback(async (id) => {
     try {
-      const res = await fetch(`${API_URL}/api/v1/notification/${id}/read`, {
-        method: "PATCH",
-        headers: authHeaders(),
-      });
+      const res = await apiClient.patch(`/api/v1/notification/${id}/read`);
       if (res.ok) {
         setNotifications((prev) =>
           prev.map((n) => (n.id === id ? { ...n, read: true } : n))
@@ -415,10 +398,7 @@ export default function NotificationCenter() {
 
   const markAllRead = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/api/v1/notification/read-all`, {
-        method: "PATCH",
-        headers: authHeaders(),
-      });
+      const res = await apiClient.patch("/api/v1/notification/read-all");
       if (res.ok) {
         setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       }

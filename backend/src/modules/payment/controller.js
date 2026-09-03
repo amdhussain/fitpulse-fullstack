@@ -51,7 +51,7 @@ const getPaymentById = asyncHandler(async (req, res) => {
 });
 
 const createPayment = asyncHandler(async (req, res) => {
-  const { bookingId, userId, amount, currency, paymentMethod, notes } = req.body;
+  const { bookingId, userId, amount, currency, paymentMethod, notes, transactionId, month } = req.body;
 
   const payment = await paymentService.createPayment({
     bookingId,
@@ -60,6 +60,8 @@ const createPayment = asyncHandler(async (req, res) => {
     currency,
     paymentMethod,
     notes,
+    transactionId,
+    month,
   });
 
   return createdResponse(res, payment, 'Payment created successfully');
@@ -115,6 +117,18 @@ const getDailyRevenue = asyncHandler(async (req, res) => {
   return successResponse(res, daily, 'Daily revenue retrieved successfully');
 });
 
+const updatePaymentDetails = asyncHandler(async (req, res) => {
+  const payment = await paymentService.updatePaymentDetails(req.params.id, req.body);
+
+  return updatedResponse(res, payment, 'Payment updated successfully');
+});
+
+const getReceipt = asyncHandler(async (req, res) => {
+  const receipt = await paymentService.getReceipt(req.params.id);
+
+  return successResponse(res, receipt, 'Receipt retrieved successfully');
+});
+
 module.exports = {
   getMyPayments,
   getPaymentDetails,
@@ -122,9 +136,11 @@ module.exports = {
   getPaymentById,
   createPayment,
   updatePaymentStatus,
+  updatePaymentDetails,
   processPayment,
   refundPayment,
   deletePayment,
+  getReceipt,
   getRevenueStats,
   getRevenueByMethod,
   getDailyRevenue,

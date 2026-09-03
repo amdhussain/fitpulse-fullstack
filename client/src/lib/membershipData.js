@@ -2,8 +2,8 @@ export const getMembershipPlans = () => [
   {
     id: 1,
     name: "Basic Fit",
-    monthlyPrice: "$29",
-    yearlyPrice: "$299",
+    monthlyPrice: 29,
+    yearlyPrice: 299,
     duration: "Monthly",
     description:
       "Perfect for beginners looking to start their fitness journey with essential gym access.",
@@ -16,8 +16,8 @@ export const getMembershipPlans = () => [
   {
     id: 2,
     name: "Premium Active",
-    monthlyPrice: "$59",
-    yearlyPrice: "$599",
+    monthlyPrice: 59,
+    yearlyPrice: 599,
     duration: "Monthly",
     description:
       "Everything in Basic plus personal training sessions and premium amenities for serious fitness enthusiasts.",
@@ -31,8 +31,8 @@ export const getMembershipPlans = () => [
   {
     id: 3,
     name: "Elite Pro",
-    monthlyPrice: "$99",
-    yearlyPrice: "$999",
+    monthlyPrice: 99,
+    yearlyPrice: 999,
     duration: "Monthly",
     description:
       "The ultimate fitness experience with exclusive VIP access and dedicated personal coaching.",
@@ -46,8 +46,8 @@ export const getMembershipPlans = () => [
   {
     id: 4,
     name: "Student Saver",
-    monthlyPrice: "$19",
-    yearlyPrice: "$199",
+    monthlyPrice: 19,
+    yearlyPrice: 199,
     duration: "Monthly",
     description:
       "Affordable fitness plan designed for students with valid student ID verification.",
@@ -61,8 +61,8 @@ export const getMembershipPlans = () => [
   {
     id: 5,
     name: "Couple Combo",
-    monthlyPrice: "$89",
-    yearlyPrice: "$899",
+    monthlyPrice: 89,
+    yearlyPrice: 899,
     duration: "Monthly",
     description:
       "Train together and save! Includes dual membership with shared personal training sessions.",
@@ -76,8 +76,8 @@ export const getMembershipPlans = () => [
   {
     id: 6,
     name: "Annual Premium",
-    monthlyPrice: "$79",
-    yearlyPrice: "$799",
+    monthlyPrice: 79,
+    yearlyPrice: 799,
     duration: "Yearly",
     description:
       "Best value annual plan with locked-in pricing and exclusive annual member benefits.",

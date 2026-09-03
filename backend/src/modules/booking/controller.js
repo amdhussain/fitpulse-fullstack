@@ -1,7 +1,10 @@
 const bookingService = require('./service');
+const paymentService = require('../payment/service');
+const otpService = require('../../services/otpService');
+const notificationService = require('../../services/notificationService');
 const { successResponse, createdResponse, updatedResponse, deletedResponse, paginatedResponse } = require('../../helpers/apiResponse');
 const asyncHandler = require('../../middlewares/asyncHandler');
-const { UnauthorizedError } = require('../../errors');
+const { UnauthorizedError, NotFoundError } = require('../../errors');
 
 // ─── Member APIs ──────────────────────────────────────────
 
@@ -9,8 +12,8 @@ const bookClass = asyncHandler(async (req, res) => {
   if (!req.user || !req.user.id) {
     throw new UnauthorizedError('User not authenticated');
   }
-  const { classId, bookingDate, bookingTime, notes, paymentMethod } = req.body;
-  const booking = await bookingService.bookClass(req.user.id, { classId, bookingDate, bookingTime, notes, paymentMethod });
+  const { classId, bookingDate, bookingTime, notes, paymentMethod, paymentOption } = req.body;
+  const booking = await bookingService.bookClass(req.user.id, { classId, bookingDate, bookingTime, notes, paymentMethod, paymentOption });
   return createdResponse(res, booking, 'Class booked successfully');
 });
 
@@ -18,8 +21,8 @@ const bookTrainer = asyncHandler(async (req, res) => {
   if (!req.user || !req.user.id) {
     throw new UnauthorizedError('User not authenticated');
   }
-  const { trainerId, bookingDate, bookingTime, sessionType, notes, paymentMethod } = req.body;
-  const booking = await bookingService.bookTrainer(req.user.id, { trainerId, bookingDate, bookingTime, sessionType, notes, paymentMethod });
+  const { trainerId, bookingDate, bookingTime, sessionType, notes, paymentMethod, paymentOption } = req.body;
+  const booking = await bookingService.bookTrainer(req.user.id, { trainerId, bookingDate, bookingTime, sessionType, notes, paymentMethod, paymentOption });
   return createdResponse(res, booking, 'Trainer booked successfully');
 });
 
@@ -120,109 +123,200 @@ const verifyPayment = asyncHandler(async (req, res) => {
     throw new UnauthorizedError('User not authenticated');
   }
   const bookingId = req.params.id;
-  const { status, notes } = req.body;
+  const { status } = req.body;
 
-  // Find payment associated with this booking
   const existingPayment = await paymentService.findByBookingId(bookingId);
-
   if (!existingPayment) {
     throw new NotFoundError('Payment not found for this booking');
   }
 
-  const payment = await paymentService.updatePaymentStatus(existingPayment.id, status);
+  const paymentStatus = status === 'VERIFIED' ? 'PAID' : status;
+  const payment = await paymentService.updatePaymentStatus(existingPayment.id, paymentStatus);
 
-  // If payment is verified/paid, also confirm the linked booking
-  if (status === 'PAID' || status === 'VERIFIED') {
-    if (payment && payment.bookingId) {
-      await bookingService.updateBookingStatus(payment.bookingId, 'CONFIRMED');
-    }
+  if (paymentStatus === 'PAID') {
+    await bookingService.updateBookingStatus(bookingId, 'CONFIRMED');
   }
 
-  return updatedResponse(res, payment, 'Payment ' + status + ' successfully');
+  return updatedResponse(res, payment, 'Payment verified successfully');
 });
 
 const rejectPayment = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
   const bookingId = req.params.id;
-  const { status, notes } = req.body;
 
-  // Find payment associated with this booking
   const existingPayment = await paymentService.findByBookingId(bookingId);
-
   if (!existingPayment) {
     throw new NotFoundError('Payment not found for this booking');
   }
 
-  // Update payment status
-  await paymentService.updatePaymentStatus(existingPayment.id, status || 'REJECTED');
+  await paymentService.updatePaymentStatus(existingPayment.id, 'FAILED');
+  await bookingService.updateBookingStatus(bookingId, 'CANCELLED');
 
-  // Also update the linked booking status
-  const payment = await paymentService.getPaymentById(existingPayment.id);
-  if (payment && payment.bookingId) {
-    await bookingService.updateBookingStatus(payment.bookingId, 'REJECTED');
-  }
-
-  return updatedResponse(res, { status: status || 'REJECTED' }, 'Payment rejected successfully');
+  return updatedResponse(res, { status: 'FAILED' }, 'Payment rejected successfully');
 });
 
 const submitPayment = asyncHandler(async (req, res) => {
   if (!req.user || !req.user.id) {
     throw new UnauthorizedError('User not authenticated');
   }
-  const { transactionId, paymentMethod } = req.body;
+  const { transactionId, paymentMethod, paymentOption } = req.body;
   const bookingId = req.params.id;
 
-  // Check if a payment already exists for this booking
-  const existingPayment = await paymentService.findByBookingId(bookingId);
+  const booking = await bookingService.getBookingDetails(req.user.id, bookingId);
 
-  // Update the booking payment status
-  const booking = await bookingService.updateBookingPaymentStatus(req.user.id, bookingId, {
+  await bookingService.updateBookingPaymentStatus(req.user.id, bookingId, {
     transactionId,
     paymentMethod,
     paymentStatus: 'PENDING_VERIFICATION',
   });
 
-  // Create or update payment record - reuse existing if it exists
+  const existingPayment = await paymentService.findByBookingId(bookingId);
+
+  let totalAmount = 0;
+  if (booking.class && booking.class.price) {
+    totalAmount = booking.class.price;
+  } else if (booking.trainer && booking.trainer.hourlyRate) {
+    totalAmount = booking.trainer.hourlyRate;
+  } else if (existingPayment && existingPayment.amount) {
+    totalAmount = existingPayment.amount;
+  }
+
+  const option = paymentOption || booking.paymentOption || 'FULL';
+  const amount = option === 'HALF' ? totalAmount / 2 : totalAmount;
+
   let payment;
   if (existingPayment) {
-    // Update existing payment record
-    payment = await paymentService.update(existingPayment.id, {
-      transactionId,
+    await paymentService.updatePaymentStatus(existingPayment.id, 'PENDING');
+    payment = await paymentService.updatePayment(existingPayment.id, {
+      amount,
       paymentMethod,
-      paymentStatus: 'PENDING_VERIFICATION',
-      notes: 'User submitted transaction ID for verification',
+      notes: `Payment via ${paymentMethod} (${option} - ${option === 'HALF' ? '50% advance' : 'full amount'})`,
     });
   } else {
-    // Get booking details to find the associated class/trainer amount
-    const bookingDetails = await bookingService.getBookingDetails(req.user.id, bookingId);
-    const cls = bookingDetails.class;
-    const amount = cls ? cls.price || 0 : 0;
-
-    // Create new payment record
     payment = await paymentService.createPayment({
       bookingId,
       userId: req.user.id,
       amount,
       currency: 'BDT',
       paymentMethod,
-      notes: 'User submitted transaction ID for verification',
-      transactionId,
+      notes: `Payment via ${paymentMethod} (${option} - ${option === 'HALF' ? '50% advance' : 'full amount'})`,
     });
   }
 
-  // Send admin notification
-  const serviceName = cls?.name || bookingDetails.trainer?.specialization || 'Session';
+  const serviceName = booking.class?.name || booking.trainer?.specialization || 'Session';
+  const userName = booking.user ? `${booking.user.firstName} ${booking.user.lastName}` : `User ${req.user.id}`;
 
   notificationService.paymentVerificationRequired(
     bookingId,
-    bookingDetails.user?.firstName + ' ' + bookingDetails.user?.lastName,
-    bookingDetails.user?.email,
+    userName,
+    booking.user?.email || '',
     serviceName,
     payment.amount,
     paymentMethod,
     transactionId
   ).catch(() => {});
 
-  return updatedResponse(res, booking, 'Payment submission received. Awaiting admin verification.');
+  const otp = await otpService.create({
+    userId: req.user.id,
+    purpose: 'BOOKING_VERIFICATION',
+    metadata: { bookingId },
+    email: booking.user?.email || req.user.email,
+    userName: booking.user ? `${booking.user.firstName} ${booking.user.lastName}` : 'User',
+  });
+
+  notificationService.create({
+    type: 'booking',
+    title: 'Booking Verification OTP',
+    message: `Your OTP for booking verification is: ${otp.code}. This code expires in ${otp.expiresInMinutes} minutes.`,
+    relatedId: bookingId,
+    metadata: { userId: req.user.id, code: otp.code },
+    userId: req.user.id,
+  }).catch(() => {});
+
+  return updatedResponse(res, {
+    booking,
+    payment: { ...payment, totalAmount, paymentOption: option, dueNow: amount, remaining: option === 'HALF' ? totalAmount / 2 : 0 },
+    otpHint: process.env.NODE_ENV !== 'production' ? otp.code : undefined,
+    otpExpiresInMinutes: otp.expiresInMinutes,
+  }, 'Payment submitted. OTP sent for verification.');
+});
+
+const mockPayment = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    throw new UnauthorizedError('User not authenticated');
+  }
+  const { paymentOption } = req.body;
+  const bookingId = req.params.id;
+
+  const booking = await bookingService.getBookingDetails(req.user.id, bookingId);
+
+  const existingPayment = await paymentService.findByBookingId(bookingId);
+
+  let totalAmount = 0;
+  if (booking.class && booking.class.price) {
+    totalAmount = booking.class.price;
+  } else if (booking.trainer && booking.trainer.hourlyRate) {
+    totalAmount = booking.trainer.hourlyRate;
+  } else if (existingPayment && existingPayment.amount) {
+    totalAmount = existingPayment.amount;
+  }
+
+  const option = paymentOption || booking.paymentOption || 'FULL';
+  const amount = option === 'HALF' ? totalAmount / 2 : totalAmount;
+  const mockTransactionId = `TEST-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+  let payment;
+  if (existingPayment) {
+    payment = await paymentService.updatePayment(existingPayment.id, {
+      amount,
+      paymentMethod: 'TEST_PAYMENT',
+      transactionId: mockTransactionId,
+      notes: `Test Payment (${option} - ${option === 'HALF' ? '50% advance' : 'full amount'}) [DEV MODE]`,
+      status: 'PENDING',
+    });
+  } else {
+    payment = await paymentService.createPayment({
+      bookingId,
+      userId: req.user.id,
+      amount,
+      currency: 'BDT',
+      paymentMethod: 'TEST_PAYMENT',
+      transactionId: mockTransactionId,
+      notes: `Test Payment (${option} - ${option === 'HALF' ? '50% advance' : 'full amount'}) [DEV MODE]`,
+    });
+  }
+
+  await bookingService.updateBookingPaymentStatus(req.user.id, bookingId, {
+    transactionId: mockTransactionId,
+    paymentMethod: 'TEST_PAYMENT',
+    paymentStatus: 'PENDING_VERIFICATION',
+  });
+
+  const otp = await otpService.create({
+    userId: req.user.id,
+    purpose: 'BOOKING_VERIFICATION',
+    metadata: { bookingId },
+    email: booking.user?.email || req.user.email,
+    userName: booking.user ? `${booking.user.firstName} ${booking.user.lastName}` : 'User',
+  });
+
+  notificationService.create({
+    type: 'booking',
+    title: 'Test Payment Received - OTP Verification Required',
+    message: `Test payment received. Please verify OTP to confirm booking. OTP: ${otp.code}`,
+    relatedId: bookingId,
+    metadata: { userId: req.user.id, code: otp.code },
+    userId: req.user.id,
+  }).catch(() => {});
+
+  return updatedResponse(res, {
+    booking,
+    payment: { ...payment, totalAmount, paymentOption: option, dueNow: amount, remaining: option === 'HALF' ? totalAmount / 2 : 0 },
+    otpHint: process.env.NODE_ENV !== 'production' ? otp.code : undefined,
+    otpExpiresInMinutes: otp.expiresInMinutes,
+  }, 'Test payment successful. Please verify OTP to confirm booking.');
 });
 
 // ─── Admin APIs ───────────────────────────────────────────
@@ -292,4 +386,5 @@ module.exports = {
   verifyPayment,
   rejectPayment,
   submitPayment,
+  mockPayment,
 };

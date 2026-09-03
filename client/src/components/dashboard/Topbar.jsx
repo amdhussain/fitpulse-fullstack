@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiMenu, FiBell, FiSearch, FiSun, FiMoon, FiX } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
-import { useTheme } from "../../context/ThemeContext";
 
 const API_URL = import.meta.env.API_URL;
 
@@ -60,6 +59,7 @@ const notifColors = {
 function NotificationPanel({ isOpen, onClose }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -85,7 +85,7 @@ function NotificationPanel({ isOpen, onClose }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-[#0f1219] border border-gray-200/60 dark:border-white/10 shadow-2xl shadow-gray-200/80 dark:shadow-black/40 z-50 overflow-hidden"
+            className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-[#1a2235] border border-gray-200/60 dark:border-white/[0.08] shadow-2xl shadow-gray-200/80 dark:shadow-black/40 z-50 overflow-hidden"
           >
             <div className="px-5 py-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -94,7 +94,7 @@ function NotificationPanel({ isOpen, onClose }) {
                   <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 text-[10px] font-bold">{unread} new</span>
                 )}
               </div>
-              <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+              <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
                 <FiX className="w-4 h-4" />
               </button>
             </div>
@@ -112,7 +112,7 @@ function NotificationPanel({ isOpen, onClose }) {
                   ))}
                 </div>
               ) : notifications.length === 0 ? (
-                <div className="p-8 text-center text-sm text-gray-400 dark:text-gray-500">
+                <div className="p-8 text-center text-sm text-gray-400 dark:text-gray-400">
                   No notifications yet
                 </div>
               ) : (
@@ -130,7 +130,7 @@ function NotificationPanel({ isOpen, onClose }) {
                           {!notif.read && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />}
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">{notif.message}</p>
-                        <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">{formatTimeAgo(notif.createdAt)}</p>
+                        <p className="text-[10px] text-gray-400 dark:text-gray-400 mt-1">{formatTimeAgo(notif.createdAt)}</p>
                       </div>
                     </div>
                   );
@@ -138,9 +138,11 @@ function NotificationPanel({ isOpen, onClose }) {
               )}
             </div>
             <div className="px-5 py-3 border-t border-gray-100 dark:border-white/5">
-              <Link to="/dashboard/notifications" onClick={onClose} className="block w-full text-center text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors">
-                View all notifications
-              </Link>
+              {isAdmin && (
+                <Link to="/dashboard/notifications" onClick={onClose} className="block w-full text-center text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors">
+                  View all notifications
+                </Link>
+              )}
             </div>
           </motion.div>
         </>
@@ -149,10 +151,9 @@ function NotificationPanel({ isOpen, onClose }) {
   );
 }
 
-function Topbar({ onMenuClick }) {
+function Topbar({ onMenuClick, isDark, onToggleDark }) {
   const { pathname } = useLocation();
   const { user, isAdmin } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
   const title = routeTitles[pathname] || "Dashboard";
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -174,9 +175,9 @@ function Topbar({ onMenuClick }) {
   const profileLink = isAdmin ? "/dashboard/admin-settings" : "/dashboard/profile";
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-6 bg-white/70 dark:bg-[#0f1219]/70 backdrop-blur-2xl border-b border-gray-200/60 dark:border-white/5">
+    <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-6 bg-white/70 dark:bg-[#131924]/80 backdrop-blur-2xl border-b border-gray-200/60 dark:border-white/[0.06]">
       <div className="flex items-center gap-3">
-        <button onClick={onMenuClick} className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400" aria-label="Open menu">
+        <button onClick={onMenuClick} className="xl:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-300" aria-label="Open menu">
           <FiMenu className="w-5 h-5" />
         </button>
         <h1 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h1>
@@ -188,12 +189,12 @@ function Topbar({ onMenuClick }) {
             ? "bg-gray-50 dark:bg-white/5 border-blue-300 dark:border-blue-500/30 w-64 ring-2 ring-blue-500/10 dark:ring-blue-500/20"
             : "bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10 w-48"
         }`}>
-          <FiSearch className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
+          <FiSearch className="w-4 h-4 text-gray-400 dark:text-gray-400 shrink-0" />
           <input
             type="text" placeholder="Search..." value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             onFocus={() => setSearchFocused(true)} onBlur={() => setSearchFocused(false)}
-            className="bg-transparent text-sm text-gray-700 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none w-full"
+            className="bg-transparent text-sm text-gray-700 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-400 outline-none w-full"
           />
           {searchValue && (
             <button onClick={() => setSearchValue("")} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
@@ -202,16 +203,16 @@ function Topbar({ onMenuClick }) {
           )}
         </div>
 
-        <button className="sm:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 dark:text-gray-500" aria-label="Search">
+        <button className="sm:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 dark:text-gray-400" aria-label="Search">
           <FiSearch className="w-5 h-5" />
         </button>
 
-        <button onClick={toggleTheme} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300" aria-label="Toggle theme">
+        <button onClick={onToggleDark} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" aria-label="Toggle theme">
           {isDark ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
         </button>
 
         <div className="relative">
-          <button onClick={() => setShowNotifications((v) => !v)} className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300" aria-label="Notifications">
+          <button onClick={() => setShowNotifications((v) => !v)} className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" aria-label="Notifications">
             <FiBell className="w-5 h-5" />
             {unreadCount > 0 && (
               <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute top-1 right-1 w-4 h-4 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-[9px] font-bold text-white flex items-center justify-center shadow-lg shadow-blue-500/30">
@@ -230,7 +231,7 @@ function Topbar({ onMenuClick }) {
           </div>
           <div className="hidden sm:block text-left">
             <p className="text-sm font-medium text-gray-700 dark:text-gray-200 leading-tight">{userName}</p>
-            <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-tight">{userEmail}</p>
+            <p className="text-[10px] text-gray-400 dark:text-gray-400 leading-tight">{userEmail}</p>
           </div>
         </Link>
       </div>

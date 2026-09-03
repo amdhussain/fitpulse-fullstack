@@ -14,6 +14,7 @@ function bookingRoutes(router) {
   router.patch('/me/:id/verify-payment', protect, authorize('ADMIN'), bookingValidation.idParam, bookingController.verifyPayment);
   router.patch('/me/:id/reject-payment', protect, authorize('ADMIN'), bookingValidation.idParam, bookingController.rejectPayment);
   router.post('/me/:id/submit-payment', protect, authorize('MEMBER'), bookingValidation.idParam, bookingController.submitPayment);
+  router.post('/me/:id/mock-payment', protect, authorize('MEMBER'), bookingValidation.idParam, bookingValidation.mockPayment, bookingController.mockPayment);
 
   // ─── Trainer Routes ────────────────────────────────────
   router.get('/trainer', protect, authorize('TRAINER'), bookingValidation.getBookingsForMyClasses, bookingController.getBookingsForMyClasses);

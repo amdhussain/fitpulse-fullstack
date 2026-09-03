@@ -7,6 +7,7 @@ function paymentRoutes(router) {
   // ─── Member Routes ─────────────────────────────────────
   router.get('/me', protect, authorize('MEMBER'), paymentValidation.getMyPayments, paymentController.getMyPayments);
   router.get('/me/:id', protect, authorize('MEMBER'), paymentValidation.idParam, paymentController.getPaymentDetails);
+  router.get('/me/:id/receipt', protect, authorize('MEMBER'), paymentValidation.idParam, paymentController.getReceipt);
 
   // ─── Admin Routes ──────────────────────────────────────
   router.get('/', protect, authorize('ADMIN'), paymentValidation.getAllPayments, paymentController.getAllPayments);
@@ -14,7 +15,9 @@ function paymentRoutes(router) {
   router.get('/revenue/method', protect, authorize('ADMIN'), paymentValidation.getRevenueByMethod, paymentController.getRevenueByMethod);
   router.get('/revenue/daily', protect, authorize('ADMIN'), paymentValidation.getDailyRevenue, paymentController.getDailyRevenue);
   router.get('/:id', protect, authorize('ADMIN'), paymentValidation.idParam, paymentController.getPaymentById);
+  router.get('/:id/receipt', protect, authorize('ADMIN'), paymentValidation.idParam, paymentController.getReceipt);
   router.post('/', protect, authorize('ADMIN'), paymentValidation.createPayment, paymentController.createPayment);
+  router.patch('/:id', protect, authorize('ADMIN'), paymentValidation.idParam, paymentValidation.updatePayment, paymentController.updatePaymentDetails);
   router.patch('/:id/status', protect, authorize('ADMIN'), paymentValidation.idParam, paymentValidation.updatePaymentStatus, paymentController.updatePaymentStatus);
   router.patch('/:id/process', protect, authorize('ADMIN'), paymentValidation.idParam, paymentController.processPayment);
   router.patch('/:id/refund', protect, authorize('ADMIN'), paymentValidation.idParam, paymentController.refundPayment);

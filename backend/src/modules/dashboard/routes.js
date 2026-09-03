@@ -4,6 +4,9 @@ const authorize = require('../../middlewares/role.middleware');
 const dashboardValidation = require('./validation');
 
 function dashboardRoutes(router) {
+  // ─── Public Statistics ──────────────────────────────────
+  router.get('/stats/public', dashboardController.getPublicStats);
+
   // ─── Statistics ────────────────────────────────────────
   router.get('/stats', protect, authorize('ADMIN'), dashboardController.getOverviewStats);
 
@@ -25,6 +28,9 @@ function dashboardRoutes(router) {
   router.get('/admin/booking-status', protect, authorize('ADMIN'), dashboardValidation.dateRangeQuery, dashboardController.getBookingStatusBreakdown);
   router.get('/admin/top-classes', protect, authorize('ADMIN'), dashboardValidation.analyticsQuery, dashboardController.getTopClassesByBookings);
   router.get('/admin/top-trainers', protect, authorize('ADMIN'), dashboardValidation.analyticsQuery, dashboardController.getTopTrainersByBookings);
+
+  // ─── Member Dashboard ──────────────────────────────────
+  router.get('/member/overview', protect, dashboardController.getMemberOverview);
 }
 
 module.exports = dashboardRoutes;

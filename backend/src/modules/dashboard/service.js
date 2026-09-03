@@ -1,6 +1,13 @@
 const DashboardRepository = require('./repository');
 const logger = require('../../utils/logger');
 
+// ─── Public Statistics ────────────────────────────────────
+
+async function getPublicStats() {
+  const stats = await DashboardRepository.getPublicStats();
+  return stats;
+}
+
 // ─── Dashboard Statistics ────────────────────────────────
 
 async function getOverviewStats() {
@@ -87,7 +94,13 @@ async function getTopTrainersByBookings({ limit, startDate, endDate }) {
   return data;
 }
 
+async function getMemberStats(userId) {
+  const data = await DashboardRepository.getMemberStats(userId);
+  return data;
+}
+
 module.exports = {
+  getPublicStats,
   getOverviewStats,
   getMonthlyBookings,
   getMonthlyRevenue,
@@ -104,4 +117,5 @@ module.exports = {
   getBookingStatusBreakdown,
   getTopClassesByBookings,
   getTopTrainersByBookings,
+  getMemberStats,
 };

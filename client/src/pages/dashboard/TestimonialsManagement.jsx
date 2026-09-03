@@ -18,7 +18,7 @@ import DataTable from "../../components/dashboard/DataTable";
 import CmsModal from "../../components/dashboard/CmsModal";
 import CmsBadge from "../../components/dashboard/CmsBadge";
 import ConfirmModal from "../../components/dashboard/ConfirmModal";
-import { getInputClass } from "../../lib/dashboardHelpers";
+import { getInputClass, getSelectClass } from "../../lib/dashboardHelpers";
 import {
   getTestimonials,
   getTestimonialStats,
@@ -418,12 +418,13 @@ function TestimonialsManagement() {
                 <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1.5">
                   Membership
                 </label>
+                <div className="select-wrapper">
                 <select
                   value={form.membership}
                   onChange={(e) =>
                     setForm((p) => ({ ...p, membership: e.target.value }))
                   }
-                  className={inputClass}
+                  className={getSelectClass("pink")}
                 >
                   <option value="">Select membership</option>
                   {membershipOptions.map((opt) => (
@@ -432,6 +433,7 @@ function TestimonialsManagement() {
                     </option>
                   ))}
                 </select>
+                </div>
               </div>
 
               <label className="flex items-center gap-2.5 cursor-pointer group">

@@ -51,11 +51,12 @@ const PaymentRepository = {
       bookingId: data.bookingId ? new ObjectId(data.bookingId) : null,
       userId: new ObjectId(data.userId),
       amount: data.amount,
-      currency: data.currency || 'USD',
+      currency: data.currency || 'BDT',
       status: data.status || 'PENDING',
       paymentMethod: data.paymentMethod || null,
       transactionId: data.transactionId || null,
       invoiceNumber: data.invoiceNumber || null,
+      month: data.month || null,
       notes: data.notes || null,
       metadata: data.metadata || null,
       createdAt: now,
@@ -219,6 +220,30 @@ const PaymentRepository = {
       { $sort: { _id: 1 } },
       { $project: { _id: 0, date: '$_id', total: 1, count: 1 } },
     ]).toArray();
+  },
+
+  async getReceiptData(paymentId) {
+    const pipeline = [
+      { $match: { _id: new ObjectId(paymentId) } },
+      ...paymentLookupPipeline(),
+      {
+        $lookup: {
+          from: 'classes',
+          localField: 'booking.classId',
+          foreignField: '_id',
+          as: 'classArr',
+          pipeline: [{ $project: { _id: 1, name: 1, description: 1 } }],
+        },
+      },
+      {
+        $addFields: {
+          class: { $arrayElemAt: ['$classArr', 0] },
+        },
+      },
+      { $project: { classArr: 0 } },
+    ];
+    const results = await databaseService.client.payments.aggregate(pipeline).toArray();
+    return formatPayment(results[0] || null);
   },
 
   async generateInvoiceNumber() {

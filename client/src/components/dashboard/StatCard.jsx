@@ -94,11 +94,11 @@ function StatCard({ icon: Icon, label, value, change, trend, color = "blue", to,
       </div>
       <div className="mt-4">
         <p className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{value}</p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">{label}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-300 mt-1 font-medium">{label}</p>
       </div>
       {to && (
         <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-1 group-hover:translate-x-0">
-          <svg className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-gray-400 dark:group-hover:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-4 h-4 text-gray-300 dark:text-gray-500 group-hover:text-gray-400 dark:group-hover:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </div>

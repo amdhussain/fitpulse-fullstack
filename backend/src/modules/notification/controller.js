@@ -27,7 +27,8 @@ const markAsRead = asyncHandler(async (req, res) => {
 });
 
 const markAllAsRead = asyncHandler(async (req, res) => {
-  const result = await notificationService.markAllAsRead();
+  const userId = req.user.role !== 'ADMIN' ? req.user.id : undefined;
+  const result = await notificationService.markAllAsRead(userId);
   return updatedResponse(res, result, 'All notifications marked as read');
 });
 

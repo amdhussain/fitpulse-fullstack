@@ -26,19 +26,7 @@ import DataTable from "../../components/dashboard/DataTable";
 import ConfirmModal from "../../components/dashboard/ConfirmModal";
 import { useAuth } from "../../context/AuthContext";
 import { isValidImageUrl } from "../../lib/imageUtils";
-
-const API_URL = import.meta.env.API_URL;
-
-function getAuthToken() {
-  return localStorage.getItem("token");
-}
-
-function authHeaders() {
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${getAuthToken()}`,
-  };
-}
+import { apiClient } from "../../lib/api";
 
 const roleBadge = (role) => {
   const map = {
@@ -93,7 +81,7 @@ function EditUserModal({ isOpen, user, onClose, onSave, saving }) {
         aria-label="Edit User"
       >
         <div
-          className="w-full max-w-md rounded-2xl bg-white dark:bg-[#0f1219] border border-gray-200/60 dark:border-white/[0.08] shadow-2xl overflow-hidden"
+          className="w-full max-w-md rounded-2xl bg-white dark:bg-[#1a2235] border border-gray-200/60 dark:border-white/[0.08] shadow-2xl overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="px-6 py-5 border-b border-gray-100 dark:border-white/5">
@@ -207,7 +195,7 @@ function UserDetailModal({ isOpen, user, onClose, loading }) {
         aria-label="User Details"
       >
         <div
-          className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#0f1219] border border-gray-200/60 dark:border-white/[0.08] shadow-2xl overflow-hidden"
+          className="w-full max-w-lg rounded-2xl bg-white dark:bg-[#1a2235] border border-gray-200/60 dark:border-white/[0.08] shadow-2xl overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="px-6 py-5 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
@@ -355,9 +343,7 @@ function UserManagement() {
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/v1/admin/users?limit=100`, {
-        headers: authHeaders(),
-      });
+      const res = await apiClient.get("/api/v1/admin/users?limit=100");
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to fetch users");
       const mapped = (data.data || []).map((u) => ({
@@ -388,11 +374,7 @@ function UserManagement() {
   const handleRoleChange = async (userId, newRole) => {
     setSavingEdit(true);
     try {
-      const res = await fetch(`${API_URL}/api/v1/admin/users/${userId}/role`, {
-        method: "PUT",
-        headers: authHeaders(),
-        body: JSON.stringify({ role: newRole }),
-      });
+      const res = await apiClient.put(`/api/v1/admin/users/${userId}/role`, { role: newRole });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to update role");
       setUsers((prev) =>
@@ -412,13 +394,10 @@ function UserManagement() {
   const handleToggleBlock = async (userId, currentActive) => {
     setBlocking(userId);
     const endpoint = currentActive
-      ? `${API_URL}/api/v1/admin/users/${userId}/block`
-      : `${API_URL}/api/v1/admin/users/${userId}/unblock`;
+      ? `/api/v1/admin/users/${userId}/block`
+      : `/api/v1/admin/users/${userId}/unblock`;
     try {
-      const res = await fetch(endpoint, {
-        method: "PATCH",
-        headers: authHeaders(),
-      });
+      const res = await apiClient.patch(endpoint);
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to update status");
       setUsers((prev) =>
@@ -441,10 +420,7 @@ function UserManagement() {
   const handleDeleteUser = async (userId) => {
     setDeleting(true);
     try {
-      const res = await fetch(`${API_URL}/api/v1/admin/users/${userId}`, {
-        method: "DELETE",
-        headers: authHeaders(),
-      });
+      const res = await apiClient.delete(`/api/v1/admin/users/${userId}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to delete user");
       setUsers((prev) => prev.filter((u) => u.id !== userId));
@@ -463,9 +439,7 @@ function UserManagement() {
     setViewUserLoading(true);
     setViewUser(null);
     try {
-      const res = await fetch(`${API_URL}/api/v1/admin/users/${userId}`, {
-        headers: authHeaders(),
-      });
+      const res = await apiClient.get(`/api/v1/admin/users/${userId}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to fetch user details");
       setViewUser(data.data);

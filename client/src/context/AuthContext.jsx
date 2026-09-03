@@ -115,7 +115,7 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem("token");
     setUser(null);
     clearAuthStorage();
-    navigate("/login", { replace: true });
+    navigate("/", { replace: true });
 
     if (token) {
       try {

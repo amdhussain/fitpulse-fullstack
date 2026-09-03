@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiMail,
@@ -366,7 +366,6 @@ function SuccessModal({ isOpen, onClose, email }) {
 function LoginForm() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const { slowMessage, start: startSlowTimer, stop: stopSlowTimer } = useSlowSubmit();
 
   const [email, setEmail] = useState("");
@@ -381,8 +380,6 @@ function LoginForm() {
 
   const placeholders = getFormPlaceholders();
   const validationMessages = getValidationMessages();
-
-  const from = location.state?.from?.pathname || "/dashboard";
 
   const handleBlur = useCallback(
     (field) => {
@@ -408,7 +405,7 @@ function LoginForm() {
           await login(email, password);
           stopSlowTimer();
           setShowSuccess(true);
-          navigate(from, { replace: true });
+          navigate("/", { replace: true });
         } catch (err) {
           stopSlowTimer();
           setServerError(err.message || "Login failed. Please try again.");
@@ -417,7 +414,7 @@ function LoginForm() {
         }
       }
     },
-    [email, password, validationMessages, login, navigate, from, startSlowTimer, stopSlowTimer]
+    [email, password, validationMessages, login, navigate, startSlowTimer, stopSlowTimer]
   );
 
   const inputBase =

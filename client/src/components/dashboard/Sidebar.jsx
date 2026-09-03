@@ -17,7 +17,10 @@ const memberMenuGroups = [
   },
   {
     label: "Bookings",
-    items: [{ to: "/dashboard/my-bookings", icon: FiCalendar, label: "My Bookings" }],
+    items: [
+      { to: "/dashboard/my-bookings", icon: FiCalendar, label: "My Bookings" },
+      { to: "/dashboard/my-payments", icon: FiDollarSign, label: "My Payments" },
+    ],
   },
   {
     label: "Tools",
@@ -50,11 +53,17 @@ const adminMenuGroups = [
   },
   {
     label: "Booking Management",
-    items: [{ to: "/dashboard/bookings", icon: FiCalendar, label: "Booking Management" }],
+    items: [
+      { to: "/dashboard/classes", icon: FiActivity, label: "Class Management" },
+      { to: "/dashboard/bookings", icon: FiCalendar, label: "Booking Management" },
+    ],
   },
   {
     label: "Payment Management",
-    items: [{ to: "/dashboard/payments", icon: FiDollarSign, label: "Payment Management" }],
+    items: [
+      { to: "/dashboard/payments", icon: FiDollarSign, label: "Payment Management" },
+      { to: "/dashboard/payment-methods", icon: FiCreditCard, label: "Payment Methods" },
+    ],
   },
   {
     label: "Content Management",
@@ -109,7 +118,7 @@ function SidebarLink({ item, onClose }) {
       to={item.to}
       end={item.end}
       onClick={onClose}
-      className="relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group"
+      className="relative flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200 group"
     >
       {isActive && (
         <motion.div
@@ -119,19 +128,19 @@ function SidebarLink({ item, onClose }) {
         />
       )}
       <div className={`relative z-10 p-1.5 rounded-lg transition-all duration-200 ${
-        isActive ? "bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 group-hover:bg-gray-100 dark:group-hover:bg-white/5"
+        isActive ? "bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400" : "text-gray-400 dark:text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200 group-hover:bg-gray-100 dark:group-hover:bg-white/5"
       }`}>
         <item.icon className="w-[18px] h-[18px]" />
       </div>
-      <span className={`relative z-10 hidden xl:block transition-colors duration-200 ${
-        isActive ? "text-blue-700 dark:text-blue-300 font-semibold" : "text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200"
+      <span className={`relative z-10 transition-colors duration-200 ${
+        isActive ? "text-blue-700 dark:text-blue-300 font-semibold" : "text-gray-500 dark:text-gray-300 group-hover:text-gray-700 dark:group-hover:text-gray-100"
       }`}>
         {item.label}
       </span>
       {isActive && (
         <motion.div
           layoutId="sidebar-dot"
-          className="absolute right-3 w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400 shadow-sm shadow-blue-500/50 hidden xl:block"
+          className="absolute right-3 w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400 shadow-sm shadow-blue-500/50"
           transition={{ type: "spring", stiffness: 350, damping: 30 }}
         />
       )}
@@ -144,7 +153,7 @@ function SidebarGroup({ group, isOpen, onToggle, onClose }) {
     <div className="mb-1">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-4 py-1.5 text-[10px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 transition-colors duration-200"
+        className="w-full flex items-center justify-between px-4 py-2.5 text-[10px] font-semibold tracking-widest uppercase text-gray-400 dark:text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors duration-200"
       >
         <span>{group.label}</span>
         <FiChevronDown className={`w-3 h-3 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
@@ -198,10 +207,10 @@ function Sidebar({ open, onClose }) {
   const userEmail = user?.email || "";
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-white dark:bg-[#0f1219]">
+    <div className="flex flex-col h-full bg-white dark:bg-[#131924]">
       <div className="px-5 py-5 border-b border-gray-100 dark:border-white/5">
-        <Logo size="md" color="royal" className="xl:flex" />
-        <p className="hidden xl:block text-[10px] text-gray-400 dark:text-gray-500 mt-1 ml-11 tracking-wide">
+        <Logo size="md" color="royal" />
+        <p className="text-[10px] text-gray-400 dark:text-gray-400 mt-1 ml-11 tracking-wide">
           {isAdmin ? "Admin Panel" : "Dashboard"}
         </p>
       </div>
@@ -229,9 +238,9 @@ function Sidebar({ open, onClose }) {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-blue-500/25">
             {userInitial}
           </div>
-          <div className="hidden xl:block min-w-0">
+          <div className="min-w-0">
             <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">{userName}</p>
-            <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">{userEmail}</p>
+            <p className="text-[11px] text-gray-400 dark:text-gray-400 truncate">{userEmail}</p>
           </div>
         </div>
       </div>
@@ -240,7 +249,7 @@ function Sidebar({ open, onClose }) {
 
   return (
     <>
-      <aside className="hidden lg:flex flex-col w-[72px] xl:w-64 shrink-0 bg-white dark:bg-[#0f1219] border-r border-gray-200/80 dark:border-white/5 h-screen sticky top-0 overflow-hidden">
+      <aside className="hidden xl:flex flex-col w-64 shrink-0 bg-white dark:bg-[#131924] border-r border-gray-200/80 dark:border-white/[0.06] h-screen sticky top-0 overflow-hidden">
         {sidebarContent}
       </aside>
 
@@ -252,7 +261,7 @@ function Sidebar({ open, onClose }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 lg:hidden"
+              className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 xl:hidden"
               onClick={onClose}
               aria-hidden="true"
             />
@@ -261,13 +270,13 @@ function Sidebar({ open, onClose }) {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed inset-y-0 left-0 w-72 bg-white dark:bg-[#0f1219] border-r border-gray-200/80 dark:border-white/5 z-50 lg:hidden flex flex-col"
+              className="fixed inset-y-0 left-0 w-72 bg-white dark:bg-[#131924] border-r border-gray-200/80 dark:border-white/[0.06] z-50 xl:hidden flex flex-col"
               role="dialog"
               aria-label="Sidebar navigation"
             >
               <button
                 onClick={onClose}
-                className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 dark:text-gray-500 z-10"
+                className="absolute top-4 right-4 p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 dark:text-gray-400 z-10"
                 aria-label="Close menu"
               >
                 <FiX className="w-5 h-5" />

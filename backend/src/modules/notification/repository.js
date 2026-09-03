@@ -28,7 +28,8 @@ const NotificationRepository = {
     const match = {};
     if (where.type) match.type = where.type;
     if (where.read !== undefined) match.read = where.read;
-    if (userId) match.userId = new ObjectId(userId);
+    const filterUserId = userId || where.userId;
+    if (filterUserId) match.userId = new ObjectId(filterUserId);
 
     const sort = {};
     sort[sortBy] = sortOrder === 'DESC' ? -1 : 1;
@@ -56,9 +57,11 @@ const NotificationRepository = {
     return this.findById(id);
   },
 
-  async markAllAsRead() {
+  async markAllAsRead(userId) {
+    const filter = { read: false };
+    if (userId) filter.userId = new ObjectId(userId);
     await databaseService.client.notifications.updateMany(
-      { read: false },
+      filter,
       { $set: { read: true, updatedAt: new Date() } }
     );
   },

@@ -57,7 +57,7 @@ function AccordionItem({ faq, isOpen, onToggle, index }) {
             animate={{ rotate: isOpen ? 180 : 0 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-colors duration-200 ${
-              isOpen ? "bg-blue-500/15 text-blue-400" : "bg-base-300/50 text-base-content/40"
+              isOpen ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400" : "bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-gray-500"
             }`}
           >
             <FiChevronDown className="w-4 h-4" />
@@ -73,7 +73,7 @@ function AccordionItem({ faq, isOpen, onToggle, index }) {
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             >
               <div className="px-6 sm:px-7 pb-6 sm:pb-7">
-                <p className="text-sm sm:text-base text-base-content/50 leading-[1.7]">
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 leading-[1.7]">
                   {faq.answer}
                 </p>
               </div>
@@ -95,7 +95,7 @@ function FAQ() {
 
   if (loading) {
     return (
-      <section className="relative py-24 sm:py-32 lg:py-40 overflow-hidden bg-gradient-to-b from-base-100 via-indigo-950/5 to-base-100">
+      <section className="relative py-24 sm:py-32 lg:py-40 overflow-hidden bg-gradient-to-b from-white via-indigo-50/30 to-white dark:from-slate-900 dark:via-indigo-950/5 dark:to-slate-900">
         <Container>
           <div className="text-center space-y-3 mb-16">
             <Skeleton variant="shimmer" className="h-8 w-24 rounded-full mx-auto" />
@@ -115,10 +115,10 @@ function FAQ() {
   }
 
   return (
-    <section className="relative py-24 sm:py-32 lg:py-40 overflow-hidden bg-gradient-to-b from-base-100 via-indigo-950/5 to-base-100">
+      <section className="relative py-24 sm:py-32 lg:py-40 overflow-hidden bg-gradient-to-b from-white via-indigo-50/30 to-white dark:from-slate-900 dark:via-indigo-950/5 dark:to-slate-900">
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <div className="absolute top-1/2 -left-40 w-[500px] h-[500px] bg-indigo-500/4 rounded-full blur-[160px]" />
-        <div className="absolute bottom-0 -right-40 w-[400px] h-[400px] bg-blue-500/3 rounded-full blur-[120px]" />
+        <div className="absolute top-1/2 -left-40 w-[500px] h-[500px] bg-indigo-200/30 dark:bg-indigo-500/5 rounded-full blur-[160px]" />
+        <div className="absolute bottom-0 -right-40 w-[400px] h-[400px] bg-blue-200/20 dark:bg-blue-500/5 rounded-full blur-[120px]" />
       </div>
 
       <Container className="relative z-10">
@@ -129,8 +129,8 @@ function FAQ() {
           className="text-center"
         >
           <motion.div variants={fadeUp} custom={0}>
-            <span className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-semibold backdrop-blur-sm tracking-wide">
-              <span className="w-2 h-2 rounded-full bg-indigo-400" aria-hidden="true" />
+            <span className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-sm font-semibold tracking-wide">
+              <span className="w-2 h-2 rounded-full bg-indigo-500" aria-hidden="true" />
               FAQ
             </span>
           </motion.div>

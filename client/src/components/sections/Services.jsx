@@ -26,12 +26,12 @@ const iconBgs = [
 ];
 
 const iconColors = [
-  "text-emerald-400 group-hover:text-white",
-  "text-green-400 group-hover:text-white",
-  "text-emerald-300 group-hover:text-white",
-  "text-teal-400 group-hover:text-white",
-  "text-green-300 group-hover:text-white",
+  "text-emerald-600 group-hover:text-white",
+  "text-green-600 group-hover:text-white",
   "text-emerald-500 group-hover:text-white",
+  "text-teal-600 group-hover:text-white",
+  "text-green-500 group-hover:text-white",
+  "text-emerald-700 group-hover:text-white",
 ];
 
 function ServiceCard({ service, index }) {
@@ -48,12 +48,12 @@ function ServiceCard({ service, index }) {
           {service.title}
         </h3>
 
-        <p className="text-sm text-base-content/45 leading-[1.7] mb-7 flex-1">
+        <p className="text-sm text-gray-500 dark:text-gray-400 leading-[1.7] mb-7 flex-1">
           {service.description}
         </p>
 
         <Link to={`/services/${service.id || 1}`} className="self-start">
-          <Button variant="ghost" size="sm" className="-ml-2 group/btn text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10">
+          <Button variant="ghost" size="sm" className="-ml-2 group/btn text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
             Learn More
             <FiArrowRight className="w-4 h-4 transition-transform duration-300 group-hover/btn:translate-x-1" />
           </Button>
@@ -73,10 +73,10 @@ function Services() {
   if (loading) return <ServicesSkeleton />;
 
   return (
-    <section id="services" className="relative py-24 sm:py-32 lg:py-40 overflow-hidden bg-gradient-to-b from-base-100 via-emerald-950/8 to-base-100">
+    <section id="services" className="relative py-24 sm:py-32 lg:py-40 overflow-hidden bg-gradient-to-b from-white via-emerald-50/30 to-white dark:from-slate-900 dark:via-emerald-950/5 dark:to-slate-900">
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-emerald-500/4 rounded-full blur-[160px]" />
-        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-green-500/3 rounded-full blur-[120px]" />
+        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[700px] h-[700px] bg-emerald-200/30 dark:bg-emerald-500/5 rounded-full blur-[160px]" />
+        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-green-200/20 dark:bg-green-500/5 rounded-full blur-[120px]" />
       </div>
 
       <Container className="relative z-10">
@@ -87,8 +87,8 @@ function Services() {
           className="text-center"
         >
           <motion.div variants={fadeUp} custom={0}>
-            <span className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-semibold backdrop-blur-sm tracking-wide">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" aria-hidden="true" />
+            <span className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm font-semibold tracking-wide">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true" />
               Our Services
             </span>
           </motion.div>

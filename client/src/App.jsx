@@ -6,6 +6,7 @@ import GlobalLoader from "./components/ui/GlobalLoader";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { LoadingProvider, useLoading } from "./context/LoadingContext";
+import { ToastProvider } from "./components/ui";
 import AppRoutes from "./routes/AppRoutes";
 
 function NavigationListener() {
@@ -35,13 +36,15 @@ function App() {
       <BrowserRouter>
         <ThemeProvider>
           <AuthProvider>
-            <LoadingProvider>
-              <NavigationListener />
-              <GlobalLoader />
-              <Suspense fallback={<PageLoader />}>
-                <AppRoutes />
-              </Suspense>
-            </LoadingProvider>
+            <ToastProvider>
+              <LoadingProvider>
+                <NavigationListener />
+                <GlobalLoader />
+                <Suspense fallback={<PageLoader />}>
+                  <AppRoutes />
+                </Suspense>
+              </LoadingProvider>
+            </ToastProvider>
           </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>

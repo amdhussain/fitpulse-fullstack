@@ -9,19 +9,7 @@ import {
 import { StatCard } from "../../components/dashboard";
 import { DashboardSkeleton } from "../../components/ui/Skeleton";
 import { fadeUp, staggerContainer } from "../../lib/animations";
-
-const API_URL = import.meta.env.API_URL;
-
-function getAuthToken() {
-  return localStorage.getItem("token");
-}
-
-function authHeaders() {
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${getAuthToken()}`,
-  };
-}
+import { apiClient } from "../../lib/api";
 
 const activityColors = {
   blue: "bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-500/20 dark:to-indigo-500/10 text-blue-600 dark:text-blue-400",
@@ -39,9 +27,9 @@ const statusStyles = {
   COMPLETED: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-200/60 dark:border-blue-500/20",
 };
 
-function WelcomeBanner({ stats }) {
+function WelcomeBanner({ stats, bookingSummary }) {
   const totalUsers = stats?.users?.total || 0;
-  const todayBookings = stats?.bookings?.today || 0;
+  const todayBookings = bookingSummary?.todayBookings ?? stats?.bookings?.today || 0;
   const unreadMessages = stats?.contactMessages?.unread || 0;
 
   return (
@@ -241,7 +229,7 @@ function QuickActions() {
   );
 }
 
-function SystemStats({ overview }) {
+function SystemStats({ overview, bookingSummary, revenueSummary }) {
   if (!overview) return null;
 
   const items = [
@@ -249,7 +237,7 @@ function SystemStats({ overview }) {
     { label: "Trainers", value: overview.users?.totalTrainers ?? 0, icon: FiAward, color: "cyan" },
     { label: "Active Classes", value: overview.classes?.active ?? 0, icon: FiBookOpen, color: "emerald" },
     { label: "Total Bookings", value: overview.bookings?.total ?? 0, icon: FiCalendar, color: "amber" },
-    { label: "Today's Bookings", value: overview.bookings?.today ?? 0, icon: FiClock, color: "purple" },
+    { label: "This Month", value: bookingSummary?.thisMonthBookings ?? overview.bookings?.thisMonth ?? 0, icon: FiClock, color: "purple" },
     { label: "Pending Payments", value: overview.payments?.pending ?? 0, icon: FiDollarSign, color: "rose" },
   ];
 
@@ -308,6 +296,8 @@ function SystemStats({ overview }) {
 function AdminOverview() {
   const [stats, setStats] = useState(null);
   const [overview, setOverview] = useState(null);
+  const [bookingSummary, setBookingSummary] = useState(null);
+  const [revenueSummary, setRevenueSummary] = useState(null);
   const [latestUsers, setLatestUsers] = useState([]);
   const [latestBookings, setLatestBookings] = useState([]);
   const [latestTrainers, setLatestTrainers] = useState([]);
@@ -318,12 +308,14 @@ function AdminOverview() {
     setLoading(true);
     setError(null);
     try {
-      const [statsRes, overviewRes, usersRes, bookingsRes, trainersRes] = await Promise.allSettled([
-        fetch(`${API_URL}/api/v1/dashboard/stats`, { headers: authHeaders() }),
-        fetch(`${API_URL}/api/v1/dashboard/admin/overview`, { headers: authHeaders() }),
-        fetch(`${API_URL}/api/v1/dashboard/admin/latest-users?limit=5`, { headers: authHeaders() }),
-        fetch(`${API_URL}/api/v1/dashboard/admin/latest-bookings?limit=5`, { headers: authHeaders() }),
-        fetch(`${API_URL}/api/v1/dashboard/admin/latest-trainers?limit=5`, { headers: authHeaders() }),
+      const [statsRes, overviewRes, bookingSumRes, revenueSumRes, usersRes, bookingsRes, trainersRes] = await Promise.allSettled([
+        apiClient.get("/api/v1/dashboard/stats"),
+        apiClient.get("/api/v1/dashboard/admin/overview"),
+        apiClient.get("/api/v1/dashboard/admin/booking-summary"),
+        apiClient.get("/api/v1/dashboard/admin/revenue-summary"),
+        apiClient.get("/api/v1/dashboard/admin/latest-users?limit=5"),
+        apiClient.get("/api/v1/dashboard/admin/latest-bookings?limit=5"),
+        apiClient.get("/api/v1/dashboard/admin/latest-trainers?limit=5"),
       ]);
 
       if (statsRes.status === "fulfilled" && statsRes.value.ok) {
@@ -333,6 +325,14 @@ function AdminOverview() {
       if (overviewRes.status === "fulfilled" && overviewRes.value.ok) {
         const d = await overviewRes.value.json();
         setOverview(d.data);
+      }
+      if (bookingSumRes.status === "fulfilled" && bookingSumRes.value.ok) {
+        const d = await bookingSumRes.value.json();
+        setBookingSummary(d.data);
+      }
+      if (revenueSumRes.status === "fulfilled" && revenueSumRes.value.ok) {
+        const d = await revenueSumRes.value.json();
+        setRevenueSummary(d.data);
       }
       if (usersRes.status === "fulfilled" && usersRes.value.ok) {
         const d = await usersRes.value.json();
@@ -378,17 +378,65 @@ function AdminOverview() {
   }
 
   const statCards = [
-    { icon: FiUsers, label: "Total Users", value: stats?.totalUsers ?? overview?.users?.total ?? 0, pageKey: "dashboard", index: 0 },
-    { icon: FiAward, label: "Total Trainers", value: stats?.totalTrainers ?? overview?.users?.totalTrainers ?? 0, pageKey: "dashboard", index: 1 },
-    { icon: FiBookOpen, label: "Total Classes", value: stats?.totalClasses ?? overview?.classes?.total ?? 0, pageKey: "dashboard", index: 2 },
-    { icon: FiCalendar, label: "Total Bookings", value: stats?.totalBookings ?? overview?.bookings?.total ?? 0, pageKey: "dashboard", index: 3 },
-    { icon: FiDollarSign, label: "Total Revenue", value: stats?.totalRevenue ? `$${stats.totalRevenue.toLocaleString()}` : "$0", pageKey: "dashboard", index: 4 },
-    { icon: FiTrendingUp, label: "Monthly Revenue", value: stats?.monthlyRevenue ? `$${stats.monthlyRevenue.toLocaleString()}` : "$0", pageKey: "dashboard", index: 5 },
+    {
+      icon: FiUsers,
+      label: "Total Users",
+      value: stats?.totalUsers ?? overview?.users?.total ?? 0,
+      change: overview?.users?.totalMembers > 0 ? `${overview.users.totalMembers} members` : undefined,
+      trend: "up",
+      color: "blue",
+      to: "/dashboard/users",
+    },
+    {
+      icon: FiAward,
+      label: "Total Trainers",
+      value: stats?.totalTrainers ?? overview?.users?.totalTrainers ?? 0,
+      change: overview?.users?.totalTrainers > 0 ? `${overview.users.totalTrainers} active` : undefined,
+      trend: "up",
+      color: "cyan",
+      to: "/dashboard/trainers",
+    },
+    {
+      icon: FiBookOpen,
+      label: "Total Classes",
+      value: stats?.totalClasses ?? overview?.classes?.total ?? 0,
+      change: overview?.classes?.active > 0 ? `${overview.classes.active} active` : undefined,
+      trend: "up",
+      color: "emerald",
+      to: "/dashboard/services",
+    },
+    {
+      icon: FiCalendar,
+      label: "Total Bookings",
+      value: stats?.totalBookings ?? overview?.bookings?.total ?? 0,
+      change: bookingSummary?.todayBookings > 0 ? `${bookingSummary.todayBookings} today` : undefined,
+      trend: "up",
+      color: "amber",
+      to: "/dashboard/bookings",
+    },
+    {
+      icon: FiDollarSign,
+      label: "Total Revenue",
+      value: revenueSummary?.totalRevenue ? `$${revenueSummary.totalRevenue.toLocaleString()}` : stats?.totalRevenue ? `$${stats.totalRevenue.toLocaleString()}` : "$0",
+      change: revenueSummary?.monthOverMonthGrowth ? `${revenueSummary.monthOverMonthGrowth > 0 ? '+' : ''}${revenueSummary.monthOverMonthGrowth.toFixed(1)}%` : undefined,
+      trend: revenueSummary?.monthOverMonthGrowth >= 0 ? "up" : "down",
+      color: "purple",
+      to: "/dashboard/bookings",
+    },
+    {
+      icon: FiTrendingUp,
+      label: "Monthly Revenue",
+      value: revenueSummary?.thisMonthRevenue ? `$${revenueSummary.thisMonthRevenue.toLocaleString()}` : stats?.monthlyRevenue ? `$${stats.monthlyRevenue.toLocaleString()}` : "$0",
+      change: revenueSummary?.monthTransactions > 0 ? `${revenueSummary.monthTransactions} transactions` : undefined,
+      trend: "up",
+      color: "rose",
+      to: "/dashboard/bookings",
+    },
   ];
 
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="space-y-6">
-      <WelcomeBanner stats={overview} />
+      <WelcomeBanner stats={overview} bookingSummary={bookingSummary} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {statCards.map((stat, i) => (
@@ -397,7 +445,7 @@ function AdminOverview() {
       </div>
 
       <QuickActions />
-      <SystemStats overview={overview} />
+      <SystemStats overview={overview} bookingSummary={bookingSummary} revenueSummary={revenueSummary} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <LatestUsers users={latestUsers} />

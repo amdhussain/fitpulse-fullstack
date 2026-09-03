@@ -17,12 +17,12 @@ const genderOptions = [
 ];
 
 const timeSlots = [
-  { id: "early-morning", label: "Early Morning (5AM - 7AM)" },
-  { id: "morning", label: "Morning (7AM - 10AM)" },
-  { id: "midday", label: "Midday (10AM - 1PM)" },
-  { id: "afternoon", label: "Afternoon (1PM - 4PM)" },
-  { id: "evening", label: "Evening (4PM - 7PM)" },
-  { id: "night", label: "Night (7PM - 10PM)" },
+  { id: "05:00", label: "Early Morning (5AM - 7AM)" },
+  { id: "07:00", label: "Morning (7AM - 10AM)" },
+  { id: "10:00", label: "Midday (10AM - 1PM)" },
+  { id: "13:00", label: "Afternoon (1PM - 4PM)" },
+  { id: "16:00", label: "Evening (4PM - 7PM)" },
+  { id: "19:00", label: "Night (7PM - 10PM)" },
 ];
 
 const pageMetadata = {

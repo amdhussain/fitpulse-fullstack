@@ -2,21 +2,46 @@ const { validateRequest, validateParams, validateQuery } = require('../../valida
 const rules = require('../../validators/helpers/rules.helper');
 const { body } = require('express-validator');
 
-// ─── Admin: Create Payment ────────────────────────────────
+// ─── Admin: Create Payment (supports offline/cash) ───────
 
 const createPayment = validateRequest([
-  body('bookingId')
-    .trim()
-    .notEmpty().withMessage('Booking ID is required'),
   body('userId')
     .trim()
     .notEmpty().withMessage('User ID is required'),
   body('amount')
     .notEmpty().withMessage('Amount is required')
     .isFloat({ min: 0.01 }).withMessage('Amount must be greater than 0'),
+  body('bookingId')
+    .optional()
+    .trim()
+    .isMongoId().withMessage('Booking ID must be a valid Mongo ID'),
   rules.optionalText('currency', { max: 3 }),
   rules.optionalText('paymentMethod', { max: 50 }),
   rules.optionalText('notes', { max: 1000 }),
+  rules.optionalText('transactionId', { max: 100 }),
+  rules.optionalText('month', { max: 20 }),
+]);
+
+// ─── Admin: Update Payment ───────────────────────────────
+
+const updatePayment = validateRequest([
+  body('amount')
+    .optional()
+    .isFloat({ min: 0.01 }).withMessage('Amount must be greater than 0'),
+  body('status')
+    .optional()
+    .trim()
+    .isIn(['PENDING', 'PAID', 'FAILED', 'REFUNDED'])
+    .withMessage('Status must be PENDING, PAID, FAILED, or REFUNDED'),
+  body('bookingId')
+    .optional()
+    .trim()
+    .isMongoId().withMessage('Booking ID must be a valid Mongo ID'),
+  rules.optionalText('currency', { max: 3 }),
+  rules.optionalText('paymentMethod', { max: 50 }),
+  rules.optionalText('notes', { max: 1000 }),
+  rules.optionalText('transactionId', { max: 100 }),
+  rules.optionalText('month', { max: 20 }),
 ]);
 
 // ─── Admin: Update Payment Status ─────────────────────────
@@ -68,6 +93,7 @@ const idParam = validateParams({ id: 'string' });
 
 module.exports = {
   createPayment,
+  updatePayment,
   updatePaymentStatus,
   getMyPayments,
   getAllPayments,

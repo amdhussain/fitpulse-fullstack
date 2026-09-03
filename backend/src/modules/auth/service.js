@@ -69,7 +69,16 @@ async function register({ firstName, lastName, email, password, role = 'MEMBER' 
     updatedAt: now,
   });
 
-  const token = signUpResult.token || '';
+  const sessionToken = crypto.randomBytes(32).toString('hex');
+  const sessionExpiresAt = new Date(Date.now() + 60 * 60 * 24 * 7 * 1000);
+
+  await databaseService.db.collection('session').insertOne({
+    token: sessionToken,
+    userId: databaseService.toObjectId(appUser.id),
+    expiresAt: sessionExpiresAt,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 
   logger.info('User registered successfully', { userId: appUser.id, email: appUser.email });
 
@@ -77,7 +86,7 @@ async function register({ firstName, lastName, email, password, role = 'MEMBER' 
 
   return {
     user: sanitizeUser(appUser),
-    token,
+    token: sessionToken,
     cookieOptions: getCookieOptions(),
   };
 }
@@ -137,13 +146,22 @@ async function login({ email, password }) {
 
   await UserRepository.updateLastLogin(appUser.id);
 
-  const token = signInResult.token || '';
+  const sessionToken = crypto.randomBytes(32).toString('hex');
+  const sessionExpiresAt = new Date(Date.now() + 60 * 60 * 24 * 7 * 1000);
+
+  await databaseService.db.collection('session').insertOne({
+    token: sessionToken,
+    userId: databaseService.toObjectId(appUser.id),
+    expiresAt: sessionExpiresAt,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 
   logger.info('User logged in successfully', { userId: appUser.id, email: appUser.email });
 
   return {
     user: sanitizeUser(appUser),
-    token,
+    token: sessionToken,
     cookieOptions: getCookieOptions(),
   };
 }
@@ -161,9 +179,22 @@ async function getMe(userId) {
 async function signOut(headers) {
   const auth = getAuth();
 
-  await auth.api.signOut({
-    headers,
-  });
+  try {
+    await auth.api.signOut({ headers });
+  } catch {
+    // Ignore Better Auth sign-out errors
+  }
+
+  // Also clean up custom session
+  try {
+    const authHeader = headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      await databaseService.db.collection('session').deleteOne({ token });
+    }
+  } catch {
+    // Best-effort cleanup
+  }
 }
 
 async function forgotPassword(email) {

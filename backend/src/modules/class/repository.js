@@ -20,24 +20,29 @@ function classLookupPipeline() {
             },
           },
           { $addFields: { user: { $arrayElemAt: ['$userArr', 0] }, userId: { $toString: '$userId' } } },
-          { $project: { userArr: 0, _id: 1, userId: 1, bio: 1, specialization: 1, designation: 1, experience: 1, hourlyRate: 1, rating: 1, reviewsCount: 1, skills: 1, programs: 1, certificates: 1, achievements: 1, availableDays: 1, socialLinks: 1, status: 1, createdAt: 1, updatedAt: 1 } },
+          { $unset: 'userArr' },
+          { $project: { _id: 1, userId: 1, bio: 1, specialization: 1, designation: 1, experience: 1, hourlyRate: 1, rating: 1, reviewsCount: 1, skills: 1, programs: 1, certificates: 1, achievements: 1, availableDays: 1, socialLinks: 1, status: 1, createdAt: 1, updatedAt: 1, user: 1 } },
         ],
       },
     },
     { $addFields: { trainer: { $arrayElemAt: ['$trainerArr', 0] }, trainerId: { $toString: '$trainerId' } } },
-    { $project: { trainerArr: 0 } },
+    { $unset: 'trainerArr' },
   ];
 }
 
 function formatClass(doc) {
   if (!doc) return null;
   const { _id, trainer, ...rest } = doc;
-  const formatted = { ...rest, id: _id.toString() };
+  const formattedId = _id ? _id.toString() : null;
+  const formatted = { ...rest, _id: formattedId, id: formattedId };
   if (trainer) {
-    formatted.trainer = { ...trainer, id: trainer._id.toString() };
-    if (formatted.trainer.user) {
-      formatted.trainer.user = { ...formatted.trainer.user, id: formatted.trainer.user._id.toString() };
-      delete formatted.trainer.user._id;
+    formatted.trainer = { ...trainer };
+    if (trainer._id) {
+      formatted.trainer.id = trainer._id.toString();
+      if (trainer.user && trainer.user._id) {
+        formatted.trainer.user = { ...trainer.user, id: trainer.user._id.toString() };
+        delete formatted.trainer.user._id;
+      }
     }
   }
   return formatted;

@@ -56,18 +56,20 @@ export function SelectInput({ label, value, onChange, options }) {
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{label}</label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2.5 text-base rounded-lg border border-gray-200 dark:border-gray-600
-          bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-          focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400
-          transition-all duration-200"
-      >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
-        ))}
-      </select>
+      <div className="select-wrapper">
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full px-3 py-2.5 text-base rounded-lg border border-gray-200 dark:border-gray-600
+            bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+            focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400
+            transition-all duration-200"
+        >
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }

@@ -2,6 +2,13 @@ const dashboardService = require('./service');
 const { successResponse } = require('../../helpers/apiResponse');
 const asyncHandler = require('../../middlewares/asyncHandler');
 
+// ─── Public Statistics ────────────────────────────────────
+
+const getPublicStats = asyncHandler(async (req, res) => {
+  const stats = await dashboardService.getPublicStats();
+  return successResponse(res, stats, 'Public statistics retrieved successfully');
+});
+
 // ─── Dashboard Statistics ────────────────────────────────
 
 const getOverviewStats = asyncHandler(async (req, res) => {
@@ -161,7 +168,14 @@ const getTopTrainersByBookings = asyncHandler(async (req, res) => {
   return successResponse(res, data, 'Top trainers by bookings retrieved successfully');
 });
 
+const getMemberOverview = asyncHandler(async (req, res) => {
+  const userId = req.user.id || req.user._id;
+  const data = await dashboardService.getMemberStats(userId);
+  return successResponse(res, data, 'Member overview retrieved successfully');
+});
+
 module.exports = {
+  getPublicStats,
   getOverviewStats,
   getMonthlyBookings,
   getMonthlyRevenue,
@@ -178,4 +192,5 @@ module.exports = {
   getBookingStatusBreakdown,
   getTopClassesByBookings,
   getTopTrainersByBookings,
+  getMemberOverview,
 };

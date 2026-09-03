@@ -29,7 +29,8 @@ function bookingLookupPipeline() {
         pipeline: [
           { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'userArr', pipeline: [{ $project: { _id: 1, firstName: 1, lastName: 1, email: 1 } }] } },
           { $addFields: { user: { $arrayElemAt: ['$userArr', 0] } } },
-          { $project: { userArr: 0, _id: 1, userId: { $toString: '$userId' }, bio: 1, specialization: 1, designation: 1, experience: 1, rating: 1, user: 1 } },
+          { $unset: 'userArr' },
+          { $project: { _id: 1, userId: { $toString: '$userId' }, bio: 1, specialization: 1, designation: 1, experience: 1, rating: 1, user: 1 } },
         ],
       },
     },
@@ -43,14 +44,15 @@ function bookingLookupPipeline() {
         trainerId: { $cond: { if: '$trainerId', then: { $toString: '$trainerId' }, else: null } },
       },
     },
-    { $project: { userArr: 0, classArr: 0, trainerArr: 0 } },
+    { $unset: ['userArr', 'classArr', 'trainerArr'] },
   ];
 }
 
 function formatBooking(doc) {
   if (!doc) return null;
   const { _id, user, class: cls, trainer, ...rest } = doc;
-  const formatted = { ...rest, id: _id ? _id.toString() : null };
+  const formattedId = _id ? _id.toString() : null;
+  const formatted = { ...rest, _id: formattedId, id: formattedId };
   if (user && user._id) {
     formatted.user = { ...user, id: user._id.toString() };
     delete formatted.user._id;
@@ -63,15 +65,16 @@ function formatBooking(doc) {
   } else if (cls) {
     formatted.class = { ...cls };
   }
-  if (trainer && trainer._id) {
-    formatted.trainer = { ...trainer, id: trainer._id.toString() };
-    delete formatted.trainer._id;
-    if (formatted.trainer.user && formatted.trainer.user._id) {
-      formatted.trainer.user = { ...formatted.trainer.user, id: formatted.trainer.user._id.toString() };
+  if (trainer) {
+    formatted.trainer = { ...trainer };
+    if (trainer._id) {
+      formatted.trainer.id = trainer._id.toString();
+      delete formatted.trainer._id;
+    }
+    if (trainer.user && trainer.user._id) {
+      formatted.trainer.user = { ...trainer.user, id: trainer.user._id.toString() };
       delete formatted.trainer.user._id;
     }
-  } else if (trainer) {
-    formatted.trainer = { ...trainer };
   }
   return formatted;
 }
@@ -122,6 +125,7 @@ const BookingRepository = {
       sessionType: data.sessionType || null,
       status: data.status || 'PENDING',
       paymentStatus: data.paymentStatus || 'PENDING_PAYMENT',
+      paymentOption: data.paymentOption || 'FULL',
       attended: data.attended || false,
       notes: data.notes || null,
       cancelReason: data.cancelReason || null,
@@ -354,7 +358,7 @@ const BookingRepository = {
         },
       },
       { $addFields: { user: { $arrayElemAt: ['$userArr', 0] } } },
-      { $project: { userArr: 0 } },
+      { $unset: 'userArr' },
     ];
     const results = await databaseService.client.trainers.aggregate(pipeline).toArray();
     const doc = results[0];

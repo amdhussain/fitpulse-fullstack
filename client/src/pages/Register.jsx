@@ -105,7 +105,7 @@ function RegisterForm() {
           passwordConfirm: form.passwordConfirm,
         });
         stopSlowTimer();
-        navigate("/dashboard", { replace: true });
+        navigate("/", { replace: true });
       } catch (err) {
         stopSlowTimer();
         setServerError(err.message || "Registration failed. Please try again.");
