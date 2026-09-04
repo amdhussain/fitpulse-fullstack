@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiX,
@@ -14,8 +14,8 @@ import {
   FiCheck,
   FiArrowRight,
 } from "react-icons/fi";
-
-const API_URL = import.meta.env.API_URL;
+import OtpVerificationModal from "./OtpVerificationModal";
+import { API_URL } from "../lib/api";
 
 function getAuthToken() {
   return localStorage.getItem("token");
@@ -41,6 +41,10 @@ function BookingModal({ isOpen, onClose, trainer, editingBooking, onBookingUpdat
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [createdBookingId, setCreatedBookingId] = useState(null);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpHint, setOtpHint] = useState("");
+  const [otpExpiresIn, setOtpExpiresIn] = useState(10);
+  const closeTimerRef = useRef(null);
 
   const trainerName = trainer
     ? trainer.name || `${trainer.user?.firstName || ""} ${trainer.user?.lastName || ""}`.trim()
@@ -66,6 +70,12 @@ function BookingModal({ isOpen, onClose, trainer, editingBooking, onBookingUpdat
   });
 
   useEffect(() => {
+    return () => {
+      if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
     if (isOpen) {
       if (editingBooking) {
         setForm({
@@ -83,6 +93,9 @@ function BookingModal({ isOpen, onClose, trainer, editingBooking, onBookingUpdat
       setSuccess(false);
       setStep("booking");
       setCreatedBookingId(null);
+      setShowOtpModal(false);
+      setOtpHint("");
+      setOtpExpiresIn(10);
     }
   }, [isOpen, editingBooking]);
 
@@ -111,7 +124,8 @@ function BookingModal({ isOpen, onClose, trainer, editingBooking, onBookingUpdat
     try {
       let res;
       if (isEditing) {
-        res = await fetch(`${API_URL}/api/v1/booking/me/${editingBooking.id}`, {
+        const editId = editingBooking.id || editingBooking._id;
+        res = await fetch(`${API_URL}/api/v1/booking/me/${editId}`, {
           method: "PATCH",
           headers: authHeaders(),
           body: JSON.stringify({
@@ -137,17 +151,27 @@ function BookingModal({ isOpen, onClose, trainer, editingBooking, onBookingUpdat
         });
       }
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Invalid response from server");
+      }
       if (!res.ok) throw new Error(data.message || "Booking failed.");
 
       if (isEditing) {
         setSuccess(true);
         if (onBookingUpdated) onBookingUpdated();
-        setTimeout(() => onClose(), 2000);
+        closeTimerRef.current = setTimeout(() => onClose(), 2000);
       } else {
-        const bookingId = data.data?.id || data.data?.booking?.id;
+        const bookingId = data.data?.id || data.data?._id;
         setCreatedBookingId(bookingId);
-        setStep("payment");
+
+        const hint = data.data?.otpHint;
+        const expiresIn = data.data?.otpExpiresInMinutes || 10;
+        setOtpHint(hint || "");
+        setOtpExpiresIn(expiresIn);
+        setShowOtpModal(true);
       }
     } catch (err) {
       setError(err.message || "Something went wrong.");
@@ -174,12 +198,17 @@ function BookingModal({ isOpen, onClose, trainer, editingBooking, onBookingUpdat
         }),
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Invalid response from server");
+      }
       if (!res.ok) throw new Error(data.message || "Payment submission failed.");
 
       setSuccess(true);
       if (onBookingUpdated) onBookingUpdated();
-      setTimeout(() => onClose(), 2500);
+      closeTimerRef.current = setTimeout(() => onClose(), 2500);
     } catch (err) {
       setError(err.message || "Something went wrong.");
     } finally {
@@ -514,6 +543,21 @@ function BookingModal({ isOpen, onClose, trainer, editingBooking, onBookingUpdat
           </motion.div>
         </>
       )}
+
+      <OtpVerificationModal
+        isOpen={showOtpModal}
+        bookingId={createdBookingId}
+        otpHint={otpHint}
+        otpExpiresInMinutes={otpExpiresIn}
+        onClose={() => setShowOtpModal(false)}
+        onVerified={() => {
+          setShowOtpModal(false);
+          setSuccess(true);
+          if (onBookingUpdated) onBookingUpdated();
+          closeTimerRef.current = setTimeout(() => onClose(), 2000);
+        }}
+        purpose="booking-request"
+      />
     </AnimatePresence>
   );
 }

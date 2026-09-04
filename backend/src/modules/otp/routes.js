@@ -6,6 +6,8 @@ const otpValidation = require('./validation');
 function otpRoutes(router) {
   router.post('/send', protect, authorize('MEMBER'), otpValidation.sendOtp, otpController.sendOtp);
   router.post('/verify', protect, authorize('MEMBER'), otpValidation.verifyOtp, otpController.verifyOtp);
+  router.post('/booking-request/send', protect, authorize('MEMBER'), otpValidation.sendBookingRequestOtp, otpController.sendBookingRequestOtp);
+  router.post('/booking-request/verify', protect, authorize('MEMBER'), otpValidation.verifyBookingRequestOtp, otpController.verifyBookingRequestOtp);
 }
 
 module.exports = otpRoutes;

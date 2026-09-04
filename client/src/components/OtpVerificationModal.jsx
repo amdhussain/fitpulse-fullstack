@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiX, FiShield, FiCheck, FiLoader, FiRefreshCw } from "react-icons/fi";
-
-const API_URL = import.meta.env.API_URL;
+import { API_URL } from "../lib/api";
 
 function getAuthToken() {
   return localStorage.getItem("token");
@@ -23,6 +22,7 @@ export default function OtpVerificationModal({
   onClose,
   onVerified,
   onError,
+  purpose = "payment",
 }) {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,6 +32,23 @@ export default function OtpVerificationModal({
   const [otpSent, setOtpSent] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const inputRef = useRef(null);
+  const verifyTimerRef = useRef(null);
+  const focusTimerRef = useRef(null);
+
+  const isBookingRequest = purpose === "booking-request";
+  const otpEndpoint = isBookingRequest
+    ? `${API_URL}/api/v1/otp/booking-request/verify`
+    : `${API_URL}/api/v1/otp/verify`;
+  const sendEndpoint = isBookingRequest
+    ? `${API_URL}/api/v1/otp/booking-request/send`
+    : `${API_URL}/api/v1/otp/send`;
+
+  useEffect(() => {
+    return () => {
+      if (verifyTimerRef.current) clearTimeout(verifyTimerRef.current);
+      if (focusTimerRef.current) clearTimeout(focusTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -41,9 +58,12 @@ export default function OtpVerificationModal({
       setOtpSent(!!otpHint);
       setResendCooldown(0);
       if (otpHint) {
-        setTimeout(() => inputRef.current?.focus(), 300);
+        focusTimerRef.current = setTimeout(() => inputRef.current?.focus(), 300);
       }
     }
+    return () => {
+      if (focusTimerRef.current) clearTimeout(focusTimerRef.current);
+    };
   }, [isOpen, otpHint]);
 
   useEffect(() => {
@@ -56,7 +76,7 @@ export default function OtpVerificationModal({
     setSending(true);
     setError("");
     try {
-      const res = await fetch(`${API_URL}/api/v1/otp/send`, {
+      const res = await fetch(sendEndpoint, {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({ bookingId }),
@@ -83,15 +103,20 @@ export default function OtpVerificationModal({
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${API_URL}/api/v1/otp/verify`, {
+      const res = await fetch(otpEndpoint, {
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({ bookingId, code: otp.trim() }),
       });
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error("Invalid response from server");
+      }
       if (!res.ok) throw new Error(data.message || "OTP verification failed");
       setSuccess(true);
-      setTimeout(() => {
+      verifyTimerRef.current = setTimeout(() => {
         onVerified?.();
         onClose?.();
       }, 1500);
@@ -111,11 +136,10 @@ export default function OtpVerificationModal({
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && otp.length === 6 && !loading) {
+      e.preventDefault();
       handleVerify();
     }
   };
-
-  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
@@ -153,7 +177,8 @@ export default function OtpVerificationModal({
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-lg hover:bg-base-300/50 text-base-content/40 hover:text-base-content transition-colors"
+                  disabled={loading}
+                  className="p-2 rounded-lg hover:bg-base-300/50 text-base-content/40 hover:text-base-content transition-colors disabled:opacity-50"
                 >
                   <FiX className="w-5 h-5" />
                 </button>

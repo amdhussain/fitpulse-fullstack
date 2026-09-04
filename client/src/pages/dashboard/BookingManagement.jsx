@@ -84,10 +84,12 @@ function BookingManagement() {
   });
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState("");
+  const [fetchError, setFetchError] = useState("");
 
   const fetchBookings = useCallback(async (statusFilter) => {
     try {
       setLoading(true);
+      setFetchError("");
       const params = new URLSearchParams();
       if (statusFilter && statusFilter !== "all") {
         params.set("status", statusFilter);
@@ -105,9 +107,11 @@ function BookingManagement() {
           confirmed: list.filter((b) => b.status === "CONFIRMED").length,
           cancelled: list.filter((b) => b.status === "CANCELLED").length,
         });
+      } else {
+        setFetchError("Failed to load bookings. Please try again.");
       }
     } catch {
-      // silently fail
+      setFetchError("Failed to load bookings. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -342,6 +346,17 @@ function BookingManagement() {
       </div>
       {loading ? (
         <BookingSkeleton />
+      ) : fetchError ? (
+        <div className="text-center py-16">
+          <FiCalendar className="w-12 h-12 text-red-300 dark:text-red-600 mx-auto mb-4" />
+          <p className="text-red-500 dark:text-red-400 mb-4">{fetchError}</p>
+          <button
+            onClick={() => fetchBookings(filterStatus)}
+            className="px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
       ) : (
         <DataTable columns={columns} data={filtered} emptyMessage="No bookings found" />
       )}

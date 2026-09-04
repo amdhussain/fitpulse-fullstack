@@ -311,10 +311,12 @@ function MyBookings() {
   const [cancelling, setCancelling] = useState(false);
   const [editModal, setEditModal] = useState({ open: false, booking: null });
   const [otpModal, setOtpModal] = useState({ open: false, bookingId: null });
+  const [fetchError, setFetchError] = useState("");
 
   const fetchBookings = useCallback(async (statusFilter) => {
     try {
       setLoading(true);
+      setFetchError("");
       const params = new URLSearchParams();
       if (statusFilter && statusFilter !== "all") {
         params.set("status", statusFilter);
@@ -332,9 +334,11 @@ function MyBookings() {
           confirmed: list.filter((b) => b.status === "CONFIRMED").length,
           completed: list.filter((b) => b.status === "COMPLETED").length,
         });
+      } else {
+        setFetchError("Failed to load bookings. Please try again.");
       }
     } catch {
-      // silently fail
+      setFetchError("Failed to load bookings. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -421,6 +425,17 @@ function MyBookings() {
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="h-16 bg-gray-100 dark:bg-white/5 rounded-xl animate-pulse" />
           ))}
+        </div>
+      ) : fetchError ? (
+        <div className="text-center py-16">
+          <FiCalendar className="w-12 h-12 text-red-300 dark:text-red-600 mx-auto mb-4" />
+          <p className="text-red-500 dark:text-red-400 mb-4">{fetchError}</p>
+          <button
+            onClick={() => fetchBookings(filterStatus)}
+            className="px-4 py-2 rounded-xl bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">

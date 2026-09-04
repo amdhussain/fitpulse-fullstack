@@ -340,8 +340,6 @@ function BookingSummary({
 }
 
 function SuccessModal({ isOpen, onClose, bookingData }) {
-  if (!isOpen) return null;
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -510,6 +508,7 @@ function BookingForm({
               name="preferredDate"
               value={formData.preferredDate}
               onChange={handleChange}
+              min={new Date().toISOString().split("T")[0]}
               className={inputBase}
               required
             />
@@ -633,7 +632,7 @@ function BookingForm({
           </>
         ) : (
           <>
-            <FiCalendar className="w-5 h-5" /> Pay & Confirm Booking{" "}
+            <FiCalendar className="w-5 h-5" /> Book Now{" "}
             <FiArrowRight className="w-5 h-5" />
           </>
         )}
@@ -641,38 +640,6 @@ function BookingForm({
     </div>
   );
 }
-
-// export default function BookingPage() {
-//   const { user } = useAuth();
-//   const navigate = useNavigate();
-//   const [loading, setLoading] = useState(true);
-//   const [trainers, setTrainers] = useState([]);
-//   const [classes, setClasses] = useState([]);
-//   const [genders, setGenders] = useState([]);
-//   const [timeSlots, setTimeSlots] = useState([]);
-//   const [selectedTrainer, setSelectedTrainer] = useState(null);
-//   const [selectedClass, setSelectedClass] = useState(null);
-//   const [paymentOption, setPaymentOption] = useState("FULL");
-//   const [showSuccess, setShowSuccess] = useState(false);
-//   const [showOtpModal, setShowOtpModal] = useState(false);
-//   const [otpHint, setOtpHint] = useState("");
-//   const [otpExpiresIn, setOtpExpiresIn] = useState(10);
-//   const [bookingId, setBookingId] = useState(null);
-//   const [bookingData, setBookingData] = useState({});
-//   const [submitting, setSubmitting] = useState(false);
-//   const [error, setError] = useState("");
- 
-  
-
-//   const [formData, setFormData] = useState({
-//     email: "",
-//     phone: "",
-//     gender: "",
-//     age: "",
-//     preferredTime: "",
-//     preferredDate: "",
-//   });
-
 
 export default function BookingPage() {
   const { user } = useAuth();
@@ -684,7 +651,7 @@ export default function BookingPage() {
   const [selectedTrainer, setSelectedTrainer] = useState(null);
   const [selectedClass, setSelectedClass] = useState(null);
   const [paymentOption, setPaymentOption] = useState("FULL");
-  const [showSuccess, setShowSuccess] = useState(false); // এটি একবারে থাকবে
+  const [showSuccess, setShowSuccess] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpHint, setOtpHint] = useState("");
   const [otpExpiresIn, setOtpExpiresIn] = useState(10);
@@ -702,8 +669,6 @@ export default function BookingPage() {
     preferredDate: "",
   });
 
-  // বাকী কোড যেমন আছে তেমনই থাকবে...
-
   useEffect(() => {
     window.scrollTo(0, 0);
     setTrainers(getTrainers());
@@ -720,11 +685,11 @@ export default function BookingPage() {
         }
       } catch {
         setClasses(FALLBACK_CLASSES);
+      } finally {
+        setLoading(false);
       }
     };
     fetchClasses();
-
-    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -744,6 +709,11 @@ export default function BookingPage() {
 
   const handleSubmit = async () => {
     setError("");
+
+    if (!user) {
+      navigate("/login");
+      return;
+    }
 
     if (!selectedTrainer) {
       setError("Please select a trainer.");
@@ -774,8 +744,6 @@ export default function BookingPage() {
         paymentOption: paymentOption,
       };
 
-      console.log("Booking payload:", bookingPayload);
-
       const bookingRes = await fetch(`${API_URL}/api/v1/booking/me/book`, {
         method: "POST",
         headers: authHeaders(),
@@ -783,8 +751,12 @@ export default function BookingPage() {
       });
 
       if (!bookingRes.ok) {
-        const errData = await bookingRes.json();
-        console.error("Booking error:", errData);
+        let errData;
+        try {
+          errData = await bookingRes.json();
+        } catch {
+          throw new Error("Invalid response from server");
+        }
         const errorMessage = errData.message || "Failed to create booking";
         if (errorMessage.includes("schedule") || errorMessage.includes("Invalid schedule")) {
           setError(`Booking error: ${errorMessage}. Please select a time that matches the class schedule.`);
@@ -803,23 +775,8 @@ export default function BookingPage() {
 
       setBookingId(newBookingId);
 
-      const mockPayRes = await fetch(
-        `${API_URL}/api/v1/booking/me/${newBookingId}/mock-payment`,
-        {
-          method: "POST",
-          headers: authHeaders(),
-          body: JSON.stringify({ paymentOption }),
-        }
-      );
-
-      if (!mockPayRes.ok) {
-        const errData = await mockPayRes.json();
-        throw new Error(errData.message || "Mock payment failed");
-      }
-
-      const mockPayResult = await mockPayRes.json();
-      const hint = mockPayResult.data?.otpHint;
-      const expiresIn = mockPayResult.data?.otpExpiresInMinutes || 10;
+      const hint = bookingResult.data?.otpHint;
+      const expiresIn = bookingResult.data?.otpExpiresInMinutes || 10;
 
       setOtpHint(hint || "");
       setOtpExpiresIn(expiresIn);
@@ -904,6 +861,7 @@ export default function BookingPage() {
         otpExpiresInMinutes={otpExpiresIn}
         onClose={() => setShowOtpModal(false)}
         onVerified={handleOtpVerified}
+        purpose="booking-request"
       />
 
       <SuccessModal

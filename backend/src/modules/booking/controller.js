@@ -14,7 +14,29 @@ const bookClass = asyncHandler(async (req, res) => {
   }
   const { classId, bookingDate, bookingTime, notes, paymentMethod, paymentOption } = req.body;
   const booking = await bookingService.bookClass(req.user.id, { classId, bookingDate, bookingTime, notes, paymentMethod, paymentOption });
-  return createdResponse(res, booking, 'Class booked successfully');
+
+  const otp = await otpService.create({
+    userId: req.user.id,
+    purpose: 'BOOKING_REQUEST_VERIFICATION',
+    metadata: { bookingId: booking.id || booking._id },
+    email: req.user.email,
+    userName: req.user.firstName ? `${req.user.firstName} ${req.user.lastName}` : 'User',
+  });
+
+  notificationService.create({
+    type: 'booking',
+    title: 'Booking Verification OTP',
+    message: `Your OTP for booking verification is: ${otp.code}. This code expires in ${otp.expiresInMinutes} minutes.`,
+    relatedId: booking.id || booking._id,
+    metadata: { userId: req.user.id, code: otp.code },
+    userId: req.user.id,
+  }).catch(() => {});
+
+  return createdResponse(res, {
+    ...booking,
+    otpHint: process.env.NODE_ENV !== 'production' ? otp.code : undefined,
+    otpExpiresInMinutes: otp.expiresInMinutes,
+  }, 'Class booked. Please verify OTP to confirm.');
 });
 
 const bookTrainer = asyncHandler(async (req, res) => {
@@ -23,7 +45,29 @@ const bookTrainer = asyncHandler(async (req, res) => {
   }
   const { trainerId, bookingDate, bookingTime, sessionType, notes, paymentMethod, paymentOption } = req.body;
   const booking = await bookingService.bookTrainer(req.user.id, { trainerId, bookingDate, bookingTime, sessionType, notes, paymentMethod, paymentOption });
-  return createdResponse(res, booking, 'Trainer booked successfully');
+
+  const otp = await otpService.create({
+    userId: req.user.id,
+    purpose: 'BOOKING_REQUEST_VERIFICATION',
+    metadata: { bookingId: booking.id || booking._id },
+    email: req.user.email,
+    userName: req.user.firstName ? `${req.user.firstName} ${req.user.lastName}` : 'User',
+  });
+
+  notificationService.create({
+    type: 'booking',
+    title: 'Booking Verification OTP',
+    message: `Your OTP for booking verification is: ${otp.code}. This code expires in ${otp.expiresInMinutes} minutes.`,
+    relatedId: booking.id || booking._id,
+    metadata: { userId: req.user.id, code: otp.code },
+    userId: req.user.id,
+  }).catch(() => {});
+
+  return createdResponse(res, {
+    ...booking,
+    otpHint: process.env.NODE_ENV !== 'production' ? otp.code : undefined,
+    otpExpiresInMinutes: otp.expiresInMinutes,
+  }, 'Trainer booked. Please verify OTP to confirm.');
 });
 
 const cancelBooking = asyncHandler(async (req, res) => {
